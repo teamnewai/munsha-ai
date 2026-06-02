@@ -1,4 +1,846 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>هيكل ذكي</title></head>
-<body><h1>جاري التحديث...</h1></body>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>هيكل ذكي — بناء المنشآت بالذكاء الاصطناعي</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b1120;font-family:'Cairo',sans-serif;color:#f0f4ff;direction:rtl;min-height:100vh}
+.hidden{display:none!important}
+/* NAV */
+nav{background:rgba(11,17,32,0.95);border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.nav-logo{font-size:1.2rem;font-weight:900;color:#f0f4ff}<br>.nav-logo span{color:#3b82f6}
+.nav-links{display:flex;gap:20px;align-items:center}
+.nav-link{color:#64748b;font-size:13px;cursor:pointer;transition:color 0.2s}
+.nav-link:hover{color:#f0f4ff}
+.nav-btn{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:9px;padding:9px 20px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif}
+/* HERO */
+.hero{padding:80px 24px 60px;text-align:center;max-width:800px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:100px;padding:7px 20px;margin-bottom:32px;color:#60a5fa;font-size:13px;font-weight:700}
+.hero h1{font-size:clamp(2rem,6vw,3.5rem);font-weight:900;line-height:1.2;margin-bottom:20px}
+.hero h1 span{color:#3b82f6}
+.hero p{color:#64748b;font-size:clamp(1rem,2vw,1.15rem);line-height:1.9;margin-bottom:48px;max-width:600px;margin-left:auto;margin-right:auto}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;padding:15px 36px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 0 30px rgba(59,130,246,0.3)}
+.btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:15px 36px;color:#94a3b8;font-size:15px;cursor:pointer;font-family:'Cairo',sans-serif}
+/* STATS */
+.stats{display:flex;gap:0;justify-content:center;border:1px solid rgba(255,255,255,0.08);border-radius:20px;max-width:700px;margin:0 auto 80px;overflow:hidden;flex-wrap:wrap}
+.stat{flex:1;padding:24px 20px;text-align:center;border-left:1px solid rgba(255,255,255,0.08);min-width:140px}
+.stat:last-child{border-left:none}
+.stat-num{font-size:1.8rem;font-weight:900;color:#3b82f6;margin-bottom:4px}
+.stat-lbl{color:#64748b;font-size:12px}
+/* OUTPUTS */
+.outputs{padding:60px 24px;max-width:1100px;margin:0 auto}
+.section-title{text-align:center;font-size:1.6rem;font-weight:800;margin-bottom:8px}
+.section-sub{text-align:center;color:#64748b;font-size:14px;margin-bottom:48px}
+.outputs-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.output-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:22px;transition:all 0.3s;cursor:pointer}
+.output-card:hover{border-color:rgba(59,130,246,0.4);background:rgba(59,130,246,0.04);transform:translateY(-3px)}
+.output-icon{font-size:32px;margin-bottom:14px}
+.output-title{font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:8px}
+.output-desc{color:#64748b;font-size:13px;line-height:1.7}
+.output-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
+.output-tag{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:6px;padding:3px 9px;font-size:10px;color:#60a5fa}
+/* PRICING */
+.pricing{padding:60px 24px;max-width:1100px;margin:0 auto}
+.pricing-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.plan{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:28px;position:relative;transition:all 0.3s}
+.plan.popular{border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.04)}
+.plan-badge{position:absolute;top:-12px;right:24px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:100px;padding:4px 14px;font-size:11px;font-weight:700;color:#fff}
+.plan-name{font-size:1.1rem;font-weight:800;margin-bottom:6px}
+.plan-desc{color:#64748b;font-size:12px;margin-bottom:20px}
+.plan-price{margin-bottom:24px}
+.plan-price .amount{font-size:2.2rem;font-weight:900;color:#f0f4ff}
+.plan-price .currency{font-size:14px;color:#64748b;margin-right:4px}
+.plan-price .period{font-size:13px;color:#64748b}
+.plan-features{list-style:none;margin-bottom:28px}
+.plan-features li{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;color:#94a3b8;border-bottom:1px solid rgba(255,255,255,0.04)}
+.plan-features li:last-child{border:none}
+.plan-features li .check{color:#34d399;font-size:14px;flex-shrink:0;margin-top:1px}
+.plan-features li .x{color:#475569;font-size:14px;flex-shrink:0;margin-top:1px}
+.plan-btn{width:100%;padding:13px 0;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;border:none}
+.plan-btn.primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff}
+.plan-btn.outline{background:transparent;border:1px solid rgba(255,255,255,0.15);color:#94a3b8}
+/* FORM */
+.form-section{padding:60px 24px;max-width:800px;margin:0 auto}
+.form-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:clamp(24px,4vw,40px)}
+.form-title{font-size:1.5rem;font-weight:800;margin-bottom:6px;text-align:center}
+.form-sub{color:#475569;font-size:13px;text-align:center;margin-bottom:32px}
+.form-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{color:#94a3b8;font-size:12px;font-weight:700}
+.field select,.field input{padding:12px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif;cursor:pointer;transition:border-color 0.2s}
+.field select:focus,.field input:focus{border-color:rgba(59,130,246,0.5)}
+.field select option{background:#1e293b}
+.field input::placeholder{color:#4b5563}
+.form-divider{height:1px;background:rgba(255,255,255,0.06);margin:8px 0}
+.stage-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stage-btn{padding:11px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);color:#64748b;font-size:12px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s;text-align:center}
+.stage-btn.active{background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#60a5fa}
+.generate-btn{width:100%;padding:17px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:13px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:'Cairo',sans-serif;margin-top:8px;box-shadow:0 0 30px rgba(59,130,246,0.3);letter-spacing:0.3px}
+.err-box{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:9px;padding:11px 14px;color:#fca5a5;font-size:13px;margin-bottom:14px}
+/* LOADING */
+.load-page{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;text-align:center;padding:24px}
+.spinner{position:relative;width:80px;height:80px;margin:0 auto}
+.sp-ring{position:absolute;inset:0;border:3px solid rgba(59,130,246,0.15);border-radius:50%}
+.sp-arc{position:absolute;inset:0;border:3px solid transparent;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.9s linear infinite}
+.sp-core{position:absolute;inset:22%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px}
+.load-steps{display:flex;flex-direction:column;gap:8px;max-width:360px;width:100%}
+.load-step{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;font-size:13px;color:#64748b;transition:all 0.3s}
+.load-step.done{border-color:rgba(52,211,153,0.3);color:#34d399}
+.load-step.active{border-color:rgba(59,130,246,0.3);color:#60a5fa}
+/* RESULT */
+.result-page{padding:1.5rem;min-height:100vh}
+.result-inner{max-width:1000px;margin:0 auto}
+.result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.result-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.03);border-radius:14px;padding:4px;margin-bottom:20px;overflow-x:auto;flex-wrap:nowrap}
+.rtab{flex-shrink:0;padding:10px 14px;border:none;border-radius:10px;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif;transition:all 0.2s;white-space:nowrap}
+.rtab.on{background:rgba(59,130,246,0.2);color:#60a5fa;font-weight:700}
+.rtab.off{background:transparent;color:#64748b}
+.sec{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px;margin-bottom:14px}
+.sec-title{font-size:11px;font-weight:800;letter-spacing:1.5px;margin-bottom:12px}
+/* ORG */
+.org-node{border-radius:12px;padding:10px 16px;text-align:center;display:inline-block;min-width:140px;cursor:pointer}
+.org-conn-v{width:2px;height:20px;background:rgba(59,130,246,0.4);margin:0 auto}
+.org-conn-h{height:2px;background:rgba(59,130,246,0.3);margin:0 auto}
+/* DEPT */
+.dept-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px;margin-bottom:14px}
+.job-row{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:11px;padding:13px;margin-bottom:8px}
+/* PERM */
+.perm-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.perm-row:last-child{border:none}
+.plev{border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;flex-shrink:0}
+/* POLICY */
+.policy-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:8px}
+/* KPI */
+.kpi-item{background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.15);border-radius:9px;padding:9px 13px;margin-bottom:6px;font-size:13px;color:#94a3b8;line-height:1.6}
+/* BADGE */
+.badge{border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34d399}
+.badge-blue{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#60a5fa}
+.badge-yellow{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#fbbf24}
+.badge-red{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5}
+.badge-gray{background:rgba(100,116,139,0.1);border:1px solid rgba(100,116,139,0.3);color:#64748b}
+/* FOOTER */
+footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:center;color:#334155;font-size:13px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:fadeIn 0.3s ease}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <div class="nav-logo">هيكل <span>ذكي</span></div>
+  <div class="nav-links">
+    <span class="nav-link" onclick="scrollTo('outputsSec')">المخرجات</span>
+    <span class="nav-link" onclick="scrollTo('pricingSec')">الباقات</span>
+    <button class="nav-btn" onclick="scrollTo('formSec')">ابدأ مجاناً ←</button>
+  </div>
+</nav>
+
+<!-- LANDING -->
+<div id="pgLand">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">
+    <span style="width:8px;height:8px;background:#34d399;border-radius:50%;display:inline-block;box-shadow:0 0 8px #34d399"></span>
+    منصة SaaS مدعومة بالذكاء الاصطناعي
+  </div>
+  <h1>بناء <span>منشأتك</span> بالكامل<br>في دقائق</h1>
+  <p>أدخل 10 معطيات بسيطة ويُنشئ الذكاء الاصطناعي هيكلاً تنظيمياً متكاملاً · أقساماً · وظائف · صلاحيات · سياسات · لوائح · نماذج وملفات Excel جاهزة للتشغيل</p>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="scrollTo('formSec')">إنشاء المنشأة الذكية ✨</button>
+    <button class="btn-secondary" onclick="scrollTo('outputsSec')">عرض المخرجات</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div style="padding:0 24px 60px;max-width:800px;margin:0 auto">
+  <div class="stats">
+    <div class="stat"><div class="stat-num">500+</div><div class="stat-lbl">نشاط اقتصادي</div></div>
+    <div class="stat"><div class="stat-num">1000+</div><div class="stat-lbl">مسمى وظيفي</div></div>
+    <div class="stat"><div class="stat-num">9</div><div class="stat-lbl">مخرجات متكاملة</div></div>
+    <div class="stat"><div class="stat-num">دقائق</div><div class="stat-lbl">وقت الإنشاء</div></div>
+  </div>
+</div>
+
+<!-- OUTPUTS -->
+<div class="outputs" id="outputsSec">
+  <div class="section-title">مخرجات المنصة</div>
+  <div class="section-sub">9 مخرجات متكاملة تُبنى تلقائياً بالذكاء الاصطناعي</div>
+  <div class="outputs-grid">
+    <div class="output-card"><div class="output-icon">🏛️</div><div class="output-title">الهيكل التنظيمي</div><div class="output-desc">مخطط هرمي مرئي مع خطوط التقارير والمدير المباشر لكل وظيفة</div><div class="output-tags"><span class="output-tag">PDF</span><span class="output-tag">PNG</span><span class="output-tag">PowerPoint</span></div></div>
+    <div class="output-card"><div class="output-icon">🏢</div><div class="output-title">الأقسام والوظائف</div><div class="output-desc">تحديد الأقسام المناسبة وجميع الوظائف داخل كل قسم حسب النشاط والحجم</div><div class="output-tags"><span class="output-tag">مخصص</span><span class="output-tag">حسب النشاط</span></div></div>
+    <div class="output-card"><div class="output-icon">📋</div><div class="output-title">الوصف الوظيفي</div><div class="output-desc">وصف كامل لكل وظيفة يشمل المهام والمسؤوليات والمؤهلات ومؤشرات الأداء KPI</div><div class="output-tags"><span class="output-tag">Word</span><span class="output-tag">PDF</span></div></div>
+    <div class="output-card"><div class="output-icon">🔐</div><div class="output-title">مصفوفة الصلاحيات</div><div class="output-desc">Authority Matrix و RACI Matrix لكل قسم ووظيفة شاملة صلاحيات التوظيف والشراء والتوقيع</div><div class="output-tags"><span class="output-tag">Authority Matrix</span><span class="output-tag">RACI</span></div></div>
+    <div class="output-card"><div class="output-icon">📜</div><div class="output-title">السياسات المؤسسية</div><div class="output-desc">سياسات الموارد البشرية والمشتريات والأمن السيبراني وإدارة المخاطر مخصصة حسب الدولة</div><div class="output-tags"><span class="output-tag">10+ سياسة</span><span class="output-tag">حسب الدولة</span></div></div>
+    <div class="output-card"><div class="output-icon">⚖️</div><div class="output-title">اللوائح التنظيمية</div><div class="output-desc">لائحة العمل والجزاءات والمكافآت والدوام والصلاحيات والمشتريات</div><div class="output-tags"><span class="output-tag">6 لوائح</span><span class="output-tag">قابلة للتخصيص</span></div></div>
+    <div class="output-card"><div class="output-icon">📝</div><div class="output-title">النماذج الإدارية</div><div class="output-desc">نماذج جاهزة: توظيف، إجازة، شراء، تقييم أداء، محضر اجتماع وأكثر</div><div class="output-tags"><span class="output-tag">10+ نموذج</span><span class="output-tag">Word</span></div></div>
+    <div class="output-card"><div class="output-icon">📊</div><div class="output-title">ملفات Excel</div><div class="output-desc">سجل الموظفين والرواتب والإجازات والميزانية والمبيعات ومتابعة المشاريع</div><div class="output-tags"><span class="output-tag">20+ ملف</span><span class="output-tag">جاهزة للتشغيل</span></div></div>
+    <div class="output-card"><div class="output-icon">🚀</div><div class="output-title">الخطة الاستراتيجية</div><div class="output-desc">خطة تشغيلية سنوية وأهداف OKR ومؤشرات KPI وخطة توظيف وتدريب وهيكل مستقبلي</div><div class="output-tags"><span class="output-tag">باقة المؤسسات</span><span class="output-tag">متقدم</span></div></div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="pricing" id="pricingSec">
+  <div class="section-title">الباقات والأسعار</div>
+  <div class="section-sub">اختر الباقة المناسبة لحجم منشأتك</div>
+  <div class="pricing-grid">
+
+    <!-- FREE -->
+    <div class="plan">
+      <div class="plan-name">🌱 مجانية</div>
+      <div class="plan-desc">للتجربة والمنشآت الناشئة جداً</div>
+      <div class="plan-price"><span class="currency">ر.س</span><span class="amount">0</span><span class="period"> / مرة واحدة</span></div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> تقرير واحد فقط</li>
+        <li><span class="check">✓</span> هيكل تنظيمي مبسط</li>
+        <li><span class="check">✓</span> حتى 10 موظفين</li>
+        <li><span class="check">✓</span> 3 أوصاف وظيفية</li>
+        <li><span class="x">✗</span> <span style="color:#334155">صلاحيات وسياسات</span></li>
+        <li><span class="x">✗</span> <span style="color:#334155">تصدير PDF/Word</span></li>
+        <li><span class="x">✗</span> <span style="color:#334155">ملفات Excel</span></li>
+      </ul>
+      <button class="plan-btn outline" onclick="selectPlan('free')">ابدأ مجاناً</button>
+    </div>
+
+    <!-- STARTER -->
+    <div class="plan">
+      <div class="plan-name">⚡ الناشئة</div>
+      <div class="plan-desc">للشركات الصغيرة والمؤسسات الفردية</div>
+      <div class="plan-price"><span class="currency">ر.س</span><span class="amount">149</span><span class="period"> / شهرياً</span></div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> 5 تقارير شهرياً</li>
+        <li><span class="check">✓</span> حتى 50 موظف</li>
+        <li><span class="check">✓</span> هيكل تنظيمي كامل</li>
+        <li><span class="check">✓</span> أوصاف وظيفية كاملة</li>
+        <li><span class="check">✓</span> مصفوفة الصلاحيات</li>
+        <li><span class="check">✓</span> تصدير PDF و Word</li>
+        <li><span class="x">✗</span> <span style="color:#334155">ملفات Excel</span></li>
+        <li><span class="x">✗</span> <span style="color:#334155">السياسات واللوائح</span></li>
+      </ul>
+      <button class="plan-btn outline" onclick="selectPlan('starter')">اشترك الآن</button>
+    </div>
+
+    <!-- GROWTH - POPULAR -->
+    <div class="plan popular">
+      <div class="plan-badge">الأكثر طلباً ⭐</div>
+      <div class="plan-name">🏢 المتوسطة</div>
+      <div class="plan-desc">للشركات المتوسطة ومتعددة الفروع</div>
+      <div class="plan-price"><span class="currency">ر.س</span><span class="amount">399</span><span class="period"> / شهرياً</span></div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> 20 تقرير شهرياً</li>
+        <li><span class="check">✓</span> حتى 200 موظف</li>
+        <li><span class="check">✓</span> جميع مخرجات الناشئة</li>
+        <li><span class="check">✓</span> السياسات المؤسسية كاملة</li>
+        <li><span class="check">✓</span> اللوائح التنظيمية</li>
+        <li><span class="check">✓</span> النماذج الإدارية</li>
+        <li><span class="check">✓</span> ملفات Excel (HR + مالية)</li>
+        <li><span class="x">✗</span> <span style="color:#334155">الخطة الاستراتيجية</span></li>
+      </ul>
+      <button class="plan-btn primary" onclick="selectPlan('growth')">اشترك الآن</button>
+    </div>
+
+    <!-- ENTERPRISE -->
+    <div class="plan">
+      <div class="plan-name">🏗️ المؤسسات</div>
+      <div class="plan-desc">للشركات الكبرى ومتعددة الجنسيات</div>
+      <div class="plan-price"><span class="currency">ر.س</span><span class="amount">999</span><span class="period"> / شهرياً</span></div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> تقارير غير محدودة</li>
+        <li><span class="check">✓</span> موظفون غير محدودون</li>
+        <li><span class="check">✓</span> جميع مخرجات المتوسطة</li>
+        <li><span class="check">✓</span> الخطة الاستراتيجية OKR/KPI</li>
+        <li><span class="check">✓</span> جميع ملفات Excel (20+)</li>
+        <li><span class="check">✓</span> تخصيص حسب الدولة</li>
+        <li><span class="check">✓</span> دعم مخصص 24/7</li>
+        <li><span class="check">✓</span> API للتكامل مع الأنظمة</li>
+      </ul>
+      <button class="plan-btn primary" onclick="selectPlan('enterprise')">تواصل معنا</button>
+    </div>
+
+  </div>
+
+  <!-- Annual discount -->
+  <div style="text-align:center;margin-top:28px;padding:18px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:14px;max-width:500px;margin-left:auto;margin-right:auto">
+    <div style="color:#34d399;font-weight:700;font-size:14px;margin-bottom:4px">💡 وفّر 25% مع الاشتراك السنوي</div>
+    <div style="color:#64748b;font-size:12px">ادفع سنوياً واحصل على شهرين مجاناً</div>
+  </div>
+</div>
+
+<!-- FORM -->
+<div class="form-section" id="formSec">
+  <div class="form-card">
+    <div class="form-title">إنشاء المنشأة الذكية</div>
+    <div class="form-sub">أدخل بيانات منشأتك ويتولى الذكاء الاصطناعي الباقي</div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>🏭 النشاط الرئيسي *</label>
+        <select id="mainActivity">
+          <option value="">— اختر —</option>
+          <optgroup label="التقنية والاتصالات">
+            <option>تقنية المعلومات والبرمجيات</option>
+            <option>الاتصالات والشبكات</option>
+            <option>الأمن السيبراني</option>
+          </optgroup>
+          <optgroup label="التجارة والبيع">
+            <option>تجزئة وبيع التجزئة</option>
+            <option>تجارة الجملة</option>
+            <option>التجارة الإلكترونية</option>
+          </optgroup>
+          <optgroup label="الخدمات المهنية">
+            <option>الاستشارات الإدارية</option>
+            <option>الخدمات القانونية</option>
+            <option>المحاسبة والمراجعة</option>
+          </optgroup>
+          <optgroup label="الإنشاء والعقارات">
+            <option>المقاولات والإنشاء</option>
+            <option>العقارات والتطوير</option>
+            <option>الاستشارات الهندسية</option>
+          </optgroup>
+          <optgroup label="الصناعة">
+            <option>التصنيع والإنتاج</option>
+            <option>الصناعات الغذائية</option>
+            <option>الصناعات الكيميائية</option>
+          </optgroup>
+          <optgroup label="الصحة والتعليم">
+            <option>الرعاية الصحية والمستشفيات</option>
+            <option>التعليم والتدريب</option>
+            <option>الصيدلة والدواء</option>
+          </optgroup>
+          <optgroup label="الضيافة والسياحة">
+            <option>الفنادق والضيافة</option>
+            <option>المطاعم والمقاهي</option>
+            <option>السياحة والسفر</option>
+          </optgroup>
+          <optgroup label="اللوجستيات">
+            <option>النقل واللوجستيات</option>
+            <option>الشحن والتوزيع</option>
+            <option>المستودعات والتخزين</option>
+          </optgroup>
+          <optgroup label="المالية">
+            <option>البنوك والخدمات المالية</option>
+            <option>التأمين</option>
+            <option>الاستثمار وإدارة الأصول</option>
+          </optgroup>
+          <optgroup label="الطاقة والبيئة">
+            <option>الطاقة والنفط والغاز</option>
+            <option>الطاقة المتجددة</option>
+            <option>البيئة وإدارة النفايات</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>🔍 النشاط الفرعي</label>
+        <input type="text" id="subActivity" placeholder="مثال: تطوير تطبيقات الجوال">
+      </div>
+
+      <div class="field">
+        <label>🌍 الدولة *</label>
+        <select id="country">
+          <option value="">— اختر —</option>
+          <option>المملكة العربية السعودية</option>
+          <option>الإمارات العربية المتحدة</option>
+          <option>الكويت</option>
+          <option>قطر</option>
+          <option>البحرين</option>
+          <option>عُمان</option>
+          <option>مصر</option>
+          <option>الأردن</option>
+          <option>المغرب</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>📍 المدينة / المنطقة *</label>
+        <input type="text" id="city" placeholder="مثال: الرياض">
+      </div>
+
+      <div class="field">
+        <label>📜 نوع الكيان القانوني *</label>
+        <select id="entityType">
+          <option value="">— اختر —</option>
+          <option>شركة مساهمة</option>
+          <option>شركة ذات مسؤولية محدودة</option>
+          <option>مؤسسة فردية</option>
+          <option>شركة تضامن</option>
+          <option>جمعية غير ربحية</option>
+          <option>جهة حكومية</option>
+          <option>شركة هولدينج</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>👔 موظفون إداريون *</label>
+        <input type="number" id="adminEmp" min="0" placeholder="عدد الموظفين الإداريين">
+      </div>
+
+      <div class="field">
+        <label>⚙️ موظفون تشغيليون *</label>
+        <input type="number" id="opsEmp" min="0" placeholder="عدد الموظفين التشغيليين">
+      </div>
+
+      <div class="field">
+        <label>🏪 عدد الفروع</label>
+        <input type="number" id="branches" min="1" value="1" placeholder="عدد الفروع">
+      </div>
+
+      <div class="field">
+        <label>💰 الإيرادات السنوية (اختياري)</label>
+        <select id="revenue">
+          <option value="">— اختياري —</option>
+          <option>أقل من 500 ألف ر.س</option>
+          <option>500 ألف — 2 مليون ر.س</option>
+          <option>2 — 10 مليون ر.س</option>
+          <option>10 — 50 مليون ر.س</option>
+          <option>أكثر من 50 مليون ر.س</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:10px">🚦 مرحلة المشروع *</label>
+      <div class="stage-grid">
+        <div class="stage-btn" onclick="setStage(this,'فكرة')">💡 فكرة</div>
+        <div class="stage-btn" onclick="setStage(this,'تأسيس')">🏗️ تأسيس</div>
+        <div class="stage-btn" onclick="setStage(this,'تشغيل')">⚙️ تشغيل</div>
+        <div class="stage-btn" onclick="setStage(this,'توسع')">🚀 توسع</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:rgba(255,255,255,0.06);margin:24px 0"></div>
+
+    <div id="fErr" class="err-box hidden"></div>
+    <button class="generate-btn" onclick="generate()">
+      ✨ إنشاء المنشأة الذكية
+    </button>
+    <div style="text-align:center;color:#334155;font-size:11px;margin-top:12px">التوليد يستغرق 15-30 ثانية · النتائج مبنية على أفضل الممارسات الإدارية</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">هيكل <span style="color:#3b82f6">ذكي</span></div>
+  <div style="margin-bottom:8px">منصة SaaS لبناء المنشآت بالذكاء الاصطناعي</div>
+  <div style="color:#1e293b">© 2025 هيكل ذكي · جميع الحقوق محفوظة</div>
+</footer>
+
+</div><!-- end pgLand -->
+
+<!-- LOADING PAGE -->
+<div id="pgLoad" class="load-page hidden">
+  <div class="spinner">
+    <div class="sp-ring"></div>
+    <div class="sp-arc"></div>
+    <div class="sp-core">🧠</div>
+  </div>
+  <div style="text-align:center">
+    <div id="ldMsg" style="font-size:17px;font-weight:700;margin-bottom:6px">⚙️ تحليل النشاط...</div>
+    <div id="ldSub" style="color:#475569;font-size:13px"></div>
+  </div>
+  <div class="load-steps" id="ldSteps">
+    <div class="load-step" id="ls0">⏳ تحليل النشاط وتحديد النموذج</div>
+    <div class="load-step" id="ls1">⏳ بناء الهيكل التنظيمي</div>
+    <div class="load-step" id="ls2">⏳ إعداد الأوصاف الوظيفية</div>
+    <div class="load-step" id="ls3">⏳ مصفوفة الصلاحيات</div>
+    <div class="load-step" id="ls4">⏳ السياسات واللوائح</div>
+    <div class="load-step" id="ls5">⏳ المراجعة النهائية</div>
+  </div>
+</div>
+
+<!-- RESULT PAGE -->
+<div id="pgResult" class="result-page hidden">
+  <div class="result-inner">
+    <div class="result-header">
+      <div>
+        <h2 id="rTitle" style="font-size:1.1rem;font-weight:800;margin-bottom:3px"></h2>
+        <p id="rSub" style="color:#475569;font-size:12px"></p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:9px;padding:8px 14px;color:#34d399;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif">⬇️ تصدير PDF</button>
+        <button style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:8px 14px;color:#94a3b8;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif" onclick="showPage('pgLand')">← تقرير جديد</button>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div style="background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(16,185,129,0.04));border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:16px 20px;margin-bottom:16px">
+      <div style="color:#60a5fa;font-size:10px;font-weight:800;margin-bottom:7px;letter-spacing:1.5px">الملخص التنفيذي</div>
+      <p id="rSum" style="color:#cbd5e1;line-height:1.9;margin:0;font-size:14px"></p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="result-tabs">
+      <button class="rtab on"  id="t-org"    onclick="showTab('org')">🏛️ الهيكل</button>
+      <button class="rtab off" id="t-dept"   onclick="showTab('dept')">🏢 الأقسام</button>
+      <button class="rtab off" id="t-jobs"   onclick="showTab('jobs')">💼 الوظائف</button>
+      <button class="rtab off" id="t-perm"   onclick="showTab('perm')">🔐 الصلاحيات</button>
+      <button class="rtab off" id="t-policy" onclick="showTab('policy')">📜 السياسات</button>
+      <button class="rtab off" id="t-kpi"    onclick="showTab('kpi')">📊 KPI</button>
+      <button class="rtab off" id="t-gov"    onclick="showTab('gov')">⚖️ الحوكمة</button>
+    </div>
+
+    <div id="tOrg"    class="fade"></div>
+    <div id="tDept"   class="hidden"></div>
+    <div id="tJobs"   class="hidden"></div>
+    <div id="tPerm"   class="hidden"></div>
+    <div id="tPolicy" class="hidden"></div>
+    <div id="tKpi"    class="hidden"></div>
+    <div id="tGov"    class="hidden"></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let selectedStage = '';
+let selectedPlan  = 'free';
+
+// ── NAV SCROLL ──
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
+}
+
+// ── PAGE ──
+function showPage(id) {
+  ['pgLand','pgLoad','pgResult'].forEach(p => {
+    const el = document.getElementById(p);
+    el.classList.add('hidden');
+    el.style.display = '';
+  });
+  document.getElementById('mainNav').style.display = id === 'pgLand' ? '' : 'none';
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+  if (id === 'pgResult') el.style.display = 'block';
+  else if (id === 'pgLoad') el.style.display = 'flex';
+  else el.style.display = 'block';
+}
+
+// ── STAGE ──
+function setStage(el, val) {
+  document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedStage = val;
+}
+
+// ── PLAN ──
+function selectPlan(plan) {
+  selectedPlan = plan;
+  scrollTo('formSec');
+}
+
+// ── SIZE UTILS ──
+function getTotalEmp() {
+  return (parseInt(document.getElementById('adminEmp').value)||0) + (parseInt(document.getElementById('opsEmp').value)||0);
+}
+function getSizeLabel(n) {
+  if(n<=10)return'ناشئة صغيرة جداً';
+  if(n<=50)return'صغيرة';
+  if(n<=200)return'متوسطة';
+  if(n<=500)return'كبيرة';
+  return'مؤسسة كبرى';
+}
+function getScale(n) {
+  if(n<=10) return{depts:2,jobs:3,layers:2,policies:3,kpis:4};
+  if(n<=50) return{depts:4,jobs:5,layers:3,policies:5,kpis:6};
+  if(n<=200)return{depts:6,jobs:7,layers:4,policies:7,kpis:8};
+  if(n<=500)return{depts:8,jobs:8,layers:5,policies:8,kpis:10};
+  return{depts:10,jobs:10,layers:5,policies:10,kpis:12};
+}
+
+// ── LOADING ANIMATION ──
+function animateSteps(iv) {
+  let step = 0;
+  const steps = ['ls0','ls1','ls2','ls3','ls4','ls5'];
+  steps.forEach(s => { document.getElementById(s).className = 'load-step'; });
+  document.getElementById('ls0').className = 'load-step active';
+  const si = setInterval(() => {
+    if(step < steps.length) {
+      if(step > 0) document.getElementById(steps[step-1]).className = 'load-step done';
+      if(step < steps.length) document.getElementById(steps[step]).className = 'load-step active';
+    }
+    step++;
+    if(step >= steps.length + 1) clearInterval(si);
+  }, 2000);
+  return si;
+}
+
+// ── GENERATE ──
+async function generate() {
+  const activity   = document.getElementById('mainActivity').value;
+  const subAct     = document.getElementById('subActivity').value;
+  const country    = document.getElementById('country').value;
+  const city       = document.getElementById('city').value;
+  const entityType = document.getElementById('entityType').value;
+  const adminEmp   = parseInt(document.getElementById('adminEmp').value)||0;
+  const opsEmp     = parseInt(document.getElementById('opsEmp').value)||0;
+  const branches   = parseInt(document.getElementById('branches').value)||1;
+  const revenue    = document.getElementById('revenue').value;
+  const stage      = selectedStage;
+  const total      = adminEmp + opsEmp;
+  const err        = document.getElementById('fErr');
+
+  if(!activity||!country||!city||!entityType||(adminEmp+opsEmp)<1||!stage) {
+    err.textContent = 'يرجى تعبئة الحقول المطلوبة (*) واختيار مرحلة المشروع';
+    err.classList.remove('hidden'); return;
+  }
+  err.classList.add('hidden');
+
+  const sc  = getScale(total);
+  const lbl = getSizeLabel(total);
+  document.getElementById('ldSub').textContent = 'تحليل ' + activity + ' · ' + total + ' موظف';
+  showPage('pgLoad');
+
+  const msgs = ['⚙️ تحليل النشاط...','🏗️ بناء الهيكل الهرمي...','🏢 تصميم الأقسام والوظائف...','🔐 مصفوفة الصلاحيات...','📜 السياسات واللوائح...','✅ المراجعة النهائية...'];
+  let mi=0; document.getElementById('ldMsg').textContent=msgs[0];
+  const iv=setInterval(()=>{mi=Math.min(mi+1,msgs.length-1);document.getElementById('ldMsg').textContent=msgs[mi];},2000);
+  const si=animateSteps();
+
+  const sizeNote = total<=10?'منشأة ناشئة: مستويان، ادمج الأقسام، وظائف متعددة المهام':
+                   total<=50?'صغيرة: 3 مستويات، 3-4 أقسام':
+                   total<=200?'متوسطة: 4 مستويات، 5-6 أقسام':
+                   '5 مستويات كاملة، 8+ أقسام';
+
+  const userMsg = [
+    'النشاط الرئيسي: ' + activity,
+    subAct ? 'النشاط الفرعي: ' + subAct : '',
+    'الدولة: ' + country,
+    'المدينة: ' + city,
+    'نوع الكيان: ' + entityType,
+    'موظفون إداريون: ' + adminEmp,
+    'موظفون تشغيليون: ' + opsEmp,
+    'إجمالي الموظفين: ' + total + ' (' + lbl + ')',
+    'عدد الفروع: ' + branches,
+    revenue ? 'الإيرادات: ' + revenue : '',
+    'مرحلة المشروع: ' + stage,
+    'توجيه الحجم: ' + sizeNote,
+    'مطلوب: ' + sc.layers + ' مستويات، ' + sc.depts + ' أقسام، ' + sc.jobs + ' وظائف، ' + sc.policies + ' سياسات، ' + sc.kpis + ' مؤشر أداء',
+    'أرجع JSON فقط بهذا الهيكل بلا أي نص خارجه:',
+    '{"summary":"...","orgChart":{"levels":[{"levelName":"...","levelColor":"top|mid|bottom","nodes":[{"title":"...","dept":"...","headcount":1,"reportsTo":"..."}]}]},"departments":[{"name":"...","icon":"...","color":"blue|green|purple|orange|red","description":"...","employees":[{"title":"...","count":1,"duties":["..."]}]}],"jobDescriptions":[{"title":"...","dept":"...","level":"...","objective":"...","responsibilities":["..."],"requirements":"...","experience":"...","skills":["..."],"kpis":["..."]}],"permissions":[{"role":"...","dept":"...","permissions":{"hiring":{"level":"full|partial|view|none","details":"..."},"purchasing":{"level":"full|partial|view|none","details":"..."},"signing":{"level":"full|partial|view|none","details":"..."},"contracts":{"level":"full|partial|view|none","details":"..."},"expenses":{"level":"full|partial|view|none","details":"..."},"approvals":{"level":"full|partial|view|none","details":"..."}}}],"policies":[{"name":"...","category":"HR|مالية|تقنية|مخاطر","summary":"...","keyPoints":["..."]}],"kpis":[{"dept":"...","indicators":[{"name":"...","target":"...","frequency":"شهري|ربعي|سنوي"}]}],"governance":{"framework":"...","committees":[{"name":"...","mandate":"..."}],"compliance":["..."]}}'
+  ].filter(Boolean).join('\n');
+
+  try {
+    const res = await fetch('/api/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt: userMsg})
+    });
+    clearInterval(iv); clearInterval(si);
+    const data = await res.json();
+    if(!res.ok) {
+      showPage('pgLand');
+      document.getElementById('fErr').textContent = 'خطأ: ' + (data.error||'');
+      document.getElementById('fErr').classList.remove('hidden');
+      scrollTo('formSec'); return;
+    }
+    renderAll(data, activity, total, entityType, country, city, stage);
+    showPage('pgResult');
+  } catch(e) {
+    clearInterval(iv); clearInterval(si);
+    showPage('pgLand');
+    document.getElementById('fErr').textContent = 'خطأ في الاتصال: ' + e.message;
+    document.getElementById('fErr').classList.remove('hidden');
+    scrollTo('formSec');
+  }
+}
+
+// ── RENDER ──
+function renderAll(r, activity, n, entity, country, city, stage) {
+  document.getElementById('rTitle').textContent = activity + ' · ' + n + ' موظف · ' + stage;
+  document.getElementById('rSub').textContent   = entity + ' · ' + city + '، ' + country;
+  document.getElementById('rSum').textContent   = r.summary;
+  renderOrg(r.orgChart);
+  renderDept(r.departments);
+  renderJobs(r.jobDescriptions);
+  renderPerm(r.permissions);
+  renderPolicy(r.policies);
+  renderKpi(r.kpis);
+  renderGov(r.governance);
+}
+
+function renderOrg(o) {
+  if(!o||!o.levels) return;
+  const bc={top:'rgba(245,158,11,0.5)',mid:'rgba(167,139,250,0.5)',bottom:'rgba(52,211,153,0.4)'};
+  const bg={top:'linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05))',mid:'linear-gradient(135deg,rgba(167,139,250,0.15),rgba(167,139,250,0.05))',bottom:'linear-gradient(135deg,rgba(52,211,153,0.1),rgba(52,211,153,0.03))'};
+  const tc={top:'#fbbf24',mid:'#c4b5fd',bottom:'#6ee7b7'};
+  let h='<div class="sec"><div class="sec-title" style="color:#60a5fa">المخطط الهرمي التنظيمي</div>';
+  h+='<div style="overflow-x:auto;padding:10px 0"><div style="display:flex;flex-direction:column;align-items:center;min-width:max-content;margin:0 auto">';
+  o.levels.forEach((lv,li)=>{
+    if(li>0){
+      h+='<div class="org-conn-v"></div>';
+      if(lv.nodes.length>1){h+='<div class="org-conn-h" style="width:'+Math.min(lv.nodes.length*170,800)+'px"></div>';}
+    }
+    const col=lv.levelColor||'bottom';
+    h+='<div style="display:flex;justify-content:center;gap:12px">';
+    lv.nodes.forEach(nd=>{
+      h+='<div style="display:flex;flex-direction:column;align-items:center">';
+      if(li>0&&lv.nodes.length>1) h+='<div class="org-conn-v"></div>';
+      h+='<div class="org-node" style="border:1.5px solid '+bc[col]+';background:'+bg[col]+'" onclick="showTab(\'perm\')">';
+      h+='<div style="font-size:11px;font-weight:800;color:#e2e8f0;margin-bottom:3px">'+nd.title+'</div>';
+      h+='<div style="font-size:10px;color:#64748b">'+nd.dept+'</div>';
+      h+='<div style="font-size:10px;color:'+tc[col]+';font-weight:700;margin-top:3px">'+nd.headcount+' موظف</div>';
+      if(nd.reportsTo&&li>0) h+='<div style="font-size:9px;color:#334155;margin-top:2px">↑ '+nd.reportsTo+'</div>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+  });
+  h+='</div></div>';
+  h+='<div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">';
+  [['#fbbf24','الإدارة العليا'],['#c4b5fd','الإدارة الوسطى'],['#6ee7b7','التشغيل']].forEach(([c,l])=>{
+    h+='<div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:3px;background:'+c+';opacity:0.8"></div><span style="font-size:11px;color:#64748b">'+l+'</span></div>';
+  });
+  h+='</div></div>';
+  document.getElementById('tOrg').innerHTML=h;
+}
+
+function renderDept(depts) {
+  if(!depts) return;
+  const pal={blue:{b:'rgba(59,130,246,0.3)',bg:'rgba(59,130,246,0.08)',t:'#60a5fa'},green:{b:'rgba(52,211,153,0.3)',bg:'rgba(52,211,153,0.08)',t:'#34d399'},purple:{b:'rgba(167,139,250,0.3)',bg:'rgba(167,139,250,0.08)',t:'#a78bfa'},orange:{b:'rgba(245,158,11,0.3)',bg:'rgba(245,158,11,0.08)',t:'#fbbf24'},red:{b:'rgba(239,68,68,0.3)',bg:'rgba(239,68,68,0.08)',t:'#fca5a5'}};
+  let h='';
+  depts.forEach(d=>{
+    const p=pal[d.color]||pal.blue;
+    const total=d.employees.reduce((a,e)=>a+e.count,0);
+    h+='<div class="dept-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">';
+    h+='<div style="display:flex;align-items:center;gap:10px"><div style="width:40px;height:40px;border-radius:11px;border:1.5px solid '+p.b+';background:'+p.bg+';display:flex;align-items:center;justify-content:center;font-size:19px">'+d.icon+'</div>';
+    h+='<div><div style="font-size:15px;font-weight:800;color:#e2e8f0">'+d.name+'</div><div style="color:#64748b;font-size:12px;margin-top:1px">'+d.description+'</div></div></div>';
+    h+='<span style="background:'+p.bg+';border:1px solid '+p.b+';border-radius:8px;padding:3px 11px;font-size:11px;color:'+p.t+';font-weight:700">'+total+' موظف</span></div>';
+    d.employees.forEach(emp=>{
+      h+='<div class="job-row"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="font-size:13px;font-weight:700;color:#e2e8f0">'+emp.title+'</div>';
+      h+='<span class="badge badge-gray">'+emp.count+' شاغل</span></div>';
+      emp.duties.forEach(duty=>{h+='<div style="color:#64748b;font-size:12px;padding:3px 0;line-height:1.6">• '+duty+'</div>';});
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('tDept').innerHTML=h;
+}
+
+function renderJobs(jobs) {
+  if(!jobs) return;
+  let h='';
+  jobs.forEach((job,i)=>{
+    h+='<div class="sec" style="margin-bottom:14px">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">';
+    h+='<div><div style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:3px">'+job.title+'</div>';
+    h+='<div style="color:#64748b;font-size:12px">'+job.dept+' · '+job.level+'</div></div>';
+    h+='<span class="badge badge-green">وظيفة '+(i+1)+'</span></div>';
+    if(job.objective) h+='<div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:9px;padding:10px 13px;font-size:13px;color:#94a3b8;line-height:1.7;margin-bottom:12px"><strong style="color:#60a5fa;font-size:11px">الهدف: </strong>'+job.objective+'</div>';
+    h+='<div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">';
+    if(job.responsibilities&&job.responsibilities.length){
+      h+='<div><div style="color:#60a5fa;font-size:10px;font-weight:700;margin-bottom:7px;letter-spacing:1px">المسؤوليات</div>';
+      job.responsibilities.forEach(r=>{h+='<div style="color:#94a3b8;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);line-height:1.6">• '+r+'</div>';});
+      h+='</div>';
+    }
+    h+='<div>';
+    if(job.skills&&job.skills.length){
+      h+='<div style="color:#a78bfa;font-size:10px;font-weight:700;margin-bottom:7px;letter-spacing:1px">المهارات</div>';
+      job.skills.forEach(s=>{h+='<div style="color:#94a3b8;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);line-height:1.6">◆ '+s+'</div>';});
+    }
+    if(job.kpis&&job.kpis.length){
+      h+='<div style="color:#34d399;font-size:10px;font-weight:700;margin:10px 0 6px;letter-spacing:1px">مؤشرات الأداء KPI</div>';
+      job.kpis.forEach(k=>{h+='<div style="color:#94a3b8;font-size:12px;padding:3px 0;line-height:1.6">📊 '+k+'</div>';});
+    }
+    h+='</div></div></div>';
+  });
+  document.getElementById('tJobs').innerHTML=h;
+}
+
+function renderPerm(perms) {
+  if(!perms) return;
+  const lc={full:{l:'كاملة',cl:'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5',i:'🔴'},partial:{l:'جزئية',cl:'background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#fbbf24',i:'🟡'},view:{l:'عرض فقط',cl:'background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#60a5fa',i:'🔵'},none:{l:'لا صلاحية',cl:'background:rgba(100,116,139,0.1);border:1px solid rgba(100,116,139,0.3);color:#64748b',i:'⚫'}};
+  const pl={hiring:'👥 التوظيف',purchasing:'🛒 المشتريات',signing:'✍️ التوقيع',contracts:'📄 العقود',expenses:'💰 المصروفات',approvals:'✅ الموافقات'};
+  let h='<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:9px 11px;margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#64748b"><span>🔴 كاملة</span><span>🟡 جزئية</span><span>🔵 عرض فقط</span><span>⚫ لا صلاحية</span></div>';
+  perms.forEach(perm=>{
+    h+='<div class="sec" style="margin-bottom:12px"><div style="font-size:14px;font-weight:800;color:#e2e8f0;margin-bottom:2px">'+perm.role+'</div>';
+    h+='<div style="color:#64748b;font-size:12px;margin-bottom:12px">'+perm.dept+'</div>';
+    Object.entries(perm.permissions).forEach(([k,v])=>{
+      const c=lc[v.level]||lc.none;
+      h+='<div class="perm-row"><span style="font-size:13px">'+c.i+'</span>';
+      h+='<div style="flex:1"><div style="font-size:12px;color:#cbd5e1;font-weight:600;margin-bottom:1px">'+(pl[k]||k)+'</div>';
+      h+='<div style="font-size:11px;color:#64748b;line-height:1.5">'+v.details+'</div></div>';
+      h+='<span class="plev" style="'+c.cl+'">'+c.l+'</span></div>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('tPerm').innerHTML=h;
+}
+
+function renderPolicy(policies) {
+  if(!policies) return;
+  const catColors={HR:'badge-blue',مالية:'badge-yellow',تقنية:'badge-purple',مخاطر:'badge-red'};
+  let h='';
+  policies.forEach((p,i)=>{
+    const cc=catColors[p.category]||'badge-gray';
+    h+='<div class="policy-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:6px">';
+    h+='<div style="font-size:14px;font-weight:800;color:#e2e8f0">'+p.name+'</div>';
+    h+='<span class="badge '+cc+'">'+p.category+'</span></div>';
+    h+='<p style="color:#64748b;font-size:13px;line-height:1.7;margin-bottom:10px">'+p.summary+'</p>';
+    if(p.keyPoints&&p.keyPoints.length){
+      h+='<div style="display:flex;flex-direction:column;gap:4px">';
+      p.keyPoints.forEach(kp=>{h+='<div style="color:#94a3b8;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);line-height:1.6">• '+kp+'</div>';});
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  document.getElementById('tPolicy').innerHTML=h;
+}
+
+function renderKpi(kpis) {
+  if(!kpis) return;
+  let h='';
+  kpis.forEach(dept=>{
+    h+='<div class="sec" style="margin-bottom:12px"><div class="sec-title" style="color:#34d399">📊 '+dept.dept+'</div>';
+    dept.indicators.forEach(ind=>{
+      h+='<div class="kpi-item"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">';
+      h+='<div style="font-weight:700;color:#e2e8f0;font-size:13px">'+ind.name+'</div>';
+      h+='<span class="badge badge-blue" style="flex-shrink:0">'+ind.frequency+'</span></div>';
+      h+='<div style="color:#64748b;font-size:12px;margin-top:4px">🎯 الهدف: '+ind.target+'</div></div>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('tKpi').innerHTML=h;
+}
+
+function renderGov(gov) {
+  if(!gov) return;
+  let h='<div class="sec"><div class="sec-title" style="color:#f59e0b">إطار الحوكمة</div><p style="color:#94a3b8;line-height:1.9;margin:0;font-size:14px">'+gov.framework+'</p></div>';
+  if(gov.committees&&gov.committees.length){
+    h+='<div class="sec"><div class="sec-title" style="color:#a78bfa">اللجان</div>';
+    gov.committees.forEach((c,i)=>{
+      h+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:'+(i<gov.committees.length-1?'1px solid rgba(255,255,255,0.05)':'none')+'"><div style="font-weight:700;color:#e2e8f0;font-size:13px;margin-bottom:3px">'+c.name+'</div><div style="color:#64748b;font-size:12px;line-height:1.6">'+c.mandate+'</div></div>';
+    });
+    h+='</div>';
+  }
+  if(gov.compliance&&gov.compliance.length){
+    h+='<div class="sec"><div class="sec-title" style="color:#34d399">متطلبات الامتثال</div><div style="display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">';
+    gov.compliance.forEach(c=>{h+='<div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:9px;padding:8px 12px;font-size:12px;color:#94a3b8;line-height:1.6">✓ '+c+'</div>';});
+    h+='</div></div>';
+  }
+  document.getElementById('tGov').innerHTML=h;
+}
+
+function showTab(name) {
+  const allTabs=['org','dept','jobs','perm','policy','kpi','gov'];
+  allTabs.forEach(t=>{
+    document.getElementById('t-'+t).className='rtab off';
+    const cap=t.charAt(0).toUpperCase()+t.slice(1);
+    document.getElementById('t'+cap).classList.add('hidden');
+    document.getElementById('t'+cap).classList.remove('fade');
+  });
+  document.getElementById('t-'+name).className='rtab on';
+  const cap=name.charAt(0).toUpperCase()+name.slice(1);
+  const el=document.getElementById('t'+cap);
+  el.classList.remove('hidden');
+  el.classList.add('fade');
+}
+
+// Init
+showPage('pgLand');
+</script>
+</body>
 </html>

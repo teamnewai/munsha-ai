@@ -134,11 +134,11 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
 
 <!-- NAV -->
 <nav id="mainNav">
-  <div class="nav-logo">منشأتك <span>AI</span></div>
+  <div class="nav-logo">منشأتك <span style="color:#3b82f6">AI</span></div>
   <div class="nav-links">
-    <span class="nav-link" onclick="scrollTo('outputsSec')">المخرجات</span>
+    <span class="nav-link" onclick="goToOutputs()">المخرجات</span>
     <span class="nav-link" onclick="scrollTo('pricingSec')">الباقات</span>
-    <button class="nav-btn" onclick="goToForm()">ابدأ مجاناً ←</button>
+    <button class="nav-btn" onclick="goToForm()" style="cursor:pointer">ابدأ مجاناً ←</button>
   </div>
 </nav>
 
@@ -154,8 +154,8 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
   <h1>بناء <span>منشأتك</span> بالكامل<br>في دقائق</h1>
   <p>أدخل 10 معطيات بسيطة ويُنشئ الذكاء الاصطناعي هيكلاً تنظيمياً متكاملاً · أقساماً · وظائف · صلاحيات · سياسات · لوائح · نماذج وملفات Excel جاهزة للتشغيل</p>
   <div class="hero-btns">
-    <button class="btn-primary" onclick="goToForm()">إنشاء المنشأة الذكية ✨</button>
-    <button class="btn-secondary" onclick="scrollTo('outputsSec')">عرض المخرجات</button>
+    <button class="btn-primary" onclick="goToForm()" style="cursor:pointer">إنشاء المنشأة الذكية ✨</button>
+    <button class="btn-secondary" onclick="goToOutputs()" style="cursor:pointer">عرض المخرجات</button>
   </div>
 </div>
 
@@ -633,11 +633,27 @@ function scrollTo(id) {
 }
 
 function goToForm() {
-  // If we're on landing page, scroll to form
-  const pgLand = document.getElementById('pgLand');
   const formSec = document.getElementById('formSec');
-  if (pgLand && !pgLand.classList.contains('hidden') && formSec) {
+  const pgLand = document.getElementById('pgLand');
+  // Make sure landing page is visible
+  if (pgLand && pgLand.classList.contains('hidden')) {
+    showPage('pgLand');
+    setTimeout(() => { 
+      document.getElementById('formSec')?.scrollIntoView({behavior:'smooth'}); 
+    }, 100);
+  } else if (formSec) {
     formSec.scrollIntoView({behavior:'smooth'});
+  }
+}
+
+function goToOutputs() {
+  const el = document.getElementById('outputsSec');
+  const pgLand = document.getElementById('pgLand');
+  if (pgLand && pgLand.classList.contains('hidden')) {
+    showPage('pgLand');
+    setTimeout(() => { document.getElementById('outputsSec')?.scrollIntoView({behavior:'smooth'}); }, 100);
+  } else if (el) {
+    el.scrollIntoView({behavior:'smooth'});
   }
 }
 

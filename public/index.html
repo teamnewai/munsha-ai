@@ -138,7 +138,15 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
   <div class="nav-links">
     <span class="nav-link" onclick="goToOutputs()">المخرجات</span>
     <span class="nav-link" onclick="scrollTo('pricingSec')">الباقات</span>
-    <button class="nav-btn" onclick="goToForm()" style="cursor:pointer">ابدأ مجاناً ←</button>
+    <div id="navGuest" style="display:flex;gap:8px;align-items:center">
+      <button onclick="openAuth('login')" style="background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:9px;padding:8px 16px;color:#94a3b8;font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif">دخول</button>
+      <button class="nav-btn" onclick="goToForm()" style="cursor:pointer">ابدأ مجاناً ←</button>
+    </div>
+    <div id="navUser" style="display:none;gap:8px;align-items:center">
+      <span id="navUserName" style="color:#94a3b8;font-size:13px"></span>
+      <button onclick="showDashboard()" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);border-radius:9px;padding:8px 16px;color:#60a5fa;font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif">منشآتي</button>
+      <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:8px 14px;color:#64748b;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif">خروج</button>
+    </div>
   </div>
 </nav>
 

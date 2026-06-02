@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>منشأتك AI — بناء المنشآت بالذكاء الاصطناعي</title>
+<title>هيكل ذكي — بناء المنشآت بالذكاء الاصطناعي</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -134,11 +134,11 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
 
 <!-- NAV -->
 <nav id="mainNav">
-  <div class="nav-logo">منشأتك <span>AI</span></div>
+  <div class="nav-logo">هيكل <span>ذكي</span></div>
   <div class="nav-links">
     <span class="nav-link" onclick="scrollTo('outputsSec')">المخرجات</span>
     <span class="nav-link" onclick="scrollTo('pricingSec')">الباقات</span>
-    <button class="nav-btn" onclick="scrollTo('formSec')">ابدأ مجاناً ←</button>
+    <button class="nav-btn" onclick="goToForm()">ابدأ مجاناً ←</button>
   </div>
 </nav>
 
@@ -149,12 +149,12 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
 <div class="hero">
   <div class="hero-badge">
     <span style="width:8px;height:8px;background:#34d399;border-radius:50%;display:inline-block;box-shadow:0 0 8px #34d399"></span>
-    منشأتك AI — منصة مدعومة بالذكاء الاصطناعي
+    منصة SaaS مدعومة بالذكاء الاصطناعي
   </div>
   <h1>بناء <span>منشأتك</span> بالكامل<br>في دقائق</h1>
   <p>أدخل 10 معطيات بسيطة ويُنشئ الذكاء الاصطناعي هيكلاً تنظيمياً متكاملاً · أقساماً · وظائف · صلاحيات · سياسات · لوائح · نماذج وملفات Excel جاهزة للتشغيل</p>
   <div class="hero-btns">
-    <button class="btn-primary" onclick="scrollTo('formSec')">إنشاء المنشأة الذكية ✨</button>
+    <button class="btn-primary" onclick="goToForm()">إنشاء المنشأة الذكية ✨</button>
     <button class="btn-secondary" onclick="scrollTo('outputsSec')">عرض المخرجات</button>
   </div>
 </div>
@@ -206,7 +206,7 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
         <li><span class="x">✗</span> <span style="color:#334155">تصدير PDF/Word</span></li>
         <li><span class="x">✗</span> <span style="color:#334155">ملفات Excel</span></li>
       </ul>
-      <button class="plan-btn outline" onclick="selectPlan('free')">ابدأ مجاناً</button>
+      <button class="plan-btn outline" onclick="goToForm()">ابدأ مجاناً</button>
     </div>
 
     <!-- STARTER -->
@@ -224,7 +224,7 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
         <li><span class="x">✗</span> <span style="color:#334155">ملفات Excel</span></li>
         <li><span class="x">✗</span> <span style="color:#334155">السياسات واللوائح</span></li>
       </ul>
-      <button class="plan-btn outline" onclick="selectPlan('starter')">اشترك الآن</button>
+      <button class="plan-btn outline" onclick="goToForm()">اشترك الآن</button>
     </div>
 
     <!-- GROWTH - POPULAR -->
@@ -243,7 +243,7 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
         <li><span class="check">✓</span> ملفات Excel (HR + مالية)</li>
         <li><span class="x">✗</span> <span style="color:#334155">الخطة الاستراتيجية</span></li>
       </ul>
-      <button class="plan-btn primary" onclick="selectPlan('growth')">اشترك الآن</button>
+      <button class="plan-btn primary" onclick="goToForm()">اشترك الآن</button>
     </div>
 
     <!-- ENTERPRISE -->
@@ -261,7 +261,7 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
         <li><span class="check">✓</span> دعم مخصص 24/7</li>
         <li><span class="check">✓</span> API للتكامل مع الأنظمة</li>
       </ul>
-      <button class="plan-btn primary" onclick="selectPlan('enterprise')">تواصل معنا</button>
+      <button class="plan-btn primary" onclick="goToForm()">تواصل معنا</button>
     </div>
 
   </div>
@@ -281,58 +281,185 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
 
     <div class="form-grid">
       <div class="field">
-        <label>🏭 النشاط الرئيسي *</label>
-        <select id="mainActivity">
-          <option value="">— اختر —</option>
-          <optgroup label="التقنية والاتصالات">
-            <option>تقنية المعلومات والبرمجيات</option>
-            <option>الاتصالات والشبكات</option>
-            <option>الأمن السيبراني</option>
+                <label>🏭 النشاط الرئيسي *</label>
+        <select id="mainActivity" onchange="updateSubActivities()">
+          <option value="">— اختر القطاع —</option>
+          <optgroup label="أ — الزراعة والحراجة وصيد الأسماك">
+            <option value="زراعة الحبوب والمحاصيل|0111">زراعة الحبوب والمحاصيل</option>
+            <option value="زراعة الخضروات والفاكهة|0113">زراعة الخضروات والفاكهة</option>
+            <option value="زراعة النخيل والتمور|0124">زراعة النخيل والتمور</option>
+            <option value="تربية المواشي والدواجن|0141">تربية المواشي والدواجن</option>
+            <option value="تربية الإبل|0143">تربية الإبل</option>
+            <option value="تربية نحل العسل|0149">تربية نحل العسل</option>
+            <option value="صيد الأسماك البحرية|0311">صيد الأسماك البحرية</option>
+            <option value="الاستزراع السمكي|0321">الاستزراع السمكي</option>
           </optgroup>
-          <optgroup label="التجارة والبيع">
-            <option>تجزئة وبيع التجزئة</option>
-            <option>تجارة الجملة</option>
-            <option>التجارة الإلكترونية</option>
+          <optgroup label="ب — التعدين واستخراج الخامات">
+            <option value="استخراج النفط الخام|0610">استخراج النفط الخام</option>
+            <option value="استخراج الغاز الطبيعي|0620">استخراج الغاز الطبيعي</option>
+            <option value="تعدين الحجر والرخام والغرانيت|0811">تعدين الحجر والرخام والغرانيت</option>
+            <option value="تعدين الرمل والحصى|0812">تعدين الرمل والحصى</option>
+            <option value="تعدين الفوسفات والمعادن|0891">تعدين الفوسفات والمعادن</option>
           </optgroup>
-          <optgroup label="الخدمات المهنية">
-            <option>الاستشارات الإدارية</option>
-            <option>الخدمات القانونية</option>
-            <option>المحاسبة والمراجعة</option>
+          <optgroup label="ج — التصنيع الغذائي">
+            <option value="تصنيع وتعبئة اللحوم والدواجن|1010">تصنيع وتعبئة اللحوم والدواجن</option>
+            <option value="تصنيع وتعبئة الأسماك والمأكولات البحرية|1020">تصنيع وتعبئة الأسماك والمأكولات البحرية</option>
+            <option value="تصنيع وتعليب الفاكهة والخضروات|1030">تصنيع وتعليب الفاكهة والخضروات</option>
+            <option value="تصنيع الزيوت والدهون النباتية|1040">تصنيع الزيوت والدهون النباتية</option>
+            <option value="تصنيع منتجات الألبان|1050">تصنيع منتجات الألبان</option>
+            <option value="تصنيع الطحين والمخابز|1061">تصنيع الطحين والمخابز</option>
+            <option value="تصنيع الحلويات والشوكولاتة|1073">تصنيع الحلويات والشوكولاتة</option>
+            <option value="تصنيع المشروبات الغازية والعصائر|1104">تصنيع المشروبات الغازية والعصائر</option>
           </optgroup>
-          <optgroup label="الإنشاء والعقارات">
-            <option>المقاولات والإنشاء</option>
-            <option>العقارات والتطوير</option>
-            <option>الاستشارات الهندسية</option>
+          <optgroup label="د — التصنيع الصناعي">
+            <option value="تصنيع الملابس والمنسوجات|1410">تصنيع الملابس والمنسوجات</option>
+            <option value="تصنيع منتجات الأخشاب والأثاث|1610">تصنيع منتجات الأخشاب والأثاث</option>
+            <option value="تصنيع الورق والكرتون|1701">تصنيع الورق والكرتون</option>
+            <option value="الطباعة والنشر|1811">الطباعة والنشر</option>
+            <option value="تكرير النفط والبتروكيماويات|1920">تكرير النفط والبتروكيماويات</option>
+            <option value="تصنيع المواد الكيماوية والأسمدة|2013">تصنيع المواد الكيماوية والأسمدة</option>
+            <option value="تصنيع الدهانات والطلاء|2030">تصنيع الدهانات والطلاء</option>
+            <option value="تصنيع المنظفات ومستحضرات التجميل|2041">تصنيع المنظفات ومستحضرات التجميل</option>
+            <option value="تصنيع الأدوية والمستلزمات الطبية|2100">تصنيع الأدوية والمستلزمات الطبية</option>
+            <option value="تصنيع منتجات المطاط والبلاستيك|2220">تصنيع منتجات المطاط والبلاستيك</option>
+            <option value="تصنيع السيراميك والبلاط|2391">تصنيع السيراميك والبلاط</option>
+            <option value="تصنيع الإسمنت والجير|2394">تصنيع الإسمنت والجير</option>
+            <option value="تصنيع الحديد والصلب|2410">تصنيع الحديد والصلب</option>
+            <option value="تصنيع الهياكل المعدنية والأبواب|2511">تصنيع الهياكل المعدنية والأبواب</option>
+            <option value="تصنيع الإلكترونيات والحاسبات|2620">تصنيع الإلكترونيات والحاسبات</option>
+            <option value="تصنيع المعدات الكهربائية|2710">تصنيع المعدات الكهربائية</option>
+            <option value="تصنيع الآلات والمعدات الصناعية|2811">تصنيع الآلات والمعدات الصناعية</option>
+            <option value="تصنيع قطع غيار السيارات|2930">تصنيع قطع غيار السيارات</option>
+            <option value="بناء السفن وإصلاحها|3011">بناء السفن وإصلاحها</option>
+            <option value="تصنيع الأثاث المنزلي والمكتبي|3100">تصنيع الأثاث المنزلي والمكتبي</option>
           </optgroup>
-          <optgroup label="الصناعة">
-            <option>التصنيع والإنتاج</option>
-            <option>الصناعات الغذائية</option>
-            <option>الصناعات الكيميائية</option>
+          <optgroup label="هـ — الطاقة والمياه والبيئة">
+            <option value="توليد الكهرباء بالطاقة التقليدية|3510">توليد الكهرباء بالطاقة التقليدية</option>
+            <option value="توليد الطاقة الشمسية وطاقة الرياح|3510-R">توليد الطاقة الشمسية وطاقة الرياح</option>
+            <option value="توزيع الغاز الطبيعي|3520">توزيع الغاز الطبيعي</option>
+            <option value="معالجة وتوزيع المياه|3600">معالجة وتوزيع المياه</option>
+            <option value="تحلية المياه|3600-D">تحلية المياه</option>
+            <option value="إدارة النفايات وإعادة التدوير|3832">إدارة النفايات وإعادة التدوير</option>
           </optgroup>
-          <optgroup label="الصحة والتعليم">
-            <option>الرعاية الصحية والمستشفيات</option>
-            <option>التعليم والتدريب</option>
-            <option>الصيدلة والدواء</option>
+          <optgroup label="و — الإنشاء والمقاولات">
+            <option value="إنشاء المباني السكنية والتجارية|4100">إنشاء المباني السكنية والتجارية</option>
+            <option value="إنشاء الطرق والجسور والبنية التحتية|4210">إنشاء الطرق والجسور والبنية التحتية</option>
+            <option value="إنشاء شبكات المياه والكهرباء والغاز|4220">إنشاء شبكات المياه والكهرباء والغاز</option>
+            <option value="أعمال الكهرباء والتمديدات|4321">أعمال الكهرباء والتمديدات</option>
+            <option value="أعمال السباكة والتكييف|4322">أعمال السباكة والتكييف</option>
+            <option value="أعمال التشطيب والديكور الداخلي|4330">أعمال التشطيب والديكور الداخلي</option>
           </optgroup>
-          <optgroup label="الضيافة والسياحة">
-            <option>الفنادق والضيافة</option>
-            <option>المطاعم والمقاهي</option>
-            <option>السياحة والسفر</option>
+          <optgroup label="ز — التجارة">
+            <option value="بيع السيارات وخدماتها|4510">بيع السيارات وخدماتها</option>
+            <option value="تجارة جملة المواد الغذائية|4649">تجارة جملة المواد الغذائية</option>
+            <option value="تجارة جملة مواد البناء|4663">تجارة جملة مواد البناء</option>
+            <option value="تجارة جملة الآلات والمعدات|4659">تجارة جملة الآلات والمعدات</option>
+            <option value="سوبرماركت وهايبرماركت|4711">سوبرماركت وهايبرماركت</option>
+            <option value="محلات الخضروات والفاكهة|4721">محلات الخضروات والفاكهة</option>
+            <option value="محلات اللحوم والدواجن|4722">محلات اللحوم والدواجن</option>
+            <option value="محلات الملابس والأحذية|4771">محلات الملابس والأحذية</option>
+            <option value="صيدليات ومستحضرات التجميل|4772">صيدليات ومستحضرات التجميل</option>
+            <option value="محلات الإلكترونيات والأجهزة|4741">محلات الإلكترونيات والأجهزة</option>
+            <option value="محلات الأثاث والمفروشات|4752">محلات الأثاث والمفروشات</option>
+            <option value="التجارة الإلكترونية|4791">التجارة الإلكترونية</option>
           </optgroup>
-          <optgroup label="اللوجستيات">
-            <option>النقل واللوجستيات</option>
-            <option>الشحن والتوزيع</option>
-            <option>المستودعات والتخزين</option>
+          <optgroup label="ح — النقل والتخزين واللوجستيات">
+            <option value="نقل الركاب بالحافلات|4921">نقل الركاب بالحافلات</option>
+            <option value="سيارات الأجرة والتطبيقات|4922">سيارات الأجرة والتطبيقات</option>
+            <option value="شركات الشحن والنقل البري|4923">شركات الشحن والنقل البري</option>
+            <option value="الشحن البحري والموانئ|5012">الشحن البحري والموانئ</option>
+            <option value="شركات الطيران|5110">شركات الطيران</option>
+            <option value="الشحن الجوي|5120">الشحن الجوي</option>
+            <option value="المستودعات والتخزين|5210">المستودعات والتخزين</option>
+            <option value="وكلاء الشحن والجمارك|5229">وكلاء الشحن والجمارك</option>
+            <option value="الشحن السريع والتوصيل|5320">الشحن السريع والتوصيل</option>
           </optgroup>
-          <optgroup label="المالية">
-            <option>البنوك والخدمات المالية</option>
-            <option>التأمين</option>
-            <option>الاستثمار وإدارة الأصول</option>
+          <optgroup label="ط — الضيافة والمطاعم والسياحة">
+            <option value="الفنادق ومنشآت الإقامة|5510">الفنادق ومنشآت الإقامة</option>
+            <option value="الشاليهات والاستراحات والمنتجعات|5520">الشاليهات والاستراحات والمنتجعات</option>
+            <option value="الشقق المفروشة|5590">الشقق المفروشة</option>
+            <option value="المطاعم ووجبات سريعة|5610">المطاعم ووجبات سريعة</option>
+            <option value="ضيافة الفعاليات والأعراس|5621">ضيافة الفعاليات والأعراس</option>
+            <option value="المقاهي وكوفي شوب|5630">المقاهي وكوفي شوب</option>
+            <option value="وكالات السفر والسياحة|7911">وكالات السفر والسياحة</option>
           </optgroup>
-          <optgroup label="الطاقة والبيئة">
-            <option>الطاقة والنفط والغاز</option>
-            <option>الطاقة المتجددة</option>
-            <option>البيئة وإدارة النفايات</option>
+          <optgroup label="ي — الاتصالات وتقنية المعلومات">
+            <option value="تطوير البرمجيات والتطبيقات|6201">تطوير البرمجيات والتطبيقات</option>
+            <option value="استشارات تقنية المعلومات|6202">استشارات تقنية المعلومات</option>
+            <option value="الأمن السيبراني|6209">الأمن السيبراني</option>
+            <option value="الخدمات السحابية ومراكز البيانات|6311">الخدمات السحابية ومراكز البيانات</option>
+            <option value="المنصات الإلكترونية وبوابات الويب|6312">المنصات الإلكترونية وبوابات الويب</option>
+            <option value="شركات الاتصالات والجوال|6120">شركات الاتصالات والجوال</option>
+            <option value="خدمات الإنترنت|6110">خدمات الإنترنت</option>
+            <option value="الذكاء الاصطناعي وتحليل البيانات|6399">الذكاء الاصطناعي وتحليل البيانات</option>
+          </optgroup>
+          <optgroup label="ك — الخدمات المالية والتأمين">
+            <option value="البنوك التجارية والإسلامية|6419">البنوك التجارية والإسلامية</option>
+            <option value="شركات التمويل والتأجير|6491">شركات التمويل والتأجير</option>
+            <option value="التأمين والتكافل|6511">التأمين والتكافل</option>
+            <option value="الاستثمار وإدارة الصناديق|6420">الاستثمار وإدارة الصناديق</option>
+            <option value="الصرافة والتحويلات|6619">الصرافة والتحويلات</option>
+            <option value="الدفع الإلكتروني والفنتك|6619-F">الدفع الإلكتروني والفنتك</option>
+          </optgroup>
+          <optgroup label="ل — العقارات">
+            <option value="شراء وبيع العقارات والأراضي|6810">شراء وبيع العقارات والأراضي</option>
+            <option value="تأجير وإدارة العقارات|6820">تأجير وإدارة العقارات</option>
+            <option value="الوساطة والتقييم العقاري|6831">الوساطة والتقييم العقاري</option>
+            <option value="تطوير المجمعات السكنية|6810-D">تطوير المجمعات السكنية</option>
+          </optgroup>
+          <optgroup label="م — الخدمات المهنية والاستشارية">
+            <option value="المحاماة والخدمات القانونية|6910">المحاماة والخدمات القانونية</option>
+            <option value="المحاسبة والتدقيق الضريبي|6920">المحاسبة والتدقيق الضريبي</option>
+            <option value="الاستشارات الإدارية وتطوير الأعمال|7020">الاستشارات الإدارية وتطوير الأعمال</option>
+            <option value="الهندسة المعمارية والتصميم|7110">الهندسة المعمارية والتصميم</option>
+            <option value="الهندسة المدنية والإنشائية|7110-C">الهندسة المدنية والإنشائية</option>
+            <option value="البحث والتطوير والابتكار|7210">البحث والتطوير والابتكار</option>
+            <option value="التسويق والإعلان الرقمي|7310">التسويق والإعلان الرقمي</option>
+            <option value="أبحاث السوق وتحليل البيانات|7320">أبحاث السوق وتحليل البيانات</option>
+            <option value="التصميم الجرافيكي والديكور الداخلي|7410">التصميم الجرافيكي والديكور الداخلي</option>
+            <option value="خدمات الترجمة واللغات|7490">خدمات الترجمة واللغات</option>
+          </optgroup>
+          <optgroup label="ن — الخدمات الإدارية والدعم">
+            <option value="تأجير السيارات والمعدات|7710">تأجير السيارات والمعدات</option>
+            <option value="التوظيف والاستقدام|7810">التوظيف والاستقدام</option>
+            <option value="الخدمات الأمنية والحراسة|8010">الخدمات الأمنية والحراسة</option>
+            <option value="خدمات النظافة وإدارة المباني|8121">خدمات النظافة وإدارة المباني</option>
+            <option value="تنسيق الحدائق والمسطحات الخضراء|8130">تنسيق الحدائق والمسطحات الخضراء</option>
+            <option value="مراكز الاتصال وخدمة العملاء|8220">مراكز الاتصال وخدمة العملاء</option>
+            <option value="تنظيم الفعاليات والمؤتمرات|8230">تنظيم الفعاليات والمؤتمرات</option>
+          </optgroup>
+          <optgroup label="س — التعليم والتدريب">
+            <option value="الحضانات ورياض الأطفال|8510">الحضانات ورياض الأطفال</option>
+            <option value="المدارس الابتدائية والمتوسطة والثانوية|8520">المدارس الابتدائية والمتوسطة والثانوية</option>
+            <option value="الجامعات والكليات والمعاهد|8541">الجامعات والكليات والمعاهد</option>
+            <option value="مراكز التدريب المهني والتقني|8532">مراكز التدريب المهني والتقني</option>
+            <option value="مراكز تعليم اللغات|8552">مراكز تعليم اللغات</option>
+            <option value="التعليم الإلكتروني والدورات الأونلاين|8559">التعليم الإلكتروني والدورات الأونلاين</option>
+            <option value="الأكاديميات الرياضية والفنية|8551">الأكاديميات الرياضية والفنية</option>
+          </optgroup>
+          <optgroup label="ع — الصحة والرعاية الاجتماعية">
+            <option value="المستشفيات العامة والمتخصصة|8610">المستشفيات العامة والمتخصصة</option>
+            <option value="العيادات الطبية العامة|8621">العيادات الطبية العامة</option>
+            <option value="العيادات الطبية المتخصصة|8622">العيادات الطبية المتخصصة</option>
+            <option value="عيادات الأسنان|8623">عيادات الأسنان</option>
+            <option value="المختبرات الطبية والأشعة|8690">المختبرات الطبية والأشعة</option>
+            <option value="الصيدليات|8690-P">الصيدليات</option>
+            <option value="مراكز العلاج الطبيعي والتأهيل|8690-R">مراكز العلاج الطبيعي والتأهيل</option>
+            <option value="دور الرعاية والمسنين|8710">دور الرعاية والمسنين</option>
+          </optgroup>
+          <optgroup label="ف — الفنون والترفيه والرياضة">
+            <option value="إنتاج الأفلام والمحتوى الرقمي|5911">إنتاج الأفلام والمحتوى الرقمي</option>
+            <option value="القنوات التلفزيونية والإذاعة|6020">القنوات التلفزيونية والإذاعة</option>
+            <option value="مدن الترفيه وحدائق المائية|9321">مدن الترفيه وحدائق المائية</option>
+            <option value="الأندية الرياضية|9312">الأندية الرياضية</option>
+            <option value="صالات اللياقة البدنية|9319">صالات اللياقة البدنية</option>
+            <option value="المتاحف والمعارض الثقافية|9102">المتاحف والمعارض الثقافية</option>
+          </optgroup>
+          <optgroup label="ص — الخدمات الشخصية">
+            <option value="صالونات الحلاقة والتجميل|9602">صالونات الحلاقة والتجميل</option>
+            <option value="مراكز السبا والعناية|9602-S">مراكز السبا والعناية</option>
+            <option value="مغاسل الملابس والتنظيف الجاف|9601">مغاسل الملابس والتنظيف الجاف</option>
+            <option value="إصلاح الأجهزة والإلكترونيات|9511">إصلاح الأجهزة والإلكترونيات</option>
           </optgroup>
         </select>
       </div>
@@ -344,17 +471,16 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
 
       <div class="field">
         <label>🌍 الدولة *</label>
-        <select id="country">
-          <option value="">— اختر —</option>
-          <option>المملكة العربية السعودية</option>
-          <option>الإمارات العربية المتحدة</option>
-          <option>الكويت</option>
-          <option>قطر</option>
-          <option>البحرين</option>
-          <option>عُمان</option>
-          <option>مصر</option>
-          <option>الأردن</option>
-          <option>المغرب</option>
+        <select id="country" onchange="updateRegions()">
+          <option value="">— اختر الدولة —</option>
+          <option value="SA">🇸🇦 المملكة العربية السعودية</option>
+          <option value="AE">🇦🇪 الإمارات العربية المتحدة</option>
+          <option value="KW">🇰🇼 الكويت</option>
+          <option value="QA">🇶🇦 قطر</option>
+          <option value="BH">🇧🇭 البحرين</option>
+          <option value="OM">🇴🇲 سلطنة عُمان</option>
+          <option value="EG">🇪🇬 مصر</option>
+          <option value="JO">🇯🇴 الأردن</option>
         </select>
       </div>
 
@@ -427,9 +553,9 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
 
 <!-- FOOTER -->
 <footer>
-  <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">منشأتك <span style="color:#3b82f6">ذكي</span></div>
-  <div style="margin-bottom:8px">منشأتك AI — منصة لبناء المنشآت بالذكاء الاصطناعي</div>
-  <div style="color:#1e293b">© 2025 منشأتك AI · جميع الحقوق محفوظة</div>
+  <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">هيكل <span style="color:#3b82f6">ذكي</span></div>
+  <div style="margin-bottom:8px">منصة SaaS لبناء المنشآت بالذكاء الاصطناعي</div>
+  <div style="color:#1e293b">© 2025 هيكل ذكي · جميع الحقوق محفوظة</div>
 </footer>
 
 </div><!-- end pgLand -->
@@ -506,9 +632,18 @@ function scrollTo(id) {
   document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
 }
 
+function goToForm() {
+  // If we're on landing page, scroll to form
+  const pgLand = document.getElementById('pgLand');
+  const formSec = document.getElementById('formSec');
+  if (pgLand && !pgLand.classList.contains('hidden') && formSec) {
+    formSec.scrollIntoView({behavior:'smooth'});
+  }
+}
+
 // ── PAGE ──
 function showPage(id) {
-  ['pgLand','pgLoad','pgResult'].forEach(p => {
+  ['pgLand','pgLoad','pgResult','pgDash'].forEach(p => {
     const el = document.getElementById(p);
     el.classList.add('hidden');
     el.style.display = '';
@@ -839,8 +974,536 @@ function showTab(name) {
   el.classList.add('fade');
 }
 
+
+// ── ISIC4 DATABASE ──
+const COUNTRIES_DB = {
+  "SA": {
+    name: "المملكة العربية السعودية",
+    entityTypes: ["شركة مساهمة","شركة ذات مسؤولية محدودة","مؤسسة فردية","شركة تضامن","جمعية غير ربحية","جهة حكومية"],
+    regions: [
+      {name:"منطقة الرياض", cities:["الرياض","الخرج","الدوادمي","المجمعة","القويعية","وادي الدواسر","الأفلاج","الزلفي","شقراء","حوطة بني تميم","الدرعية"]},
+      {name:"منطقة مكة المكرمة", cities:["جدة","مكة المكرمة","الطائف","القنفذة","رابغ","الليث","الجموم"]},
+      {name:"منطقة المدينة المنورة", cities:["المدينة المنورة","ينبع","العلا","المهد","بدر","خيبر"]},
+      {name:"منطقة القصيم", cities:["بريدة","عنيزة","الرس","المذنب","النبهانية","البدائع"]},
+      {name:"المنطقة الشرقية", cities:["الدمام","الأحساء","الخبر","الجبيل","حفر الباطن","القطيف","رأس تنورة"]},
+      {name:"منطقة عسير", cities:["أبها","خميس مشيط","بيشة","محايل عسير","النماص"]},
+      {name:"منطقة تبوك", cities:["تبوك","ضباء","أملج","تيماء","الوجه","حقل"]},
+      {name:"منطقة حائل", cities:["حائل","بقعاء","الشنان","الغزالة"]},
+      {name:"منطقة الحدود الشمالية", cities:["عرعر","رفحاء","طريف"]},
+      {name:"منطقة جازان", cities:["جازان","صبيا","أبو عريش","الدرب","بيش"]},
+      {name:"منطقة نجران", cities:["نجران","شرورة","حبونا"]},
+      {name:"منطقة الباحة", cities:["الباحة","بلجرشي","العقيق","قلوة"]},
+      {name:"منطقة الجوف", cities:["سكاكا","دومة الجندل","القريات","طبرجل"]}
+    ]
+  },
+  "AE": {
+    name: "الإمارات العربية المتحدة",
+    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة عامة","شركة مساهمة خاصة","مؤسسة فردية"],
+    regions: [
+      {name:"أبوظبي", cities:["أبوظبي","العين","مدينة محمد بن زايد","الظفرة"]},
+      {name:"دبي", cities:["دبي","جبل علي","مرسى دبي","ديرة"]},
+      {name:"الشارقة", cities:["الشارقة","خورفكان","كلباء","الذيد"]},
+      {name:"عجمان", cities:["عجمان","مصفوت"]},
+      {name:"أم القيوين", cities:["أم القيوين"]},
+      {name:"رأس الخيمة", cities:["رأس الخيمة","الجزيرة الحمراء","خور خوير"]},
+      {name:"الفجيرة", cities:["الفجيرة","دبا الفجيرة","مسافي"]}
+    ]
+  },
+  "KW": {
+    name: "الكويت",
+    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة","مؤسسة فردية","شركة خاصة مقفلة"],
+    regions: [
+      {name:"محافظة العاصمة", cities:["الكويت","القبة","الشامية","الروضة","مرقاب"]},
+      {name:"محافظة حولي", cities:["حولي","الجابرية","السالمية","بيان","الرميثية"]},
+      {name:"محافظة الفروانية", cities:["الفروانية","جليب الشيوخ","الرقعي","خيطان"]},
+      {name:"محافظة الأحمدي", cities:["الأحمدي","الفحيحيل","مينا عبدالله","الزور","المنقف"]},
+      {name:"محافظة الجهراء", cities:["الجهراء","القصر","الصليبيخات","العبدلي"]},
+      {name:"محافظة مبارك الكبير", cities:["مبارك الكبير","أبوحليفة","صباح السالم"]}
+    ]
+  },
+  "QA": {
+    name: "قطر",
+    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة","مؤسسة فردية","شركة خاصة"],
+    regions: [
+      {name:"بلدية الدوحة", cities:["الدوحة","لوسيل","مشيرب","الخليج الغربي"]},
+      {name:"بلدية الريان", cities:["الريان","أم غويلينة","غانم"]},
+      {name:"بلدية الوكرة", cities:["الوكرة","مسيعيد","باقر"]},
+      {name:"بلدية الخور", cities:["الخور","الذخيرة"]},
+      {name:"بلدية الشمال", cities:["الشمال","الغويرية"]},
+      {name:"بلدية الشحانية", cities:["الشحانية"]},
+      {name:"بلدية أم صلال", cities:["أم صلال"]},
+      {name:"بلدية الضعيان", cities:["الضعيان"]}
+    ]
+  },
+  "BH": {
+    name: "البحرين",
+    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة","مؤسسة فردية","شركة شخص واحد"],
+    regions: [
+      {name:"محافظة العاصمة", cities:["المنامة","جدحفص","النعيم"]},
+      {name:"محافظة المحرق", cities:["المحرق","عراد","الحد","عالي"]},
+      {name:"محافظة الشمالية", cities:["سترة","البديع","الحملة","قلالي"]},
+      {name:"محافظة الجنوبية", cities:["الرفاع","عوالي","الزلاق","عيسى"]}
+    ]
+  },
+  "OM": {
+    name: "سلطنة عُمان",
+    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة مغفلة","مؤسسة فردية","شركة تضامن"],
+    regions: [
+      {name:"محافظة مسقط", cities:["مسقط","مطرح","بوشر","السيب","قريات","العامرات"]},
+      {name:"محافظة مسندم", cities:["خصب","بخا","دبا","مدحاء"]},
+      {name:"محافظة البريمي", cities:["البريمي","محضة"]},
+      {name:"محافظة الداخلية", cities:["نزوى","إزكي","بهلاء","الحمراء","منح"]},
+      {name:"محافظة الشرقية الشمالية", cities:["إبراء","المضيبي","صور","وادي بني خالد"]},
+      {name:"محافظة الشرقية الجنوبية", cities:["صور","مرباط","الكامل"]},
+      {name:"محافظة ظفار", cities:["صلالة","طاقة","سدح","ثمريت"]},
+      {name:"محافظة الظاهرة", cities:["عبري","ينقل","ضنك"]},
+      {name:"محافظة الباطنة الشمالية", cities:["صحار","شناص","لوى"]},
+      {name:"محافظة الباطنة الجنوبية", cities:["الرستاق","بركاء","نخل"]}
+    ]
+  },
+  "EG": {
+    name: "مصر",
+    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة","مؤسسة فردية","شركة توصية بالأسهم"],
+    regions: [
+      {name:"محافظة القاهرة", cities:["القاهرة","مدينة نصر","التجمع الخامس","العباسية","مصر الجديدة"]},
+      {name:"محافظة الجيزة", cities:["الجيزة","6 أكتوبر","الشيخ زايد","إمبابة","الهرم"]},
+      {name:"محافظة الإسكندرية", cities:["الإسكندرية","سموحة","العجمي","برج العرب","المنتزه"]},
+      {name:"محافظة البحيرة", cities:["دمنهور","كفر الدوار","إيتاي البارود"]},
+      {name:"محافظة الشرقية", cities:["الزقازيق","العاشر من رمضان","بلبيس","منيا القمح"]},
+      {name:"محافظة الدقهلية", cities:["المنصورة","طلخا","ميت غمر","الجمالية"]},
+      {name:"محافظة الغربية", cities:["طنطا","المحلة الكبرى","كفر الزيات"]},
+      {name:"محافظة المنوفية", cities:["شبين الكوم","قويسنا","منوف"]}
+    ]
+  },
+  "JO": {
+    name: "الأردن",
+    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة عامة","مؤسسة فردية","شركة تضامن"],
+    regions: [
+      {name:"محافظة عمان", cities:["عمان","الزرقاء","ماركا","وادي السير","الجويدة"]},
+      {name:"محافظة إربد", cities:["إربد","الرمثا","الكورة","بني كنانة"]},
+      {name:"محافظة الزرقاء", cities:["الزرقاء","الرصيفة","الهاشمية"]},
+      {name:"محافظة البلقاء", cities:["السلط","ماحص","عين الباشا","دير علا"]},
+      {name:"محافظة العقبة", cities:["العقبة","رأس النقب"]},
+      {name:"محافظة المفرق", cities:["المفرق","الرويشد"]},
+      {name:"محافظة الكرك", cities:["الكرك","المزار الجنوبي"]}
+    ]
+  }
+};
+
+function updateRegions() {
+  const countryCode = document.getElementById('country').value;
+  const regionSel = document.getElementById('region');
+  const cityField = document.getElementById('cityField');
+  const citySel = document.getElementById('city');
+  
+  regionSel.innerHTML = '<option value="">— اختر المنطقة —</option>';
+  citySel.innerHTML = '<option value="">— اختر المنطقة أولاً —</option>';
+  cityField.style.display = 'none';
+  
+  if (!countryCode || !COUNTRIES_DB[countryCode]) return;
+  
+  const country = COUNTRIES_DB[countryCode];
+  country.regions.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.name;
+    opt.textContent = r.name;
+    regionSel.appendChild(opt);
+  });
+  
+  // Update entity types
+  const entitySel = document.getElementById('entityType');
+  if (entitySel) {
+    entitySel.innerHTML = '<option value="">— اختر —</option>';
+    country.entityTypes.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e;
+      opt.textContent = e;
+      entitySel.appendChild(opt);
+    });
+  }
+}
+
+function updateCities() {
+  const countryCode = document.getElementById('country').value;
+  const regionName = document.getElementById('region').value;
+  const cityField = document.getElementById('cityField');
+  const citySel = document.getElementById('city');
+  
+  citySel.innerHTML = '<option value="">— اختر المدينة —</option>';
+  cityField.style.display = 'none';
+  
+  if (!countryCode || !regionName || !COUNTRIES_DB[countryCode]) return;
+  
+  const country = COUNTRIES_DB[countryCode];
+  const region = country.regions.find(r => r.name === regionName);
+  if (!region) return;
+  
+  cityField.style.display = 'block';
+  region.cities.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    citySel.appendChild(opt);
+  });
+}
+
+function updateSubActivities() {
+  const val = document.getElementById('mainActivity').value;
+  if (val) {
+    const parts = val.split('|');
+    document.getElementById('subActivity').placeholder = 'مثال: ' + (parts[0] || '');
+  }
+}
+
+
+// ── AUTH STATE ──
+let currentUser = null;
+let authToken = null;
+
+function openAuth(mode) {
+  document.getElementById('authModal').classList.remove('hidden');
+  document.getElementById('authModal').style.display = 'flex';
+  if (mode === 'signup') showSignup(); else showLogin();
+}
+
+function closeAuth() {
+  document.getElementById('authModal').classList.add('hidden');
+  document.getElementById('authModal').style.display = 'none';
+}
+
+function showLogin() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('signupForm').style.display = 'none';
+}
+
+function showSignup() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'يرجى تعبئة جميع الحقول'; errEl.style.display = 'block'; return; }
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({action:'login', email, password})
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'خطأ في تسجيل الدخول'; errEl.style.display = 'block'; return; }
+    setUser(data.user, data.access_token);
+    closeAuth();
+    showDashboard();
+  } catch(e) { errEl.textContent = 'خطأ في الاتصال'; errEl.style.display = 'block'; }
+}
+
+async function doSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const errEl = document.getElementById('signupError');
+  errEl.style.display = 'none';
+  if (!name || !email || !password) { errEl.textContent = 'يرجى تعبئة جميع الحقول'; errEl.style.display = 'block'; return; }
+  if (password.length < 8) { errEl.textContent = 'كلمة السر يجب أن تكون 8 أحرف على الأقل'; errEl.style.display = 'block'; return; }
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({action:'signup', email, password, name})
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'خطأ في إنشاء الحساب'; errEl.style.display = 'block'; return; }
+    if (data.user) {
+      setUser(data.user, data.access_token);
+      closeAuth();
+      showDashboard();
+    } else {
+      errEl.style.background = 'rgba(52,211,153,0.1)';
+      errEl.style.borderColor = 'rgba(52,211,153,0.3)';
+      errEl.style.color = '#34d399';
+      errEl.textContent = '✅ تم إنشاء الحساب! تفقد بريدك الإلكتروني للتأكيد';
+      errEl.style.display = 'block';
+    }
+  } catch(e) { errEl.textContent = 'خطأ في الاتصال'; errEl.style.display = 'block'; }
+}
+
+async function doLogout() {
+  if (authToken) {
+    await fetch('/api/auth', {
+      method: 'POST', headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + authToken},
+      body: JSON.stringify({action:'logout'})
+    });
+  }
+  clearUser();
+  showPage('pgLand');
+}
+
+function setUser(user, token) {
+  currentUser = user;
+  authToken = token;
+  localStorage.setItem('munsha_token', token);
+  localStorage.setItem('munsha_user', JSON.stringify(user));
+  updateNavUser();
+}
+
+function clearUser() {
+  currentUser = null;
+  authToken = null;
+  localStorage.removeItem('munsha_token');
+  localStorage.removeItem('munsha_user');
+  updateNavUser();
+}
+
+function updateNavUser() {
+  const guestNav = document.getElementById('navGuest');
+  const userNav = document.getElementById('navUser');
+  if (currentUser) {
+    const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'المستخدم';
+    document.getElementById('navUserName').textContent = '👤 ' + name;
+    document.getElementById('dashUserName').textContent = name;
+    guestNav.style.display = 'none';
+    userNav.style.display = 'flex';
+  } else {
+    guestNav.style.display = 'flex';
+    userNav.style.display = 'none';
+  }
+}
+
+// ── DASHBOARD ──
+async function showDashboard() {
+  if (!currentUser || !authToken) { openAuth('login'); return; }
+  showPage('pgDash');
+  await loadCompanies();
+}
+
+async function loadCompanies() {
+  const list = document.getElementById('companiesList');
+  const noComp = document.getElementById('noCompanies');
+  list.innerHTML = '<div style="text-align:center;padding:40px;color:#475569">جاري التحميل...</div>';
+  noComp.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/companies', {
+      headers: {'Authorization': 'Bearer ' + authToken}
+    });
+    const companies = await res.json();
+
+    if (!companies || companies.length === 0) {
+      list.innerHTML = '';
+      noComp.style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = companies.map(c => {
+      const fd = JSON.parse(c.form_data || '{}');
+      const date = new Date(c.created_at).toLocaleDateString('ar-SA');
+      return \`
+        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:14px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(59,130,246,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+            <div>
+              <h3 style="font-size:1rem;font-weight:800;color:#e2e8f0;margin-bottom:4px">\${c.name}</h3>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+                <span style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:7px;padding:3px 10px;font-size:11px;color:#60a5fa">\${fd.activity || ''}</span>
+                <span style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:3px 10px;font-size:11px;color:#64748b">\${fd.employees || ''} موظف</span>
+                <span style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:3px 10px;font-size:11px;color:#64748b">\${fd.country || ''}</span>
+                <span style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:7px;padding:3px 10px;font-size:11px;color:#334155">\${date}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button onclick="viewCompany('\${c.id}')" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:9px;padding:8px 14px;color:#60a5fa;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif">👁 عرض</button>
+              <button onclick="editCompany('\${c.id}')" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);border-radius:9px;padding:8px 14px;color:#34d399;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif">✏️ تعديل</button>
+              <button onclick="deleteCompany('\${c.id}',this)" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:9px;padding:8px 14px;color:#fca5a5;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif">🗑 حذف</button>
+            </div>
+          </div>
+        </div>
+      \`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#fca5a5">خطأ في تحميل البيانات</div>';
+  }
+}
+
+let allCompaniesData = [];
+
+async function viewCompany(id) {
+  try {
+    const res = await fetch('/api/companies', { headers: {'Authorization': 'Bearer ' + authToken} });
+    const companies = await res.json();
+    allCompaniesData = companies;
+    const company = companies.find(c => c.id === id);
+    if (!company) return;
+    const data = JSON.parse(company.data || '{}');
+    const fd = JSON.parse(company.form_data || '{}');
+    renderAll(data, fd.activity || company.name, fd.employees || 0, fd.entityType || '', fd.country || '', fd.city || '', fd.stage || '');
+    showPage('pgResult');
+    window._currentCompanyId = id;
+  } catch(e) { alert('خطأ في تحميل المنشأة'); }
+}
+
+async function editCompany(id) {
+  try {
+    const res = await fetch('/api/companies', { headers: {'Authorization': 'Bearer ' + authToken} });
+    const companies = await res.json();
+    const company = companies.find(c => c.id === id);
+    if (!company) return;
+    const fd = JSON.parse(company.form_data || '{}');
+    // Fill form with existing data
+    showPage('pgLand');
+    setTimeout(() => {
+      document.getElementById('formSec').scrollIntoView({behavior:'smooth'});
+      if (fd.activity) document.getElementById('mainActivity').value = fd.activity;
+      if (fd.employees) document.getElementById('adminEmp').value = fd.employees;
+      if (fd.country) { document.getElementById('country').value = fd.country; updateRegions(); }
+      if (fd.entityType) document.getElementById('entityType').value = fd.entityType;
+      if (fd.stage) {
+        document.querySelectorAll('.stage-btn').forEach(b => {
+          if (b.textContent.includes(fd.stage)) { b.classList.add('active'); selectedStage = fd.stage; }
+        });
+      }
+      window._editCompanyId = id;
+    }, 300);
+  } catch(e) { alert('خطأ'); }
+}
+
+async function deleteCompany(id, btn) {
+  if (!confirm('هل أنت متأكد من حذف هذه المنشأة؟')) return;
+  btn.textContent = '...';
+  try {
+    await fetch('/api/companies', {
+      method: 'DELETE',
+      headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + authToken},
+      body: JSON.stringify({id})
+    });
+    await loadCompanies();
+  } catch(e) { alert('خطأ في الحذف'); }
+}
+
+// ── SAVE COMPANY AFTER GENERATION ──
+async function saveCompanyResult(resultData, formData) {
+  if (!currentUser || !authToken) return;
+  const name = formData.activity + ' - ' + formData.city;
+  const id = window._editCompanyId;
+  try {
+    if (id) {
+      await fetch('/api/companies', {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + authToken},
+        body: JSON.stringify({id, name, data: resultData, formData})
+      });
+      window._editCompanyId = null;
+    } else {
+      await fetch('/api/companies', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + authToken},
+        body: JSON.stringify({name, data: resultData, formData})
+      });
+    }
+  } catch(e) { console.error('Save error:', e); }
+}
+
+// ── RESTORE SESSION ──
+function restoreSession() {
+  const token = localStorage.getItem('munsha_token');
+  const user = localStorage.getItem('munsha_user');
+  if (token && user) {
+    try {
+      authToken = token;
+      currentUser = JSON.parse(user);
+      updateNavUser();
+    } catch(e) { clearUser(); }
+  }
+}
+
 // Init
+restoreSession();
 showPage('pgLand');
 </script>
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px 28px;width:100%;max-width:420px;position:relative">
+    <button onclick="closeAuth()" style="position:absolute;top:16px;left:16px;background:transparent;border:none;color:#64748b;font-size:18px;cursor:pointer">✕</button>
+    
+    <!-- Login Form -->
+    <div id="loginForm">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:2rem;margin-bottom:8px">🔐</div>
+        <h2 style="color:#f0f4ff;font-size:1.3rem;font-weight:800;margin-bottom:4px">تسجيل الدخول</h2>
+        <p style="color:#475569;font-size:13px">ادخل لحسابك وشاهد منشآتك</p>
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">📧 البريد الإلكتروني</label>
+        <input type="email" id="loginEmail" placeholder="example@email.com" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">🔑 كلمة السر</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
+      </div>
+      <div id="loginError" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:9px;padding:10px 14px;color:#fca5a5;font-size:13px;margin-bottom:14px;display:none"></div>
+      <button onclick="doLogin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;margin-bottom:12px">تسجيل الدخول</button>
+      <p style="text-align:center;color:#64748b;font-size:13px">ليس لديك حساب؟ <span onclick="showSignup()" style="color:#60a5fa;cursor:pointer;font-weight:700">إنشاء حساب</span></p>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signupForm" style="display:none">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:2rem;margin-bottom:8px">✨</div>
+        <h2 style="color:#f0f4ff;font-size:1.3rem;font-weight:800;margin-bottom:4px">إنشاء حساب جديد</h2>
+        <p style="color:#475569;font-size:13px">مجاني تماماً · ابدأ الآن</p>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">👤 الاسم الكامل</label>
+        <input type="text" id="signupName" placeholder="محمد العلي" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">📧 البريد الإلكتروني</label>
+        <input type="email" id="signupEmail" placeholder="example@email.com" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">🔑 كلمة السر</label>
+        <input type="password" id="signupPassword" placeholder="8 أحرف على الأقل" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
+      </div>
+      <div id="signupError" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:9px;padding:10px 14px;color:#fca5a5;font-size:13px;margin-bottom:14px;display:none"></div>
+      <button onclick="doSignup()" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;margin-bottom:12px">إنشاء الحساب</button>
+      <p style="text-align:center;color:#64748b;font-size:13px">لديك حساب؟ <span onclick="showLogin()" style="color:#60a5fa;cursor:pointer;font-weight:700">تسجيل الدخول</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div id="pgDash" class="hidden" style="min-height:100vh;background:#0b1120;padding:0">
+  <!-- Dashboard Nav -->
+  <nav style="background:rgba(11,17,32,0.95);border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100">
+    <div style="font-size:1.1rem;font-weight:900;color:#f0f4ff">منشأتك <span style="color:#3b82f6">AI</span></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="dashUserName" style="color:#94a3b8;font-size:13px"></span>
+      <button onclick="showPage('pgLand')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:8px 14px;color:#94a3b8;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif">🏠 الرئيسية</button>
+      <button onclick="doLogout()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:9px;padding:8px 14px;color:#fca5a5;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif">خروج</button>
+    </div>
+  </nav>
+
+  <div style="max-width:1000px;margin:0 auto;padding:2rem 1.25rem">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1 style="font-size:1.5rem;font-weight:800;color:#f0f4ff;margin-bottom:4px">منشآتي</h1>
+        <p style="color:#475569;font-size:13px">كل المنشآت التي أنشأتها</p>
+      </div>
+      <button onclick="goToForm()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;padding:12px 24px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">+ إنشاء منشأة جديدة</button>
+    </div>
+
+    <!-- Companies List -->
+    <div id="companiesList"></div>
+    <div id="noCompanies" style="text-align:center;padding:60px 20px;display:none">
+      <div style="font-size:48px;margin-bottom:16px">🏢</div>
+      <h3 style="color:#e2e8f0;font-size:1.1rem;margin-bottom:8px">لا توجد منشآت بعد</h3>
+      <p style="color:#475569;font-size:13px;margin-bottom:24px">ابدأ بإنشاء أول منشأة ذكية</p>
+      <button onclick="goToForm()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;padding:12px 28px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">إنشاء منشأة ✨</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

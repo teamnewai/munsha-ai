@@ -4,482 +4,332 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>منشأتك AI — بناء المنشآت بالذكاء الاصطناعي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0b1120;font-family:'Cairo',sans-serif;color:#f0f4ff;direction:rtl;min-height:100vh}
+body{font-family:'Cairo',sans-serif;background:#0b1120;color:#f0f4ff;direction:rtl;min-height:100vh}
 .hidden{display:none!important}
+
 /* NAV */
-nav{background:rgba(11,17,32,0.95);border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
-.nav-logo{font-size:1.2rem;font-weight:900;color:#f0f4ff}<br>.nav-logo span{color:#3b82f6}
-.nav-links{display:flex;gap:20px;align-items:center}
-.nav-link{color:#64748b;font-size:13px;cursor:pointer;transition:color 0.2s}
-.nav-link:hover{color:#f0f4ff}
-.nav-btn{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:9px;padding:9px 20px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif}
+nav{background:rgba(11,17,32,0.97);border-bottom:1px solid rgba(255,255,255,0.07);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px)}
+.nav-logo{font-size:1.15rem;font-weight:900;color:#f0f4ff;letter-spacing:-0.5px}
+.nav-logo span{color:#3b82f6}
+.nav-links{display:flex;gap:10px;align-items:center}
+.nav-link{color:#64748b;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:7px;transition:color 0.2s}
+.nav-link:hover{color:#94a3b8}
+.btn-nav-ghost{background:transparent;border:1px solid rgba(255,255,255,0.13);border-radius:9px;padding:8px 16px;color:#94a3b8;font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.btn-nav-ghost:hover{border-color:rgba(255,255,255,0.25);color:#e2e8f0}
+.btn-nav-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:9px;padding:8px 18px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif}
+.btn-blue{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);border-radius:9px;padding:8px 16px;color:#60a5fa;font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif}
+
 /* HERO */
-.hero{padding:80px 24px 60px;text-align:center;max-width:800px;margin:0 auto}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:100px;padding:7px 20px;margin-bottom:32px;color:#60a5fa;font-size:13px;font-weight:700}
-.hero h1{font-size:clamp(2rem,6vw,3.5rem);font-weight:900;line-height:1.2;margin-bottom:20px}
+.hero{padding:70px 24px 50px;text-align:center;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(59,130,246,0.12),transparent)}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);border-radius:100px;padding:5px 16px;font-size:12px;color:#60a5fa;font-weight:700;margin-bottom:22px}
+.hero-badge-dot{width:6px;height:6px;background:#34d399;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.15;margin-bottom:16px;letter-spacing:-1px}
 .hero h1 span{color:#3b82f6}
-.hero p{color:#64748b;font-size:clamp(1rem,2vw,1.15rem);line-height:1.9;margin-bottom:48px;max-width:600px;margin-left:auto;margin-right:auto}
-.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
-.btn-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;padding:15px 36px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 0 30px rgba(59,130,246,0.3)}
-.btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:15px 36px;color:#94a3b8;font-size:15px;cursor:pointer;font-family:'Cairo',sans-serif}
-/* STATS */
-.stats{display:flex;gap:0;justify-content:center;border:1px solid rgba(255,255,255,0.08);border-radius:20px;max-width:700px;margin:0 auto 80px;overflow:hidden;flex-wrap:wrap}
-.stat{flex:1;padding:24px 20px;text-align:center;border-left:1px solid rgba(255,255,255,0.08);min-width:140px}
+.hero p{color:#475569;font-size:1rem;line-height:1.9;max-width:520px;margin:0 auto 32px}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.btn-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:13px;padding:14px 32px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 0 24px rgba(59,130,246,0.25);transition:transform 0.15s,box-shadow 0.15s}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 0 32px rgba(59,130,246,0.4)}
+.btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.13);border-radius:13px;padding:14px 28px;color:#94a3b8;font-size:15px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.btn-secondary:hover{border-color:rgba(255,255,255,0.25);color:#e2e8f0}
+.hero-stats{display:flex;border:1px solid rgba(255,255,255,0.07);border-radius:16px;max-width:560px;margin:0 auto;overflow:hidden}
+.stat{flex:1;padding:16px;text-align:center;border-left:1px solid rgba(255,255,255,0.07)}
 .stat:last-child{border-left:none}
-.stat-num{font-size:1.8rem;font-weight:900;color:#3b82f6;margin-bottom:4px}
-.stat-lbl{color:#64748b;font-size:12px}
+.stat-val{font-size:1.4rem;font-weight:900;color:#3b82f6}
+.stat-lbl{color:#334155;font-size:11px;margin-top:2px}
+
+/* SECTION */
+.section{padding:60px 24px;max-width:1000px;margin:0 auto}
+.section-title{font-size:1.5rem;font-weight:800;text-align:center;margin-bottom:8px}
+.section-sub{color:#475569;font-size:13px;text-align:center;margin-bottom:36px}
+
 /* OUTPUTS */
-.outputs{padding:60px 24px;max-width:1100px;margin:0 auto}
-.section-title{text-align:center;font-size:1.6rem;font-weight:800;margin-bottom:8px}
-.section-sub{text-align:center;color:#64748b;font-size:14px;margin-bottom:48px}
-.outputs-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-.output-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:22px;transition:all 0.3s;cursor:pointer}
-.output-card:hover{border-color:rgba(59,130,246,0.4);background:rgba(59,130,246,0.04);transform:translateY(-3px)}
-.output-icon{font-size:32px;margin-bottom:14px}
-.output-title{font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:8px}
-.output-desc{color:#64748b;font-size:13px;line-height:1.7}
-.output-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
-.output-tag{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:6px;padding:3px 9px;font-size:10px;color:#60a5fa}
-/* PRICING */
-.pricing{padding:60px 24px;max-width:1100px;margin:0 auto}
-.pricing-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-.plan{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:28px;position:relative;transition:all 0.3s}
-.plan.popular{border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.04)}
-.plan-badge{position:absolute;top:-12px;right:24px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:100px;padding:4px 14px;font-size:11px;font-weight:700;color:#fff}
-.plan-name{font-size:1.1rem;font-weight:800;margin-bottom:6px}
-.plan-desc{color:#64748b;font-size:12px;margin-bottom:20px}
-.plan-price{margin-bottom:24px}
-.plan-price .amount{font-size:2.2rem;font-weight:900;color:#f0f4ff}
-.plan-price .currency{font-size:14px;color:#64748b;margin-right:4px}
-.plan-price .period{font-size:13px;color:#64748b}
-.plan-features{list-style:none;margin-bottom:28px}
-.plan-features li{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;color:#94a3b8;border-bottom:1px solid rgba(255,255,255,0.04)}
-.plan-features li:last-child{border:none}
-.plan-features li .check{color:#34d399;font-size:14px;flex-shrink:0;margin-top:1px}
-.plan-features li .x{color:#475569;font-size:14px;flex-shrink:0;margin-top:1px}
-.plan-btn{width:100%;padding:13px 0;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;border:none}
-.plan-btn.primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff}
-.plan-btn.outline{background:transparent;border:1px solid rgba(255,255,255,0.15);color:#94a3b8}
+.outputs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.output-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px;transition:all 0.2s}
+.output-card:hover{border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.03)}
+.output-icon{font-size:24px;margin-bottom:10px}
+.output-name{font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+.output-desc{font-size:12px;color:#475569}
+
 /* FORM */
-.form-section{padding:60px 24px;max-width:800px;margin:0 auto}
-.form-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:clamp(24px,4vw,40px)}
-.form-title{font-size:1.5rem;font-weight:800;margin-bottom:6px;text-align:center}
-.form-sub{color:#475569;font-size:13px;text-align:center;margin-bottom:32px}
-.form-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-.field{display:flex;flex-direction:column;gap:7px}
-.field label{color:#94a3b8;font-size:12px;font-weight:700}
-.field select,.field input{padding:12px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif;cursor:pointer;transition:border-color 0.2s}
+#formSec{padding:60px 24px;background:linear-gradient(180deg,transparent,rgba(59,130,246,0.03),transparent)}
+.form-wrap{max-width:680px;margin:0 auto;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:32px}
+.form-title{font-size:1.3rem;font-weight:800;text-align:center;margin-bottom:4px}
+.form-sub{color:#475569;font-size:13px;text-align:center;margin-bottom:28px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.field label{color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px}
+.field select,.field input{width:100%;padding:11px 13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#f0f4ff;font-size:13px;outline:none;font-family:'Cairo',sans-serif;transition:border-color 0.2s;appearance:none}
 .field select:focus,.field input:focus{border-color:rgba(59,130,246,0.5)}
-.field select option{background:#1e293b}
-.field input::placeholder{color:#4b5563}
-.form-divider{height:1px;background:rgba(255,255,255,0.06);margin:8px 0}
-.stage-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.stage-btn{padding:11px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);color:#64748b;font-size:12px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s;text-align:center}
-.stage-btn.active{background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#60a5fa}
-.generate-btn{width:100%;padding:17px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:13px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:'Cairo',sans-serif;margin-top:8px;box-shadow:0 0 30px rgba(59,130,246,0.3);letter-spacing:0.3px}
-.err-box{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:9px;padding:11px 14px;color:#fca5a5;font-size:13px;margin-bottom:14px}
+.stage-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px}
+.stage-btn{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:10px;text-align:center;cursor:pointer;color:#64748b;font-size:12px;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.stage-btn.active{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.4);color:#60a5fa}
+.emp-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.btn-generate{width:100%;padding:15px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:13px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:0 0 20px rgba(59,130,246,0.2)}
+.btn-generate:hover{box-shadow:0 0 28px rgba(59,130,246,0.35)}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.plan{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:22px;text-align:center;transition:all 0.2s;position:relative}
+.plan.featured{border-color:rgba(59,130,246,0.4);background:rgba(59,130,246,0.04)}
+.plan-badge{position:absolute;top:-12px;right:50%;transform:translateX(50%);background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:100px;padding:3px 12px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap}
+.plan-name{font-size:14px;font-weight:800;color:#e2e8f0;margin-bottom:6px}
+.plan-price{font-size:2rem;font-weight:900;color:#f0f4ff;line-height:1}
+.plan-currency{font-size:12px;color:#475569;margin-bottom:14px}
+.plan-features{text-align:right;margin-bottom:18px}
+.plan-feature{font-size:12px;color:#64748b;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.plan-feature:last-child{border:none}
+.btn-plan{width:100%;padding:10px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;transition:all 0.2s}
+.btn-plan-outline{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#64748b}
+.btn-plan-filled{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;color:#fff}
+
 /* LOADING */
-.load-page{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;text-align:center;padding:24px}
-.spinner{position:relative;width:80px;height:80px;margin:0 auto}
-.sp-ring{position:absolute;inset:0;border:3px solid rgba(59,130,246,0.15);border-radius:50%}
-.sp-arc{position:absolute;inset:0;border:3px solid transparent;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.9s linear infinite}
-.sp-core{position:absolute;inset:22%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px}
-.load-steps{display:flex;flex-direction:column;gap:8px;max-width:360px;width:100%}
-.load-step{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;font-size:13px;color:#64748b;transition:all 0.3s}
-.load-step.done{border-color:rgba(52,211,153,0.3);color:#34d399}
-.load-step.active{border-color:rgba(59,130,246,0.3);color:#60a5fa}
-/* RESULT */
-.result-page{padding:1.5rem;min-height:100vh}
-.result-inner{max-width:1000px;margin:0 auto}
-.result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.result-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.03);border-radius:14px;padding:4px;margin-bottom:20px;overflow-x:auto;flex-wrap:nowrap}
-.rtab{flex-shrink:0;padding:10px 14px;border:none;border-radius:10px;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif;transition:all 0.2s;white-space:nowrap}
-.rtab.on{background:rgba(59,130,246,0.2);color:#60a5fa;font-weight:700}
-.rtab.off{background:transparent;color:#64748b}
-.sec{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px;margin-bottom:14px}
-.sec-title{font-size:11px;font-weight:800;letter-spacing:1.5px;margin-bottom:12px}
-/* ORG */
-.org-node{border-radius:12px;padding:10px 16px;text-align:center;display:inline-block;min-width:140px;cursor:pointer}
-.org-conn-v{width:2px;height:20px;background:rgba(59,130,246,0.4);margin:0 auto}
-.org-conn-h{height:2px;background:rgba(59,130,246,0.3);margin:0 auto}
-/* DEPT */
-.dept-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px;margin-bottom:14px}
-.job-row{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:11px;padding:13px;margin-bottom:8px}
-/* PERM */
-.perm-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
-.perm-row:last-child{border:none}
-.plev{border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;flex-shrink:0}
-/* POLICY */
-.policy-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:8px}
-/* KPI */
-.kpi-item{background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.15);border-radius:9px;padding:9px 13px;margin-bottom:6px;font-size:13px;color:#94a3b8;line-height:1.6}
-/* BADGE */
-.badge{border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700}
-.badge-green{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34d399}
-.badge-blue{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#60a5fa}
-.badge-yellow{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#fbbf24}
-.badge-red{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5}
-.badge-gray{background:rgba(100,116,139,0.1);border:1px solid rgba(100,116,139,0.3);color:#64748b}
-/* FOOTER */
-footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:center;color:#334155;font-size:13px}
+#pgLoad{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.loader{width:48px;height:48px;border:3px solid rgba(59,130,246,0.2);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.fade{animation:fadeIn 0.3s ease}
+
+/* RESULT */
+#pgResult{min-height:100vh;padding:0}
+.result-nav{background:rgba(11,17,32,0.97);border-bottom:1px solid rgba(255,255,255,0.07);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.01)}
+.tab{background:transparent;border:1px solid transparent;border-radius:8px;padding:8px 14px;color:#475569;font-size:12px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s}
+.tab.active{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.3);color:#60a5fa}
+.result-content{max-width:900px;margin:0 auto;padding:28px 20px}
+.result-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:22px;margin-bottom:14px}
+.result-card h3{font-size:1rem;font-weight:800;color:#e2e8f0;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.org-node{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:10px 14px;margin-bottom:8px}
+.org-title{font-size:13px;font-weight:700;color:#60a5fa}
+.org-desc{font-size:11px;color:#475569;margin-top:3px}
+.dept-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px;margin-bottom:10px}
+.dept-name{font-size:14px;font-weight:800;color:#e2e8f0;margin-bottom:8px}
+.role-tag{display:inline-block;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:6px;padding:3px 10px;font-size:11px;color:#60a5fa;margin:3px}
+.policy-item{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:9px;padding:12px;margin-bottom:8px;font-size:13px;color:#94a3b8;line-height:1.7}
+.kpi-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.kpi-row:last-child{border:none}
+.kpi-name{font-size:13px;color:#94a3b8}
+.kpi-val{font-size:12px;color:#3b82f6;font-weight:700}
+
+/* AUTH MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px 28px;width:100%;max-width:400px;position:relative}
+.modal-close{position:absolute;top:14px;left:14px;background:transparent;border:none;color:#475569;font-size:18px;cursor:pointer;line-height:1}
+.modal-icon{font-size:2.5rem;text-align:center;margin-bottom:10px}
+.modal-title{font-size:1.2rem;font-weight:800;text-align:center;color:#f0f4ff;margin-bottom:4px}
+.modal-sub{font-size:12px;color:#475569;text-align:center;margin-bottom:22px}
+.auth-field{margin-bottom:14px}
+.auth-field label{font-size:12px;font-weight:700;color:#94a3b8;display:block;margin-bottom:6px}
+.auth-field input{width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif}
+.auth-field input:focus{border-color:rgba(59,130,246,0.5)}
+.auth-error{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:9px;padding:10px 13px;color:#fca5a5;font-size:12px;margin-bottom:12px;display:none}
+.auth-success{background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:9px;padding:10px 13px;color:#34d399;font-size:12px;margin-bottom:12px;display:none}
+.btn-full{width:100%;padding:13px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:11px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;margin-bottom:10px}
+.auth-switch{text-align:center;font-size:12px;color:#475569}
+.auth-switch span{color:#60a5fa;cursor:pointer;font-weight:700}
+
+/* DASHBOARD */
+#pgDash{min-height:100vh;background:#0b1120}
+.dash-nav{background:rgba(11,17,32,0.97);border-bottom:1px solid rgba(255,255,255,0.07);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.dash-content{max-width:900px;margin:0 auto;padding:28px 20px}
+.dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.company-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;margin-bottom:12px;transition:border-color 0.2s}
+.company-card:hover{border-color:rgba(59,130,246,0.3)}
+.company-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.company-name{font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:8px}
+.company-tags{display:flex;gap:6px;flex-wrap:wrap}
+.company-tag{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);border-radius:6px;padding:3px 9px;font-size:11px;color:#60a5fa}
+.company-tag.gray{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);color:#475569}
+.company-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-action{border-radius:8px;padding:7px 13px;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif;border:1px solid}
+.btn-view{background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.2);color:#60a5fa}
+.btn-edit{background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.2);color:#34d399}
+.btn-del{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#fca5a5}
+.empty-state{text-align:center;padding:60px 20px}
+.empty-icon{font-size:48px;margin-bottom:14px}
+
+/* MATRIX TABLE */
+.matrix-table{width:100%;border-collapse:collapse;font-size:11px}
+.matrix-table th{background:rgba(59,130,246,0.1);padding:8px 10px;text-align:right;color:#60a5fa;font-weight:700;border:1px solid rgba(255,255,255,0.06)}
+.matrix-table td{padding:8px 10px;border:1px solid rgba(255,255,255,0.05);color:#94a3b8;vertical-align:top}
+.perm{display:inline-block;width:18px;height:18px;border-radius:50%;text-align:center;line-height:18px;font-size:10px}
+.perm-yes{background:rgba(52,211,153,0.15);color:#34d399}
+.perm-no{background:rgba(239,68,68,0.1);color:#ef4444}
+
+/* FOOTER */
+footer{border-top:1px solid rgba(255,255,255,0.05);padding:28px 24px;text-align:center;color:#1e293b;font-size:12px}
 </style>
 </head>
 <body>
 
+<!-- ═══ LANDING PAGE ═══ -->
+<div id="pgLand">
+
 <!-- NAV -->
-<nav id="mainNav">
-  <div class="nav-logo">منشأتك <span style="color:#3b82f6">AI</span></div>
+<nav>
+  <div class="nav-logo">منشأتك <span>AI</span></div>
   <div class="nav-links">
-    <span class="nav-link" onclick="goToOutputs()">المخرجات</span>
-    <span class="nav-link" onclick="scrollTo('pricingSec')">الباقات</span>
-    <div id="navGuest" style="display:flex;gap:8px;align-items:center">
-      <button onclick="openAuth('login')" style="background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:9px;padding:8px 16px;color:#94a3b8;font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif">دخول</button>
-      <button class="nav-btn" onclick="goToForm()" style="cursor:pointer">ابدأ مجاناً ←</button>
+    <span class="nav-link" onclick="scrollToId('outputsSec')">المخرجات</span>
+    <span class="nav-link" onclick="scrollToId('pricingSec')">الباقات</span>
+    <div id="navGuest" style="display:flex;gap:8px">
+      <button class="btn-nav-ghost" onclick="openModal('login')">دخول</button>
+      <button class="btn-nav-primary" onclick="scrollToId('formSec')">ابدأ مجاناً ←</button>
     </div>
     <div id="navUser" style="display:none;gap:8px;align-items:center">
-      <span id="navUserName" style="color:#94a3b8;font-size:13px"></span>
-      <button onclick="showDashboard()" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);border-radius:9px;padding:8px 16px;color:#60a5fa;font-size:13px;cursor:pointer;font-family:'Cairo',sans-serif">منشآتي</button>
-      <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:8px 14px;color:#64748b;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif">خروج</button>
+      <span id="navUserName" style="color:#64748b;font-size:13px"></span>
+      <button class="btn-blue" onclick="openDash()">منشآتي</button>
+      <button class="btn-nav-ghost" onclick="doLogout()">خروج</button>
     </div>
   </div>
 </nav>
 
-<!-- LANDING -->
-<div id="pgLand">
-
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-badge">
-    <span style="width:8px;height:8px;background:#34d399;border-radius:50%;display:inline-block;box-shadow:0 0 8px #34d399"></span>
-    منصة SaaS مدعومة بالذكاء الاصطناعي
-  </div>
+  <div class="hero-badge"><span class="hero-badge-dot"></span> منشأتك AI — منصة مدعومة بالذكاء الاصطناعي</div>
   <h1>بناء <span>منشأتك</span> بالكامل<br>في دقائق</h1>
-  <p>أدخل 10 معطيات بسيطة ويُنشئ الذكاء الاصطناعي هيكلاً تنظيمياً متكاملاً · أقساماً · وظائف · صلاحيات · سياسات · لوائح · نماذج وملفات Excel جاهزة للتشغيل</p>
+  <p>أدخل 10 معطيات بسيطة ويُنشئ الذكاء الاصطناعي هيكلاً تنظيمياً متكاملاً · أقساماً · وظائف · صلاحيات · سياسات · لوائح · نماذج Excel جاهزة للتشغيل</p>
   <div class="hero-btns">
-    <button class="btn-primary" onclick="goToForm()" style="cursor:pointer">إنشاء المنشأة الذكية ✨</button>
-    <button class="btn-secondary" onclick="goToOutputs()" style="cursor:pointer">عرض المخرجات</button>
+    <button class="btn-primary" onclick="scrollToId('formSec')">✨ إنشاء المنشأة الذكية</button>
+    <button class="btn-secondary" onclick="scrollToId('outputsSec')">عرض المخرجات</button>
   </div>
-</div>
-
-<!-- STATS -->
-<div style="padding:0 24px 60px;max-width:800px;margin:0 auto">
-  <div class="stats">
-    <div class="stat"><div class="stat-num">500+</div><div class="stat-lbl">نشاط اقتصادي</div></div>
-    <div class="stat"><div class="stat-num">1000+</div><div class="stat-lbl">مسمى وظيفي</div></div>
-    <div class="stat"><div class="stat-num">9</div><div class="stat-lbl">مخرجات متكاملة</div></div>
-    <div class="stat"><div class="stat-num">دقائق</div><div class="stat-lbl">وقت الإنشاء</div></div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-val">دقائق</div><div class="stat-lbl">وقت الإنشاء</div></div>
+    <div class="stat"><div class="stat-val">9</div><div class="stat-lbl">مخرجات متكاملة</div></div>
+    <div class="stat"><div class="stat-val">+1000</div><div class="stat-lbl">مسمى وظيفي</div></div>
+    <div class="stat"><div class="stat-val">+500</div><div class="stat-lbl">نشاط اقتصادي</div></div>
   </div>
 </div>
 
 <!-- OUTPUTS -->
-<div class="outputs" id="outputsSec">
-  <div class="section-title">مخرجات المنصة</div>
-  <div class="section-sub">9 مخرجات متكاملة تُبنى تلقائياً بالذكاء الاصطناعي</div>
+<div id="outputsSec" class="section">
+  <div class="section-title">9 مخرجات جاهزة للتشغيل</div>
+  <div class="section-sub">كل ما تحتاجه لتشغيل منشأتك من اليوم الأول</div>
   <div class="outputs-grid">
-    <div class="output-card"><div class="output-icon">🏛️</div><div class="output-title">الهيكل التنظيمي</div><div class="output-desc">مخطط هرمي مرئي مع خطوط التقارير والمدير المباشر لكل وظيفة</div><div class="output-tags"><span class="output-tag">PDF</span><span class="output-tag">PNG</span><span class="output-tag">PowerPoint</span></div></div>
-    <div class="output-card"><div class="output-icon">🏢</div><div class="output-title">الأقسام والوظائف</div><div class="output-desc">تحديد الأقسام المناسبة وجميع الوظائف داخل كل قسم حسب النشاط والحجم</div><div class="output-tags"><span class="output-tag">مخصص</span><span class="output-tag">حسب النشاط</span></div></div>
-    <div class="output-card"><div class="output-icon">📋</div><div class="output-title">الوصف الوظيفي</div><div class="output-desc">وصف كامل لكل وظيفة يشمل المهام والمسؤوليات والمؤهلات ومؤشرات الأداء KPI</div><div class="output-tags"><span class="output-tag">Word</span><span class="output-tag">PDF</span></div></div>
-    <div class="output-card"><div class="output-icon">🔐</div><div class="output-title">مصفوفة الصلاحيات</div><div class="output-desc">Authority Matrix و RACI Matrix لكل قسم ووظيفة شاملة صلاحيات التوظيف والشراء والتوقيع</div><div class="output-tags"><span class="output-tag">Authority Matrix</span><span class="output-tag">RACI</span></div></div>
-    <div class="output-card"><div class="output-icon">📜</div><div class="output-title">السياسات المؤسسية</div><div class="output-desc">سياسات الموارد البشرية والمشتريات والأمن السيبراني وإدارة المخاطر مخصصة حسب الدولة</div><div class="output-tags"><span class="output-tag">10+ سياسة</span><span class="output-tag">حسب الدولة</span></div></div>
-    <div class="output-card"><div class="output-icon">⚖️</div><div class="output-title">اللوائح التنظيمية</div><div class="output-desc">لائحة العمل والجزاءات والمكافآت والدوام والصلاحيات والمشتريات</div><div class="output-tags"><span class="output-tag">6 لوائح</span><span class="output-tag">قابلة للتخصيص</span></div></div>
-    <div class="output-card"><div class="output-icon">📝</div><div class="output-title">النماذج الإدارية</div><div class="output-desc">نماذج جاهزة: توظيف، إجازة، شراء، تقييم أداء، محضر اجتماع وأكثر</div><div class="output-tags"><span class="output-tag">10+ نموذج</span><span class="output-tag">Word</span></div></div>
-    <div class="output-card"><div class="output-icon">📊</div><div class="output-title">ملفات Excel</div><div class="output-desc">سجل الموظفين والرواتب والإجازات والميزانية والمبيعات ومتابعة المشاريع</div><div class="output-tags"><span class="output-tag">20+ ملف</span><span class="output-tag">جاهزة للتشغيل</span></div></div>
-    <div class="output-card"><div class="output-icon">🚀</div><div class="output-title">الخطة الاستراتيجية</div><div class="output-desc">خطة تشغيلية سنوية وأهداف OKR ومؤشرات KPI وخطة توظيف وتدريب وهيكل مستقبلي</div><div class="output-tags"><span class="output-tag">باقة المؤسسات</span><span class="output-tag">متقدم</span></div></div>
-  </div>
-</div>
-
-<!-- PRICING -->
-<div class="pricing" id="pricingSec">
-  <div class="section-title">الباقات والأسعار</div>
-  <div class="section-sub">اختر الباقة المناسبة لحجم منشأتك</div>
-  <div class="pricing-grid">
-
-    <!-- FREE -->
-    <div class="plan">
-      <div class="plan-name">🌱 مجانية</div>
-      <div class="plan-desc">للتجربة والمنشآت الناشئة جداً</div>
-      <div class="plan-price"><span class="currency">ر.س</span><span class="amount">0</span><span class="period"> / مرة واحدة</span></div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> تقرير واحد فقط</li>
-        <li><span class="check">✓</span> هيكل تنظيمي مبسط</li>
-        <li><span class="check">✓</span> حتى 10 موظفين</li>
-        <li><span class="check">✓</span> 3 أوصاف وظيفية</li>
-        <li><span class="x">✗</span> <span style="color:#334155">صلاحيات وسياسات</span></li>
-        <li><span class="x">✗</span> <span style="color:#334155">تصدير PDF/Word</span></li>
-        <li><span class="x">✗</span> <span style="color:#334155">ملفات Excel</span></li>
-      </ul>
-      <button class="plan-btn outline" onclick="goToForm()">ابدأ مجاناً</button>
-    </div>
-
-    <!-- STARTER -->
-    <div class="plan">
-      <div class="plan-name">⚡ الناشئة</div>
-      <div class="plan-desc">للشركات الصغيرة والمؤسسات الفردية</div>
-      <div class="plan-price"><span class="currency">ر.س</span><span class="amount">149</span><span class="period"> / شهرياً</span></div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> 5 تقارير شهرياً</li>
-        <li><span class="check">✓</span> حتى 50 موظف</li>
-        <li><span class="check">✓</span> هيكل تنظيمي كامل</li>
-        <li><span class="check">✓</span> أوصاف وظيفية كاملة</li>
-        <li><span class="check">✓</span> مصفوفة الصلاحيات</li>
-        <li><span class="check">✓</span> تصدير PDF و Word</li>
-        <li><span class="x">✗</span> <span style="color:#334155">ملفات Excel</span></li>
-        <li><span class="x">✗</span> <span style="color:#334155">السياسات واللوائح</span></li>
-      </ul>
-      <button class="plan-btn outline" onclick="goToForm()">اشترك الآن</button>
-    </div>
-
-    <!-- GROWTH - POPULAR -->
-    <div class="plan popular">
-      <div class="plan-badge">الأكثر طلباً ⭐</div>
-      <div class="plan-name">🏢 المتوسطة</div>
-      <div class="plan-desc">للشركات المتوسطة ومتعددة الفروع</div>
-      <div class="plan-price"><span class="currency">ر.س</span><span class="amount">399</span><span class="period"> / شهرياً</span></div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> 20 تقرير شهرياً</li>
-        <li><span class="check">✓</span> حتى 200 موظف</li>
-        <li><span class="check">✓</span> جميع مخرجات الناشئة</li>
-        <li><span class="check">✓</span> السياسات المؤسسية كاملة</li>
-        <li><span class="check">✓</span> اللوائح التنظيمية</li>
-        <li><span class="check">✓</span> النماذج الإدارية</li>
-        <li><span class="check">✓</span> ملفات Excel (HR + مالية)</li>
-        <li><span class="x">✗</span> <span style="color:#334155">الخطة الاستراتيجية</span></li>
-      </ul>
-      <button class="plan-btn primary" onclick="goToForm()">اشترك الآن</button>
-    </div>
-
-    <!-- ENTERPRISE -->
-    <div class="plan">
-      <div class="plan-name">🏗️ المؤسسات</div>
-      <div class="plan-desc">للشركات الكبرى ومتعددة الجنسيات</div>
-      <div class="plan-price"><span class="currency">ر.س</span><span class="amount">999</span><span class="period"> / شهرياً</span></div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> تقارير غير محدودة</li>
-        <li><span class="check">✓</span> موظفون غير محدودون</li>
-        <li><span class="check">✓</span> جميع مخرجات المتوسطة</li>
-        <li><span class="check">✓</span> الخطة الاستراتيجية OKR/KPI</li>
-        <li><span class="check">✓</span> جميع ملفات Excel (20+)</li>
-        <li><span class="check">✓</span> تخصيص حسب الدولة</li>
-        <li><span class="check">✓</span> دعم مخصص 24/7</li>
-        <li><span class="check">✓</span> API للتكامل مع الأنظمة</li>
-      </ul>
-      <button class="plan-btn primary" onclick="goToForm()">تواصل معنا</button>
-    </div>
-
-  </div>
-
-  <!-- Annual discount -->
-  <div style="text-align:center;margin-top:28px;padding:18px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:14px;max-width:500px;margin-left:auto;margin-right:auto">
-    <div style="color:#34d399;font-weight:700;font-size:14px;margin-bottom:4px">💡 وفّر 25% مع الاشتراك السنوي</div>
-    <div style="color:#64748b;font-size:12px">ادفع سنوياً واحصل على شهرين مجاناً</div>
+    <div class="output-card"><div class="output-icon">🏛️</div><div class="output-name">الهيكل التنظيمي</div><div class="output-desc">هرم وظيفي كامل مخصص لنشاطك</div></div>
+    <div class="output-card"><div class="output-icon">🏢</div><div class="output-name">الأقسام والإدارات</div><div class="output-desc">تقسيم إداري احترافي مع المهام</div></div>
+    <div class="output-card"><div class="output-icon">👤</div><div class="output-name">الأوصاف الوظيفية</div><div class="output-desc">مسميات ومهام لكل وظيفة</div></div>
+    <div class="output-card"><div class="output-icon">🔐</div><div class="output-name">مصفوفة الصلاحيات</div><div class="output-desc">توزيع الصلاحيات والمسؤوليات</div></div>
+    <div class="output-card"><div class="output-icon">📋</div><div class="output-name">السياسات واللوائح</div><div class="output-desc">سياسات HR وتشغيلية جاهزة</div></div>
+    <div class="output-card"><div class="output-icon">📊</div><div class="output-name">مؤشرات KPI</div><div class="output-desc">مؤشرات قياس الأداء لكل قسم</div></div>
+    <div class="output-card"><div class="output-icon">⚖️</div><div class="output-name">الحوكمة والرقابة</div><div class="output-desc">هيكل حوكمة متكامل</div></div>
+    <div class="output-card"><div class="output-icon">📑</div><div class="output-name">عقود العمل</div><div class="output-desc">نماذج عقود جاهزة للتوقيع</div></div>
+    <div class="output-card"><div class="output-icon">📈</div><div class="output-name">خطة التشغيل</div><div class="output-desc">خارطة طريق واضحة للانطلاق</div></div>
   </div>
 </div>
 
 <!-- FORM -->
-<div class="form-section" id="formSec">
-  <div class="form-card">
+<div id="formSec">
+<div class="section" style="padding-top:0;padding-bottom:0">
+  <div class="form-wrap">
     <div class="form-title">إنشاء المنشأة الذكية</div>
     <div class="form-sub">أدخل بيانات منشأتك ويتولى الذكاء الاصطناعي الباقي</div>
 
     <div class="form-grid">
       <div class="field">
-                <label>🏭 النشاط الرئيسي *</label>
-        <select id="mainActivity" onchange="updateSubActivities()">
+        <label>🏭 النشاط الرئيسي *</label>
+        <select id="mainActivity" onchange="onActivityChange()">
           <option value="">— اختر القطاع —</option>
-          <optgroup label="أ — الزراعة والحراجة وصيد الأسماك">
-            <option value="زراعة الحبوب والمحاصيل|0111">زراعة الحبوب والمحاصيل</option>
-            <option value="زراعة الخضروات والفاكهة|0113">زراعة الخضروات والفاكهة</option>
-            <option value="زراعة النخيل والتمور|0124">زراعة النخيل والتمور</option>
-            <option value="تربية المواشي والدواجن|0141">تربية المواشي والدواجن</option>
-            <option value="تربية الإبل|0143">تربية الإبل</option>
-            <option value="تربية نحل العسل|0149">تربية نحل العسل</option>
-            <option value="صيد الأسماك البحرية|0311">صيد الأسماك البحرية</option>
-            <option value="الاستزراع السمكي|0321">الاستزراع السمكي</option>
+          <optgroup label="الزراعة والغذاء">
+            <option value="زراعة الخضروات والفاكهة">زراعة الخضروات والفاكهة</option>
+            <option value="تربية المواشي والدواجن">تربية المواشي والدواجن</option>
+            <option value="الاستزراع السمكي">الاستزراع السمكي</option>
+            <option value="تصنيع المنتجات الغذائية">تصنيع المنتجات الغذائية</option>
+            <option value="تصنيع منتجات الألبان">تصنيع منتجات الألبان</option>
           </optgroup>
-          <optgroup label="ب — التعدين واستخراج الخامات">
-            <option value="استخراج النفط الخام|0610">استخراج النفط الخام</option>
-            <option value="استخراج الغاز الطبيعي|0620">استخراج الغاز الطبيعي</option>
-            <option value="تعدين الحجر والرخام والغرانيت|0811">تعدين الحجر والرخام والغرانيت</option>
-            <option value="تعدين الرمل والحصى|0812">تعدين الرمل والحصى</option>
-            <option value="تعدين الفوسفات والمعادن|0891">تعدين الفوسفات والمعادن</option>
+          <optgroup label="التجارة">
+            <option value="سوبرماركت وهايبرماركت">سوبرماركت وهايبرماركت</option>
+            <option value="تجارة جملة المواد الغذائية">تجارة جملة المواد الغذائية</option>
+            <option value="محلات الملابس والأحذية">محلات الملابس والأحذية</option>
+            <option value="محلات الإلكترونيات والأجهزة">محلات الإلكترونيات والأجهزة</option>
+            <option value="التجارة الإلكترونية">التجارة الإلكترونية</option>
+            <option value="بيع السيارات وخدماتها">بيع السيارات وخدماتها</option>
           </optgroup>
-          <optgroup label="ج — التصنيع الغذائي">
-            <option value="تصنيع وتعبئة اللحوم والدواجن|1010">تصنيع وتعبئة اللحوم والدواجن</option>
-            <option value="تصنيع وتعبئة الأسماك والمأكولات البحرية|1020">تصنيع وتعبئة الأسماك والمأكولات البحرية</option>
-            <option value="تصنيع وتعليب الفاكهة والخضروات|1030">تصنيع وتعليب الفاكهة والخضروات</option>
-            <option value="تصنيع الزيوت والدهون النباتية|1040">تصنيع الزيوت والدهون النباتية</option>
-            <option value="تصنيع منتجات الألبان|1050">تصنيع منتجات الألبان</option>
-            <option value="تصنيع الطحين والمخابز|1061">تصنيع الطحين والمخابز</option>
-            <option value="تصنيع الحلويات والشوكولاتة|1073">تصنيع الحلويات والشوكولاتة</option>
-            <option value="تصنيع المشروبات الغازية والعصائر|1104">تصنيع المشروبات الغازية والعصائر</option>
+          <optgroup label="الضيافة والمطاعم">
+            <option value="المطاعم ووجبات سريعة">المطاعم ووجبات سريعة</option>
+            <option value="المقاهي وكوفي شوب">المقاهي وكوفي شوب</option>
+            <option value="الفنادق ومنشآت الإقامة">الفنادق ومنشآت الإقامة</option>
+            <option value="الشاليهات والاستراحات">الشاليهات والاستراحات</option>
+            <option value="ضيافة الفعاليات والأعراس">ضيافة الفعاليات والأعراس</option>
+            <option value="وكالات السفر والسياحة">وكالات السفر والسياحة</option>
           </optgroup>
-          <optgroup label="د — التصنيع الصناعي">
-            <option value="تصنيع الملابس والمنسوجات|1410">تصنيع الملابس والمنسوجات</option>
-            <option value="تصنيع منتجات الأخشاب والأثاث|1610">تصنيع منتجات الأخشاب والأثاث</option>
-            <option value="تصنيع الورق والكرتون|1701">تصنيع الورق والكرتون</option>
-            <option value="الطباعة والنشر|1811">الطباعة والنشر</option>
-            <option value="تكرير النفط والبتروكيماويات|1920">تكرير النفط والبتروكيماويات</option>
-            <option value="تصنيع المواد الكيماوية والأسمدة|2013">تصنيع المواد الكيماوية والأسمدة</option>
-            <option value="تصنيع الدهانات والطلاء|2030">تصنيع الدهانات والطلاء</option>
-            <option value="تصنيع المنظفات ومستحضرات التجميل|2041">تصنيع المنظفات ومستحضرات التجميل</option>
-            <option value="تصنيع الأدوية والمستلزمات الطبية|2100">تصنيع الأدوية والمستلزمات الطبية</option>
-            <option value="تصنيع منتجات المطاط والبلاستيك|2220">تصنيع منتجات المطاط والبلاستيك</option>
-            <option value="تصنيع السيراميك والبلاط|2391">تصنيع السيراميك والبلاط</option>
-            <option value="تصنيع الإسمنت والجير|2394">تصنيع الإسمنت والجير</option>
-            <option value="تصنيع الحديد والصلب|2410">تصنيع الحديد والصلب</option>
-            <option value="تصنيع الهياكل المعدنية والأبواب|2511">تصنيع الهياكل المعدنية والأبواب</option>
-            <option value="تصنيع الإلكترونيات والحاسبات|2620">تصنيع الإلكترونيات والحاسبات</option>
-            <option value="تصنيع المعدات الكهربائية|2710">تصنيع المعدات الكهربائية</option>
-            <option value="تصنيع الآلات والمعدات الصناعية|2811">تصنيع الآلات والمعدات الصناعية</option>
-            <option value="تصنيع قطع غيار السيارات|2930">تصنيع قطع غيار السيارات</option>
-            <option value="بناء السفن وإصلاحها|3011">بناء السفن وإصلاحها</option>
-            <option value="تصنيع الأثاث المنزلي والمكتبي|3100">تصنيع الأثاث المنزلي والمكتبي</option>
+          <optgroup label="الإنشاء والمقاولات">
+            <option value="إنشاء المباني السكنية والتجارية">إنشاء المباني السكنية والتجارية</option>
+            <option value="إنشاء الطرق والجسور">إنشاء الطرق والجسور</option>
+            <option value="أعمال الكهرباء والتمديدات">أعمال الكهرباء والتمديدات</option>
+            <option value="أعمال السباكة والتكييف">أعمال السباكة والتكييف</option>
+            <option value="أعمال التشطيب والديكور">أعمال التشطيب والديكور</option>
           </optgroup>
-          <optgroup label="هـ — الطاقة والمياه والبيئة">
-            <option value="توليد الكهرباء بالطاقة التقليدية|3510">توليد الكهرباء بالطاقة التقليدية</option>
-            <option value="توليد الطاقة الشمسية وطاقة الرياح|3510-R">توليد الطاقة الشمسية وطاقة الرياح</option>
-            <option value="توزيع الغاز الطبيعي|3520">توزيع الغاز الطبيعي</option>
-            <option value="معالجة وتوزيع المياه|3600">معالجة وتوزيع المياه</option>
-            <option value="تحلية المياه|3600-D">تحلية المياه</option>
-            <option value="إدارة النفايات وإعادة التدوير|3832">إدارة النفايات وإعادة التدوير</option>
+          <optgroup label="تقنية المعلومات">
+            <option value="تطوير البرمجيات والتطبيقات">تطوير البرمجيات والتطبيقات</option>
+            <option value="الأمن السيبراني">الأمن السيبراني</option>
+            <option value="الخدمات السحابية">الخدمات السحابية</option>
+            <option value="الذكاء الاصطناعي وتحليل البيانات">الذكاء الاصطناعي وتحليل البيانات</option>
+            <option value="استشارات تقنية المعلومات">استشارات تقنية المعلومات</option>
           </optgroup>
-          <optgroup label="و — الإنشاء والمقاولات">
-            <option value="إنشاء المباني السكنية والتجارية|4100">إنشاء المباني السكنية والتجارية</option>
-            <option value="إنشاء الطرق والجسور والبنية التحتية|4210">إنشاء الطرق والجسور والبنية التحتية</option>
-            <option value="إنشاء شبكات المياه والكهرباء والغاز|4220">إنشاء شبكات المياه والكهرباء والغاز</option>
-            <option value="أعمال الكهرباء والتمديدات|4321">أعمال الكهرباء والتمديدات</option>
-            <option value="أعمال السباكة والتكييف|4322">أعمال السباكة والتكييف</option>
-            <option value="أعمال التشطيب والديكور الداخلي|4330">أعمال التشطيب والديكور الداخلي</option>
+          <optgroup label="الخدمات الصحية">
+            <option value="المستشفيات العامة والمتخصصة">المستشفيات العامة والمتخصصة</option>
+            <option value="العيادات الطبية المتخصصة">العيادات الطبية المتخصصة</option>
+            <option value="عيادات الأسنان">عيادات الأسنان</option>
+            <option value="الصيدليات">الصيدليات</option>
+            <option value="مراكز العلاج الطبيعي">مراكز العلاج الطبيعي</option>
           </optgroup>
-          <optgroup label="ز — التجارة">
-            <option value="بيع السيارات وخدماتها|4510">بيع السيارات وخدماتها</option>
-            <option value="تجارة جملة المواد الغذائية|4649">تجارة جملة المواد الغذائية</option>
-            <option value="تجارة جملة مواد البناء|4663">تجارة جملة مواد البناء</option>
-            <option value="تجارة جملة الآلات والمعدات|4659">تجارة جملة الآلات والمعدات</option>
-            <option value="سوبرماركت وهايبرماركت|4711">سوبرماركت وهايبرماركت</option>
-            <option value="محلات الخضروات والفاكهة|4721">محلات الخضروات والفاكهة</option>
-            <option value="محلات اللحوم والدواجن|4722">محلات اللحوم والدواجن</option>
-            <option value="محلات الملابس والأحذية|4771">محلات الملابس والأحذية</option>
-            <option value="صيدليات ومستحضرات التجميل|4772">صيدليات ومستحضرات التجميل</option>
-            <option value="محلات الإلكترونيات والأجهزة|4741">محلات الإلكترونيات والأجهزة</option>
-            <option value="محلات الأثاث والمفروشات|4752">محلات الأثاث والمفروشات</option>
-            <option value="التجارة الإلكترونية|4791">التجارة الإلكترونية</option>
+          <optgroup label="التعليم والتدريب">
+            <option value="المدارس الخاصة">المدارس الخاصة</option>
+            <option value="الجامعات والكليات الخاصة">الجامعات والكليات الخاصة</option>
+            <option value="مراكز التدريب المهني">مراكز التدريب المهني</option>
+            <option value="مراكز تعليم اللغات">مراكز تعليم اللغات</option>
+            <option value="التعليم الإلكتروني">التعليم الإلكتروني</option>
           </optgroup>
-          <optgroup label="ح — النقل والتخزين واللوجستيات">
-            <option value="نقل الركاب بالحافلات|4921">نقل الركاب بالحافلات</option>
-            <option value="سيارات الأجرة والتطبيقات|4922">سيارات الأجرة والتطبيقات</option>
-            <option value="شركات الشحن والنقل البري|4923">شركات الشحن والنقل البري</option>
-            <option value="الشحن البحري والموانئ|5012">الشحن البحري والموانئ</option>
-            <option value="شركات الطيران|5110">شركات الطيران</option>
-            <option value="الشحن الجوي|5120">الشحن الجوي</option>
-            <option value="المستودعات والتخزين|5210">المستودعات والتخزين</option>
-            <option value="وكلاء الشحن والجمارك|5229">وكلاء الشحن والجمارك</option>
-            <option value="الشحن السريع والتوصيل|5320">الشحن السريع والتوصيل</option>
+          <optgroup label="الخدمات المالية والعقارات">
+            <option value="البنوك التجارية والإسلامية">البنوك التجارية والإسلامية</option>
+            <option value="التأمين والتكافل">التأمين والتكافل</option>
+            <option value="الاستثمار وإدارة الصناديق">الاستثمار وإدارة الصناديق</option>
+            <option value="شراء وبيع العقارات">شراء وبيع العقارات</option>
+            <option value="تأجير وإدارة العقارات">تأجير وإدارة العقارات</option>
           </optgroup>
-          <optgroup label="ط — الضيافة والمطاعم والسياحة">
-            <option value="الفنادق ومنشآت الإقامة|5510">الفنادق ومنشآت الإقامة</option>
-            <option value="الشاليهات والاستراحات والمنتجعات|5520">الشاليهات والاستراحات والمنتجعات</option>
-            <option value="الشقق المفروشة|5590">الشقق المفروشة</option>
-            <option value="المطاعم ووجبات سريعة|5610">المطاعم ووجبات سريعة</option>
-            <option value="ضيافة الفعاليات والأعراس|5621">ضيافة الفعاليات والأعراس</option>
-            <option value="المقاهي وكوفي شوب|5630">المقاهي وكوفي شوب</option>
-            <option value="وكالات السفر والسياحة|7911">وكالات السفر والسياحة</option>
+          <optgroup label="الخدمات المهنية">
+            <option value="المحاماة والخدمات القانونية">المحاماة والخدمات القانونية</option>
+            <option value="المحاسبة والتدقيق">المحاسبة والتدقيق</option>
+            <option value="الاستشارات الإدارية">الاستشارات الإدارية</option>
+            <option value="الهندسة المعمارية والتصميم">الهندسة المعمارية والتصميم</option>
+            <option value="التسويق والإعلان الرقمي">التسويق والإعلان الرقمي</option>
           </optgroup>
-          <optgroup label="ي — الاتصالات وتقنية المعلومات">
-            <option value="تطوير البرمجيات والتطبيقات|6201">تطوير البرمجيات والتطبيقات</option>
-            <option value="استشارات تقنية المعلومات|6202">استشارات تقنية المعلومات</option>
-            <option value="الأمن السيبراني|6209">الأمن السيبراني</option>
-            <option value="الخدمات السحابية ومراكز البيانات|6311">الخدمات السحابية ومراكز البيانات</option>
-            <option value="المنصات الإلكترونية وبوابات الويب|6312">المنصات الإلكترونية وبوابات الويب</option>
-            <option value="شركات الاتصالات والجوال|6120">شركات الاتصالات والجوال</option>
-            <option value="خدمات الإنترنت|6110">خدمات الإنترنت</option>
-            <option value="الذكاء الاصطناعي وتحليل البيانات|6399">الذكاء الاصطناعي وتحليل البيانات</option>
+          <optgroup label="النقل واللوجستيات">
+            <option value="شركات الشحن والنقل البري">شركات الشحن والنقل البري</option>
+            <option value="الشحن السريع والتوصيل">الشحن السريع والتوصيل</option>
+            <option value="المستودعات والتخزين">المستودعات والتخزين</option>
+            <option value="سيارات الأجرة والتطبيقات">سيارات الأجرة والتطبيقات</option>
           </optgroup>
-          <optgroup label="ك — الخدمات المالية والتأمين">
-            <option value="البنوك التجارية والإسلامية|6419">البنوك التجارية والإسلامية</option>
-            <option value="شركات التمويل والتأجير|6491">شركات التمويل والتأجير</option>
-            <option value="التأمين والتكافل|6511">التأمين والتكافل</option>
-            <option value="الاستثمار وإدارة الصناديق|6420">الاستثمار وإدارة الصناديق</option>
-            <option value="الصرافة والتحويلات|6619">الصرافة والتحويلات</option>
-            <option value="الدفع الإلكتروني والفنتك|6619-F">الدفع الإلكتروني والفنتك</option>
+          <optgroup label="التصنيع">
+            <option value="تصنيع الأثاث المنزلي والمكتبي">تصنيع الأثاث المنزلي والمكتبي</option>
+            <option value="تصنيع الملابس والمنسوجات">تصنيع الملابس والمنسوجات</option>
+            <option value="تصنيع الأدوية والمستلزمات الطبية">تصنيع الأدوية والمستلزمات الطبية</option>
+            <option value="تصنيع مواد البناء">تصنيع مواد البناء</option>
+            <option value="تصنيع المنتجات الكيماوية">تصنيع المنتجات الكيماوية</option>
           </optgroup>
-          <optgroup label="ل — العقارات">
-            <option value="شراء وبيع العقارات والأراضي|6810">شراء وبيع العقارات والأراضي</option>
-            <option value="تأجير وإدارة العقارات|6820">تأجير وإدارة العقارات</option>
-            <option value="الوساطة والتقييم العقاري|6831">الوساطة والتقييم العقاري</option>
-            <option value="تطوير المجمعات السكنية|6810-D">تطوير المجمعات السكنية</option>
+          <optgroup label="الترفيه والرياضة">
+            <option value="صالات اللياقة البدنية">صالات اللياقة البدنية</option>
+            <option value="مدن الترفيه والملاهي">مدن الترفيه والملاهي</option>
+            <option value="الأندية الرياضية">الأندية الرياضية</option>
+            <option value="إنتاج المحتوى الرقمي">إنتاج المحتوى الرقمي</option>
           </optgroup>
-          <optgroup label="م — الخدمات المهنية والاستشارية">
-            <option value="المحاماة والخدمات القانونية|6910">المحاماة والخدمات القانونية</option>
-            <option value="المحاسبة والتدقيق الضريبي|6920">المحاسبة والتدقيق الضريبي</option>
-            <option value="الاستشارات الإدارية وتطوير الأعمال|7020">الاستشارات الإدارية وتطوير الأعمال</option>
-            <option value="الهندسة المعمارية والتصميم|7110">الهندسة المعمارية والتصميم</option>
-            <option value="الهندسة المدنية والإنشائية|7110-C">الهندسة المدنية والإنشائية</option>
-            <option value="البحث والتطوير والابتكار|7210">البحث والتطوير والابتكار</option>
-            <option value="التسويق والإعلان الرقمي|7310">التسويق والإعلان الرقمي</option>
-            <option value="أبحاث السوق وتحليل البيانات|7320">أبحاث السوق وتحليل البيانات</option>
-            <option value="التصميم الجرافيكي والديكور الداخلي|7410">التصميم الجرافيكي والديكور الداخلي</option>
-            <option value="خدمات الترجمة واللغات|7490">خدمات الترجمة واللغات</option>
-          </optgroup>
-          <optgroup label="ن — الخدمات الإدارية والدعم">
-            <option value="تأجير السيارات والمعدات|7710">تأجير السيارات والمعدات</option>
-            <option value="التوظيف والاستقدام|7810">التوظيف والاستقدام</option>
-            <option value="الخدمات الأمنية والحراسة|8010">الخدمات الأمنية والحراسة</option>
-            <option value="خدمات النظافة وإدارة المباني|8121">خدمات النظافة وإدارة المباني</option>
-            <option value="تنسيق الحدائق والمسطحات الخضراء|8130">تنسيق الحدائق والمسطحات الخضراء</option>
-            <option value="مراكز الاتصال وخدمة العملاء|8220">مراكز الاتصال وخدمة العملاء</option>
-            <option value="تنظيم الفعاليات والمؤتمرات|8230">تنظيم الفعاليات والمؤتمرات</option>
-          </optgroup>
-          <optgroup label="س — التعليم والتدريب">
-            <option value="الحضانات ورياض الأطفال|8510">الحضانات ورياض الأطفال</option>
-            <option value="المدارس الابتدائية والمتوسطة والثانوية|8520">المدارس الابتدائية والمتوسطة والثانوية</option>
-            <option value="الجامعات والكليات والمعاهد|8541">الجامعات والكليات والمعاهد</option>
-            <option value="مراكز التدريب المهني والتقني|8532">مراكز التدريب المهني والتقني</option>
-            <option value="مراكز تعليم اللغات|8552">مراكز تعليم اللغات</option>
-            <option value="التعليم الإلكتروني والدورات الأونلاين|8559">التعليم الإلكتروني والدورات الأونلاين</option>
-            <option value="الأكاديميات الرياضية والفنية|8551">الأكاديميات الرياضية والفنية</option>
-          </optgroup>
-          <optgroup label="ع — الصحة والرعاية الاجتماعية">
-            <option value="المستشفيات العامة والمتخصصة|8610">المستشفيات العامة والمتخصصة</option>
-            <option value="العيادات الطبية العامة|8621">العيادات الطبية العامة</option>
-            <option value="العيادات الطبية المتخصصة|8622">العيادات الطبية المتخصصة</option>
-            <option value="عيادات الأسنان|8623">عيادات الأسنان</option>
-            <option value="المختبرات الطبية والأشعة|8690">المختبرات الطبية والأشعة</option>
-            <option value="الصيدليات|8690-P">الصيدليات</option>
-            <option value="مراكز العلاج الطبيعي والتأهيل|8690-R">مراكز العلاج الطبيعي والتأهيل</option>
-            <option value="دور الرعاية والمسنين|8710">دور الرعاية والمسنين</option>
-          </optgroup>
-          <optgroup label="ف — الفنون والترفيه والرياضة">
-            <option value="إنتاج الأفلام والمحتوى الرقمي|5911">إنتاج الأفلام والمحتوى الرقمي</option>
-            <option value="القنوات التلفزيونية والإذاعة|6020">القنوات التلفزيونية والإذاعة</option>
-            <option value="مدن الترفيه وحدائق المائية|9321">مدن الترفيه وحدائق المائية</option>
-            <option value="الأندية الرياضية|9312">الأندية الرياضية</option>
-            <option value="صالات اللياقة البدنية|9319">صالات اللياقة البدنية</option>
-            <option value="المتاحف والمعارض الثقافية|9102">المتاحف والمعارض الثقافية</option>
-          </optgroup>
-          <optgroup label="ص — الخدمات الشخصية">
-            <option value="صالونات الحلاقة والتجميل|9602">صالونات الحلاقة والتجميل</option>
-            <option value="مراكز السبا والعناية|9602-S">مراكز السبا والعناية</option>
-            <option value="مغاسل الملابس والتنظيف الجاف|9601">مغاسل الملابس والتنظيف الجاف</option>
-            <option value="إصلاح الأجهزة والإلكترونيات|9511">إصلاح الأجهزة والإلكترونيات</option>
+          <optgroup label="الخدمات الشخصية">
+            <option value="صالونات الحلاقة والتجميل">صالونات الحلاقة والتجميل</option>
+            <option value="مراكز السبا والعناية">مراكز السبا والعناية</option>
+            <option value="خدمات النظافة وإدارة المباني">خدمات النظافة وإدارة المباني</option>
+            <option value="تنظيم الفعاليات والمؤتمرات">تنظيم الفعاليات والمؤتمرات</option>
           </optgroup>
         </select>
       </div>
 
       <div class="field">
-        <label>🔍 النشاط الفرعي</label>
-        <input type="text" id="subActivity" placeholder="مثال: تطوير تطبيقات الجوال">
+        <label>📝 النشاط الفرعي</label>
+        <input type="text" id="subActivity" placeholder="مثال: مطعم شاورما وأكلات شعبية">
       </div>
 
       <div class="field">
         <label>🌍 الدولة *</label>
-        <select id="country" onchange="updateRegions()">
+        <select id="country" onchange="onCountryChange()">
           <option value="">— اختر الدولة —</option>
           <option value="SA">🇸🇦 المملكة العربية السعودية</option>
           <option value="AE">🇦🇪 الإمارات العربية المتحدة</option>
@@ -493,1041 +343,726 @@ footer{border-top:1px solid rgba(255,255,255,0.07);padding:40px 24px;text-align:
       </div>
 
       <div class="field">
-        <label>📍 المدينة / المنطقة *</label>
-        <input type="text" id="city" placeholder="مثال: الرياض">
+        <label>📍 المنطقة *</label>
+        <select id="region" onchange="onRegionChange()">
+          <option value="">— اختر الدولة أولاً —</option>
+        </select>
+      </div>
+
+      <div class="field" id="cityField">
+        <label>🏙️ المدينة</label>
+        <select id="city">
+          <option value="">— اختر المنطقة أولاً —</option>
+        </select>
       </div>
 
       <div class="field">
-        <label>📜 نوع الكيان القانوني *</label>
+        <label>🏢 نوع الكيان</label>
         <select id="entityType">
           <option value="">— اختر —</option>
-          <option>شركة مساهمة</option>
-          <option>شركة ذات مسؤولية محدودة</option>
-          <option>مؤسسة فردية</option>
-          <option>شركة تضامن</option>
-          <option>جمعية غير ربحية</option>
-          <option>جهة حكومية</option>
-          <option>شركة هولدينج</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>👔 موظفون إداريون *</label>
-        <input type="number" id="adminEmp" min="0" placeholder="عدد الموظفين الإداريين">
-      </div>
-
-      <div class="field">
-        <label>⚙️ موظفون تشغيليون *</label>
-        <input type="number" id="opsEmp" min="0" placeholder="عدد الموظفين التشغيليين">
-      </div>
-
-      <div class="field">
-        <label>🏪 عدد الفروع</label>
-        <input type="number" id="branches" min="1" value="1" placeholder="عدد الفروع">
-      </div>
-
-      <div class="field">
-        <label>💰 الإيرادات السنوية (اختياري)</label>
-        <select id="revenue">
-          <option value="">— اختياري —</option>
-          <option>أقل من 500 ألف ر.س</option>
-          <option>500 ألف — 2 مليون ر.س</option>
-          <option>2 — 10 مليون ر.س</option>
-          <option>10 — 50 مليون ر.س</option>
-          <option>أكثر من 50 مليون ر.س</option>
         </select>
       </div>
     </div>
 
-    <div style="margin-top:20px">
-      <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:10px">🚦 مرحلة المشروع *</label>
-      <div class="stage-grid">
-        <div class="stage-btn" onclick="setStage(this,'فكرة')">💡 فكرة</div>
-        <div class="stage-btn" onclick="setStage(this,'تأسيس')">🏗️ تأسيس</div>
-        <div class="stage-btn" onclick="setStage(this,'تشغيل')">⚙️ تشغيل</div>
-        <div class="stage-btn" onclick="setStage(this,'توسع')">🚀 توسع</div>
+    <div class="emp-row">
+      <div class="field">
+        <label>👔 موظفون إداريون</label>
+        <input type="number" id="adminEmp" placeholder="مثال: 10" min="1" max="999">
+      </div>
+      <div class="field">
+        <label>⚙️ موظفون تشغيليون</label>
+        <input type="number" id="opsEmp" placeholder="مثال: 40" min="1" max="9999">
       </div>
     </div>
 
-    <div style="height:1px;background:rgba(255,255,255,0.06);margin:24px 0"></div>
+    <div class="field" style="margin-bottom:16px">
+      <label>🌿 مرحلة المشروع *</label>
+      <div class="stage-row">
+        <button class="stage-btn" onclick="setStage('فكرة',this)">💡 فكرة</button>
+        <button class="stage-btn" onclick="setStage('تأسيس',this)">🏗️ تأسيس</button>
+        <button class="stage-btn" onclick="setStage('تشغيل',this)">⚙️ تشغيل</button>
+        <button class="stage-btn" onclick="setStage('توسع',this)">🚀 توسع</button>
+      </div>
+    </div>
 
-    <div id="fErr" class="err-box hidden"></div>
-    <button class="generate-btn" onclick="generate()">
-      ✨ إنشاء المنشأة الذكية
-    </button>
-    <div style="text-align:center;color:#334155;font-size:11px;margin-top:12px">التوليد يستغرق 15-30 ثانية · النتائج مبنية على أفضل الممارسات الإدارية</div>
+    <div id="formError" class="auth-error" style="margin-bottom:14px"></div>
+    <button class="btn-generate" onclick="doGenerate()">✨ إنشاء المنشأة الذكية</button>
+  </div>
+</div>
+</div>
+
+<!-- PRICING -->
+<div id="pricingSec" class="section">
+  <div class="section-title">الباقات والأسعار</div>
+  <div class="section-sub">اختر الباقة المناسبة لحجم منشأتك</div>
+  <div class="pricing-grid">
+    <div class="plan">
+      <div class="plan-name">🌱 مجانية</div>
+      <div class="plan-price">0</div>
+      <div class="plan-currency">ر.س</div>
+      <div class="plan-features">
+        <div class="plan-feature">3 منشآت شهرياً</div>
+        <div class="plan-feature">7 مخرجات</div>
+        <div class="plan-feature">حفظ المنشآت</div>
+      </div>
+      <button class="btn-plan btn-plan-outline" onclick="scrollToId('formSec')">ابدأ مجاناً</button>
+    </div>
+    <div class="plan">
+      <div class="plan-name">⚡ الناشئة</div>
+      <div class="plan-price">149</div>
+      <div class="plan-currency">ر.س/شهر</div>
+      <div class="plan-features">
+        <div class="plan-feature">20 منشأة شهرياً</div>
+        <div class="plan-feature">9 مخرجات كاملة</div>
+        <div class="plan-feature">تصدير Excel & Word</div>
+      </div>
+      <button class="btn-plan btn-plan-outline" onclick="scrollToId('formSec')">اشترك</button>
+    </div>
+    <div class="plan featured">
+      <div class="plan-badge">الأكثر طلباً</div>
+      <div class="plan-name">🏢 المتوسطة</div>
+      <div class="plan-price">399</div>
+      <div class="plan-currency">ر.س/شهر</div>
+      <div class="plan-features">
+        <div class="plan-feature">100 منشأة شهرياً</div>
+        <div class="plan-feature">9 مخرجات + نماذج</div>
+        <div class="plan-feature">دعم أولوية</div>
+      </div>
+      <button class="btn-plan btn-plan-filled" onclick="scrollToId('formSec')">اشترك</button>
+    </div>
+    <div class="plan">
+      <div class="plan-name">🏗️ المؤسسات</div>
+      <div class="plan-price">999</div>
+      <div class="plan-currency">ر.س/شهر</div>
+      <div class="plan-features">
+        <div class="plan-feature">غير محدود</div>
+        <div class="plan-feature">API مخصص</div>
+        <div class="plan-feature">تكامل مع الأنظمة</div>
+      </div>
+      <button class="btn-plan btn-plan-outline" onclick="scrollToId('formSec')">تواصل معنا</button>
+    </div>
   </div>
 </div>
 
-<!-- FOOTER -->
-<footer>
-  <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">هيكل <span style="color:#3b82f6">ذكي</span></div>
-  <div style="margin-bottom:8px">منصة SaaS لبناء المنشآت بالذكاء الاصطناعي</div>
-  <div style="color:#1e293b">© 2025 منشأتك AI · جميع الحقوق محفوظة</div>
-</footer>
-
+<footer>© 2025 منشأتك AI · جميع الحقوق محفوظة</footer>
 </div><!-- end pgLand -->
 
-<!-- LOADING PAGE -->
-<div id="pgLoad" class="load-page hidden">
-  <div class="spinner">
-    <div class="sp-ring"></div>
-    <div class="sp-arc"></div>
-    <div class="sp-core">🧠</div>
+<!-- ═══ LOADING ═══ -->
+<div id="pgLoad" class="hidden">
+  <div class="loader"></div>
+  <div style="color:#475569;font-size:14px">جاري بناء منشأتك...</div>
+  <div style="color:#334155;font-size:12px">يستغرق 15-30 ثانية</div>
+</div>
+
+<!-- ═══ RESULT ═══ -->
+<div id="pgResult" class="hidden">
+  <div class="result-nav">
+    <div class="nav-logo">منشأتك <span>AI</span></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-blue" onclick="openDash()" id="saveBtn" style="display:none">💾 منشآتي</button>
+      <button class="btn-nav-ghost" onclick="showPage('pgLand')">← تقرير جديد</button>
+    </div>
   </div>
-  <div style="text-align:center">
-    <div id="ldMsg" style="font-size:17px;font-weight:700;margin-bottom:6px">⚙️ تحليل النشاط...</div>
-    <div id="ldSub" style="color:#475569;font-size:13px"></div>
+  <div class="tabs" id="tabsRow"></div>
+  <div class="result-content" id="resultContent"></div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="pgDash" class="hidden">
+  <div class="dash-nav">
+    <div class="nav-logo">منشأتك <span>AI</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="dashName" style="color:#64748b;font-size:13px"></span>
+      <button class="btn-nav-ghost" onclick="showPage('pgLand')">🏠 الرئيسية</button>
+      <button class="btn-nav-ghost" onclick="doLogout()">خروج</button>
+    </div>
   </div>
-  <div class="load-steps" id="ldSteps">
-    <div class="load-step" id="ls0">⏳ تحليل النشاط وتحديد النموذج</div>
-    <div class="load-step" id="ls1">⏳ بناء الهيكل التنظيمي</div>
-    <div class="load-step" id="ls2">⏳ إعداد الأوصاف الوظيفية</div>
-    <div class="load-step" id="ls3">⏳ مصفوفة الصلاحيات</div>
-    <div class="load-step" id="ls4">⏳ السياسات واللوائح</div>
-    <div class="load-step" id="ls5">⏳ المراجعة النهائية</div>
+  <div class="dash-content">
+    <div class="dash-header">
+      <div>
+        <h2 style="font-size:1.3rem;font-weight:800;color:#f0f4ff">منشآتي</h2>
+        <p style="color:#475569;font-size:12px;margin-top:4px">كل المنشآت التي أنشأتها</p>
+      </div>
+      <button class="btn-primary" onclick="showPage('pgLand');setTimeout(()=>scrollToId('formSec'),100)">+ إنشاء منشأة جديدة</button>
+    </div>
+    <div id="dashList"></div>
+    <div id="dashEmpty" class="empty-state hidden">
+      <div class="empty-icon">🏢</div>
+      <h3 style="color:#e2e8f0;font-size:1rem;margin-bottom:8px">لا توجد منشآت بعد</h3>
+      <p style="color:#475569;font-size:12px;margin-bottom:20px">ابدأ بإنشاء أول منشأة ذكية</p>
+      <button class="btn-primary" onclick="showPage('pgLand');setTimeout(()=>scrollToId('formSec'),100)">إنشاء منشأة ✨</button>
+    </div>
   </div>
 </div>
 
-<!-- RESULT PAGE -->
-<div id="pgResult" class="result-page hidden">
-  <div class="result-inner">
-    <div class="result-header">
-      <div>
-        <h2 id="rTitle" style="font-size:1.1rem;font-weight:800;margin-bottom:3px"></h2>
-        <p id="rSub" style="color:#475569;font-size:12px"></p>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:9px;padding:8px 14px;color:#34d399;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif">⬇️ تصدير PDF</button>
-        <button style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:8px 14px;color:#94a3b8;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif" onclick="showPage('pgLand')">← تقرير جديد</button>
-      </div>
+<!-- ═══ AUTH MODAL ═══ -->
+<div id="authModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="loginView">
+      <div class="modal-icon">🔐</div>
+      <div class="modal-title">تسجيل الدخول</div>
+      <div class="modal-sub">ادخل لحسابك وشاهد منشآتك</div>
+      <div class="auth-field"><label>📧 البريد الإلكتروني</label><input type="email" id="lEmail" placeholder="example@email.com"></div>
+      <div class="auth-field"><label>🔑 كلمة السر</label><input type="password" id="lPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div id="lErr" class="auth-error"></div>
+      <button class="btn-full" onclick="doLogin()">تسجيل الدخول</button>
+      <div class="auth-switch">ليس لديك حساب؟ <span onclick="switchToSignup()">إنشاء حساب</span></div>
     </div>
-
-    <!-- Summary -->
-    <div style="background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(16,185,129,0.04));border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:16px 20px;margin-bottom:16px">
-      <div style="color:#60a5fa;font-size:10px;font-weight:800;margin-bottom:7px;letter-spacing:1.5px">الملخص التنفيذي</div>
-      <p id="rSum" style="color:#cbd5e1;line-height:1.9;margin:0;font-size:14px"></p>
+    <div id="signupView" style="display:none">
+      <div class="modal-icon">✨</div>
+      <div class="modal-title">إنشاء حساب جديد</div>
+      <div class="modal-sub">مجاني تماماً · ابدأ الآن</div>
+      <div class="auth-field"><label>👤 الاسم</label><input type="text" id="sName" placeholder="محمد العلي"></div>
+      <div class="auth-field"><label>📧 البريد الإلكتروني</label><input type="email" id="sEmail" placeholder="example@email.com"></div>
+      <div class="auth-field"><label>🔑 كلمة السر</label><input type="password" id="sPass" placeholder="8 أحرف على الأقل" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <div id="sErr" class="auth-error"></div>
+      <div id="sOk" class="auth-success"></div>
+      <button class="btn-full" onclick="doSignup()">إنشاء الحساب</button>
+      <div class="auth-switch">لديك حساب؟ <span onclick="switchToLogin()">تسجيل الدخول</span></div>
     </div>
-
-    <!-- Tabs -->
-    <div class="result-tabs">
-      <button class="rtab on"  id="t-org"    onclick="showTab('org')">🏛️ الهيكل</button>
-      <button class="rtab off" id="t-dept"   onclick="showTab('dept')">🏢 الأقسام</button>
-      <button class="rtab off" id="t-jobs"   onclick="showTab('jobs')">💼 الوظائف</button>
-      <button class="rtab off" id="t-perm"   onclick="showTab('perm')">🔐 الصلاحيات</button>
-      <button class="rtab off" id="t-policy" onclick="showTab('policy')">📜 السياسات</button>
-      <button class="rtab off" id="t-kpi"    onclick="showTab('kpi')">📊 KPI</button>
-      <button class="rtab off" id="t-gov"    onclick="showTab('gov')">⚖️ الحوكمة</button>
-    </div>
-
-    <div id="tOrg"    class="fade"></div>
-    <div id="tDept"   class="hidden"></div>
-    <div id="tJobs"   class="hidden"></div>
-    <div id="tPerm"   class="hidden"></div>
-    <div id="tPolicy" class="hidden"></div>
-    <div id="tKpi"    class="hidden"></div>
-    <div id="tGov"    class="hidden"></div>
   </div>
 </div>
 
 <script>
-// ── STATE ──
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
 let selectedStage = '';
-let selectedPlan  = 'free';
+let currentUser = null;
+let authToken = null;
+let lastResult = null;
+let lastFormData = null;
 
-// ── NAV SCROLL ──
-function scrollTo(id) {
-  document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
-}
+// ══════════════════════════════════════════
+//  COUNTRIES DB
+// ══════════════════════════════════════════
+const DB = {
+  SA:{name:'المملكة العربية السعودية',entities:['شركة ذات مسؤولية محدودة','مؤسسة فردية','شركة مساهمة','شركة تضامن','جمعية غير ربحية'],
+    regions:[
+      {n:'منطقة الرياض',c:['الرياض','الخرج','الدوادمي','المجمعة','القويعية','وادي الدواسر','الأفلاج','الزلفي','شقراء']},
+      {n:'منطقة مكة المكرمة',c:['جدة','مكة المكرمة','الطائف','القنفذة','رابغ','الليث']},
+      {n:'منطقة المدينة المنورة',c:['المدينة المنورة','ينبع','العلا','المهد','بدر','خيبر']},
+      {n:'منطقة القصيم',c:['بريدة','عنيزة','الرس','المذنب','النبهانية']},
+      {n:'المنطقة الشرقية',c:['الدمام','الأحساء','الخبر','الجبيل','حفر الباطن','القطيف','رأس تنورة']},
+      {n:'منطقة عسير',c:['أبها','خميس مشيط','بيشة','محايل عسير','النماص']},
+      {n:'منطقة تبوك',c:['تبوك','ضباء','أملج','تيماء','الوجه']},
+      {n:'منطقة حائل',c:['حائل','بقعاء','الشنان']},
+      {n:'منطقة جازان',c:['جازان','صبيا','أبو عريش','الدرب']},
+      {n:'منطقة نجران',c:['نجران','شرورة']},
+      {n:'منطقة الباحة',c:['الباحة','بلجرشي','العقيق']},
+      {n:'منطقة الجوف',c:['سكاكا','دومة الجندل','القريات']},
+      {n:'منطقة الحدود الشمالية',c:['عرعر','رفحاء','طريف']}
+    ]},
+  AE:{name:'الإمارات',entities:['شركة ذات مسؤولية محدودة','شركة مساهمة','مؤسسة فردية'],
+    regions:[
+      {n:'أبوظبي',c:['أبوظبي','العين','مدينة محمد بن زايد']},
+      {n:'دبي',c:['دبي','جبل علي','مرسى دبي','ديرة']},
+      {n:'الشارقة',c:['الشارقة','خورفكان','كلباء']},
+      {n:'عجمان',c:['عجمان']},{n:'أم القيوين',c:['أم القيوين']},
+      {n:'رأس الخيمة',c:['رأس الخيمة','الجزيرة الحمراء']},
+      {n:'الفجيرة',c:['الفجيرة','دبا الفجيرة']}
+    ]},
+  KW:{name:'الكويت',entities:['شركة ذات مسؤولية محدودة','شركة مساهمة','مؤسسة فردية'],
+    regions:[
+      {n:'محافظة العاصمة',c:['الكويت','القبة','الشامية']},
+      {n:'محافظة حولي',c:['حولي','السالمية','الجابرية']},
+      {n:'محافظة الفروانية',c:['الفروانية','جليب الشيوخ']},
+      {n:'محافظة الأحمدي',c:['الأحمدي','الفحيحيل','مينا عبدالله']},
+      {n:'محافظة الجهراء',c:['الجهراء','القصر']},
+      {n:'محافظة مبارك الكبير',c:['مبارك الكبير','أبوحليفة']}
+    ]},
+  QA:{name:'قطر',entities:['شركة ذات مسؤولية محدودة','شركة مساهمة','مؤسسة فردية'],
+    regions:[
+      {n:'الدوحة',c:['الدوحة','لوسيل','مشيرب']},
+      {n:'الريان',c:['الريان','أم غويلينة']},
+      {n:'الوكرة',c:['الوكرة','مسيعيد']},
+      {n:'الخور',c:['الخور','الذخيرة']},
+      {n:'الشمال',c:['الشمال']},{n:'أم صلال',c:['أم صلال']}
+    ]},
+  BH:{name:'البحرين',entities:['شركة ذات مسؤولية محدودة','شركة مساهمة','مؤسسة فردية'],
+    regions:[
+      {n:'محافظة العاصمة',c:['المنامة','جدحفص']},
+      {n:'محافظة المحرق',c:['المحرق','عراد','الحد']},
+      {n:'محافظة الشمالية',c:['سترة','البديع']},
+      {n:'محافظة الجنوبية',c:['الرفاع','عوالي']}
+    ]},
+  OM:{name:'عُمان',entities:['شركة ذات مسؤولية محدودة','شركة مساهمة','مؤسسة فردية'],
+    regions:[
+      {n:'محافظة مسقط',c:['مسقط','مطرح','بوشر','السيب']},
+      {n:'محافظة الباطنة',c:['صحار','شناص','الرستاق']},
+      {n:'محافظة الداخلية',c:['نزوى','بهلاء','إزكي']},
+      {n:'محافظة ظفار',c:['صلالة','طاقة']},
+      {n:'محافظة الشرقية',c:['صور','إبراء']},
+      {n:'محافظة الظاهرة',c:['عبري','ينقل']}
+    ]},
+  EG:{name:'مصر',entities:['شركة ذات مسؤولية محدودة','شركة مساهمة','مؤسسة فردية'],
+    regions:[
+      {n:'القاهرة',c:['القاهرة','مدينة نصر','التجمع الخامس','مصر الجديدة']},
+      {n:'الجيزة',c:['الجيزة','6 أكتوبر','الشيخ زايد']},
+      {n:'الإسكندرية',c:['الإسكندرية','سموحة','العجمي']},
+      {n:'الشرقية',c:['الزقازيق','العاشر من رمضان']},
+      {n:'الدقهلية',c:['المنصورة','طلخا']},
+      {n:'البحيرة',c:['دمنهور','كفر الدوار']}
+    ]},
+  JO:{name:'الأردن',entities:['شركة ذات مسؤولية محدودة','شركة مساهمة','مؤسسة فردية'],
+    regions:[
+      {n:'عمان',c:['عمان','وادي السير','الجويدة']},
+      {n:'إربد',c:['إربد','الرمثا']},
+      {n:'الزرقاء',c:['الزرقاء','الرصيفة']},
+      {n:'العقبة',c:['العقبة']}
+    ]}
+};
 
-function goToForm() {
-  const formSec = document.getElementById('formSec');
-  const pgLand = document.getElementById('pgLand');
-  // Make sure landing page is visible
-  if (pgLand && pgLand.classList.contains('hidden')) {
-    showPage('pgLand');
-    setTimeout(() => { 
-      document.getElementById('formSec')?.scrollIntoView({behavior:'smooth'}); 
-    }, 100);
-  } else if (formSec) {
-    formSec.scrollIntoView({behavior:'smooth'});
-  }
-}
-
-function goToOutputs() {
-  const el = document.getElementById('outputsSec');
-  const pgLand = document.getElementById('pgLand');
-  if (pgLand && pgLand.classList.contains('hidden')) {
-    showPage('pgLand');
-    setTimeout(() => { document.getElementById('outputsSec')?.scrollIntoView({behavior:'smooth'}); }, 100);
-  } else if (el) {
-    el.scrollIntoView({behavior:'smooth'});
-  }
-}
-
-// ── PAGE ──
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
 function showPage(id) {
   ['pgLand','pgLoad','pgResult','pgDash'].forEach(p => {
-    const el = document.getElementById(p);
-    el.classList.add('hidden');
-    el.style.display = '';
+    document.getElementById(p).classList.add('hidden');
   });
-  document.getElementById('mainNav').style.display = id === 'pgLand' ? '' : 'none';
+  document.getElementById(id).classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+function scrollToId(id) {
   const el = document.getElementById(id);
-  el.classList.remove('hidden');
-  if (id === 'pgResult') el.style.display = 'block';
-  else if (id === 'pgLoad') el.style.display = 'flex';
-  else el.style.display = 'block';
+  if (el) el.scrollIntoView({behavior:'smooth'});
 }
 
-// ── STAGE ──
-function setStage(el, val) {
+// ══════════════════════════════════════════
+//  FORM LOGIC
+// ══════════════════════════════════════════
+function setStage(stage, btn) {
+  selectedStage = stage;
   document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  selectedStage = val;
+  btn.classList.add('active');
 }
 
-// ── PLAN ──
-function selectPlan(plan) {
-  selectedPlan = plan;
-  scrollTo('formSec');
+function onCountryChange() {
+  const code = document.getElementById('country').value;
+  const regionSel = document.getElementById('region');
+  const citySel = document.getElementById('city');
+  const entitySel = document.getElementById('entityType');
+  regionSel.innerHTML = '<option value="">— اختر المنطقة —</option>';
+  citySel.innerHTML = '<option value="">— اختر المنطقة أولاً —</option>';
+  entitySel.innerHTML = '<option value="">— اختر —</option>';
+  if (!code || !DB[code]) return;
+  const d = DB[code];
+  d.regions.forEach(r => {
+    regionSel.innerHTML += `<option value="${r.n}">${r.n}</option>`;
+  });
+  d.entities.forEach(e => {
+    entitySel.innerHTML += `<option value="${e}">${e}</option>`;
+  });
 }
 
-// ── SIZE UTILS ──
-function getTotalEmp() {
-  return (parseInt(document.getElementById('adminEmp').value)||0) + (parseInt(document.getElementById('opsEmp').value)||0);
-}
-function getSizeLabel(n) {
-  if(n<=10)return'ناشئة صغيرة جداً';
-  if(n<=50)return'صغيرة';
-  if(n<=200)return'متوسطة';
-  if(n<=500)return'كبيرة';
-  return'مؤسسة كبرى';
-}
-function getScale(n) {
-  if(n<=10) return{depts:2,jobs:3,layers:2,policies:3,kpis:4};
-  if(n<=50) return{depts:4,jobs:5,layers:3,policies:5,kpis:6};
-  if(n<=200)return{depts:6,jobs:7,layers:4,policies:7,kpis:8};
-  if(n<=500)return{depts:8,jobs:8,layers:5,policies:8,kpis:10};
-  return{depts:10,jobs:10,layers:5,policies:10,kpis:12};
+function onRegionChange() {
+  const code = document.getElementById('country').value;
+  const regionName = document.getElementById('region').value;
+  const citySel = document.getElementById('city');
+  citySel.innerHTML = '<option value="">— اختر المدينة —</option>';
+  if (!code || !regionName || !DB[code]) return;
+  const region = DB[code].regions.find(r => r.n === regionName);
+  if (!region) return;
+  region.c.forEach(c => {
+    citySel.innerHTML += `<option value="${c}">${c}</option>`;
+  });
 }
 
-// ── LOADING ANIMATION ──
-function animateSteps(iv) {
-  let step = 0;
-  const steps = ['ls0','ls1','ls2','ls3','ls4','ls5'];
-  steps.forEach(s => { document.getElementById(s).className = 'load-step'; });
-  document.getElementById('ls0').className = 'load-step active';
-  const si = setInterval(() => {
-    if(step < steps.length) {
-      if(step > 0) document.getElementById(steps[step-1]).className = 'load-step done';
-      if(step < steps.length) document.getElementById(steps[step]).className = 'load-step active';
-    }
-    step++;
-    if(step >= steps.length + 1) clearInterval(si);
-  }, 2000);
-  return si;
+function onActivityChange() {
+  const val = document.getElementById('mainActivity').value;
+  if (val) document.getElementById('subActivity').placeholder = 'مثال: تخصص في ' + val;
 }
 
-// ── GENERATE ──
-async function generate() {
-  const activity   = document.getElementById('mainActivity').value;
-  const subAct     = document.getElementById('subActivity').value;
-  const country    = document.getElementById('country').value;
-  const city       = document.getElementById('city').value;
-  const entityType = document.getElementById('entityType').value;
-  const adminEmp   = parseInt(document.getElementById('adminEmp').value)||0;
-  const opsEmp     = parseInt(document.getElementById('opsEmp').value)||0;
-  const branches   = parseInt(document.getElementById('branches').value)||1;
-  const revenue    = document.getElementById('revenue').value;
-  const stage      = selectedStage;
-  const total      = adminEmp + opsEmp;
-  const err        = document.getElementById('fErr');
+// ══════════════════════════════════════════
+//  GENERATE
+// ══════════════════════════════════════════
+async function doGenerate() {
+  const activity = document.getElementById('mainActivity').value;
+  const sub = document.getElementById('subActivity').value;
+  const country = document.getElementById('country').value;
+  const region = document.getElementById('region').value;
+  const city = document.getElementById('city').value;
+  const entity = document.getElementById('entityType').value;
+  const admin = document.getElementById('adminEmp').value;
+  const ops = document.getElementById('opsEmp').value;
+  const errEl = document.getElementById('formError');
 
-  if(!activity||!country||!city||!entityType||(adminEmp+opsEmp)<1||!stage) {
-    err.textContent = 'يرجى تعبئة الحقول المطلوبة (*) واختيار مرحلة المشروع';
-    err.classList.remove('hidden'); return;
-  }
-  err.classList.add('hidden');
+  if (!activity) { errEl.textContent = 'يرجى اختيار النشاط الرئيسي'; errEl.style.display = 'block'; return; }
+  if (!country) { errEl.textContent = 'يرجى اختيار الدولة'; errEl.style.display = 'block'; return; }
+  if (!selectedStage) { errEl.textContent = 'يرجى اختيار مرحلة المشروع'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
 
-  const sc  = getScale(total);
-  const lbl = getSizeLabel(total);
-  document.getElementById('ldSub').textContent = 'تحليل ' + activity + ' · ' + total + ' موظف';
+  const totalEmp = (parseInt(admin)||0) + (parseInt(ops)||0);
+  const location = [city, region, DB[country]?.name].filter(Boolean).join('، ');
+
+  lastFormData = { activity, sub, country, region, city, entity, admin, ops, stage: selectedStage };
+
   showPage('pgLoad');
 
-  const msgs = ['⚙️ تحليل النشاط...','🏗️ بناء الهيكل الهرمي...','🏢 تصميم الأقسام والوظائف...','🔐 مصفوفة الصلاحيات...','📜 السياسات واللوائح...','✅ المراجعة النهائية...'];
-  let mi=0; document.getElementById('ldMsg').textContent=msgs[0];
-  const iv=setInterval(()=>{mi=Math.min(mi+1,msgs.length-1);document.getElementById('ldMsg').textContent=msgs[mi];},2000);
-  const si=animateSteps();
+  const prompt = `أنت خبير في التصميم التنظيمي والموارد البشرية في منطقة الخليج العربي.
+بناء على المعطيات التالية أنشئ هيكلاً تنظيمياً متكاملاً:
+- النشاط الرئيسي: ${activity}
+- النشاط الفرعي: ${sub || 'غير محدد'}
+- الموقع: ${location}
+- نوع الكيان: ${entity || 'شركة'}
+- إجمالي الموظفين: ${totalEmp || 'غير محدد'} (إداريون: ${admin||0}، تشغيليون: ${ops||0})
+- مرحلة المشروع: ${selectedStage}
 
-  const sizeNote = total<=10?'منشأة ناشئة: مستويان، ادمج الأقسام، وظائف متعددة المهام':
-                   total<=50?'صغيرة: 3 مستويات، 3-4 أقسام':
-                   total<=200?'متوسطة: 4 مستويات، 5-6 أقسام':
-                   '5 مستويات كاملة، 8+ أقسام';
-
-  const userMsg = [
-    'النشاط الرئيسي: ' + activity,
-    subAct ? 'النشاط الفرعي: ' + subAct : '',
-    'الدولة: ' + country,
-    'المدينة: ' + city,
-    'نوع الكيان: ' + entityType,
-    'موظفون إداريون: ' + adminEmp,
-    'موظفون تشغيليون: ' + opsEmp,
-    'إجمالي الموظفين: ' + total + ' (' + lbl + ')',
-    'عدد الفروع: ' + branches,
-    revenue ? 'الإيرادات: ' + revenue : '',
-    'مرحلة المشروع: ' + stage,
-    'توجيه الحجم: ' + sizeNote,
-    'مطلوب: ' + sc.layers + ' مستويات، ' + sc.depts + ' أقسام، ' + sc.jobs + ' وظائف، ' + sc.policies + ' سياسات، ' + sc.kpis + ' مؤشر أداء',
-    'أرجع JSON فقط بهذا الهيكل بلا أي نص خارجه:',
-    '{"summary":"...","orgChart":{"levels":[{"levelName":"...","levelColor":"top|mid|bottom","nodes":[{"title":"...","dept":"...","headcount":1,"reportsTo":"..."}]}]},"departments":[{"name":"...","icon":"...","color":"blue|green|purple|orange|red","description":"...","employees":[{"title":"...","count":1,"duties":["..."]}]}],"jobDescriptions":[{"title":"...","dept":"...","level":"...","objective":"...","responsibilities":["..."],"requirements":"...","experience":"...","skills":["..."],"kpis":["..."]}],"permissions":[{"role":"...","dept":"...","permissions":{"hiring":{"level":"full|partial|view|none","details":"..."},"purchasing":{"level":"full|partial|view|none","details":"..."},"signing":{"level":"full|partial|view|none","details":"..."},"contracts":{"level":"full|partial|view|none","details":"..."},"expenses":{"level":"full|partial|view|none","details":"..."},"approvals":{"level":"full|partial|view|none","details":"..."}}}],"policies":[{"name":"...","category":"HR|مالية|تقنية|مخاطر","summary":"...","keyPoints":["..."]}],"kpis":[{"dept":"...","indicators":[{"name":"...","target":"...","frequency":"شهري|ربعي|سنوي"}]}],"governance":{"framework":"...","committees":[{"name":"...","mandate":"..."}],"compliance":["..."]}}'
-  ].filter(Boolean).join('\n');
+أجب فقط بـ JSON صالح بهذا الهيكل بالضبط (بدون markdown):
+{
+  "summary": {"companyName": "اسم مقترح", "sector": "${activity}", "location": "${location}", "stage": "${selectedStage}", "totalEmployees": ${totalEmp||0}},
+  "orgChart": [{"level": 1, "title": "المدير العام", "reports": 3, "description": "الإشراف العام"}],
+  "departments": [{"name": "اسم القسم", "manager": "مسمى المدير", "headcount": 5, "roles": ["دور1","دور2"], "responsibilities": "مسؤوليات القسم"}],
+  "jobDescriptions": [{"title": "المسمى الوظيفي", "department": "القسم", "level": "أول/ثانٍ/ثالث", "duties": ["مهمة1","مهمة2"], "qualifications": "المؤهلات المطلوبة"}],
+  "authorityMatrix": [{"role": "المدير العام", "approve": true, "recommend": false, "execute": false, "review": true}],
+  "policies": [{"title": "عنوان السياسة", "category": "HR/تشغيل/مالية", "content": "نص السياسة"}],
+  "kpis": [{"department": "القسم", "indicator": "اسم المؤشر", "target": "الهدف", "frequency": "شهري/ربعي"}],
+  "governance": {"boardStructure": "وصف مجلس الإدارة", "committees": ["لجنة1","لجنة2"], "auditPolicy": "سياسة التدقيق", "riskFramework": "إطار إدارة المخاطر"}
+}`;
 
   try {
     const res = await fetch('/api/generate', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt: userMsg})
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
     });
-    clearInterval(iv); clearInterval(si);
     const data = await res.json();
-    if(!res.ok) {
-      showPage('pgLand');
-      document.getElementById('fErr').textContent = 'خطأ: ' + (data.error||'');
-      document.getElementById('fErr').classList.remove('hidden');
-      scrollTo('formSec'); return;
-    }
-    renderAll(data, activity, total, entityType, country, city, stage);
+    if (!res.ok || data.error) throw new Error(data.error || 'خطأ في الذكاء الاصطناعي');
+    lastResult = data;
+    if (currentUser && authToken) saveCompany(data, lastFormData);
+    renderResult(data);
     showPage('pgResult');
+    document.getElementById('saveBtn').style.display = currentUser ? 'flex' : 'none';
   } catch(e) {
-    clearInterval(iv); clearInterval(si);
     showPage('pgLand');
-    document.getElementById('fErr').textContent = 'خطأ في الاتصال: ' + e.message;
-    document.getElementById('fErr').classList.remove('hidden');
-    scrollTo('formSec');
+    errEl.textContent = 'خطأ: ' + e.message;
+    errEl.style.display = 'block';
+    scrollToId('formSec');
   }
 }
 
-// ── RENDER ──
-function renderAll(r, activity, n, entity, country, city, stage) {
-  document.getElementById('rTitle').textContent = activity + ' · ' + n + ' موظف · ' + stage;
-  document.getElementById('rSub').textContent   = entity + ' · ' + city + '، ' + country;
-  document.getElementById('rSum').textContent   = r.summary;
-  renderOrg(r.orgChart);
-  renderDept(r.departments);
-  renderJobs(r.jobDescriptions);
-  renderPerm(r.permissions);
-  renderPolicy(r.policies);
-  renderKpi(r.kpis);
-  renderGov(r.governance);
+// ══════════════════════════════════════════
+//  RENDER RESULT
+// ══════════════════════════════════════════
+const TABS = [
+  {id:'summary',label:'📊 ملخص'},
+  {id:'orgChart',label:'🏛️ الهيكل'},
+  {id:'departments',label:'🏢 الأقسام'},
+  {id:'jobDescriptions',label:'👤 الوظائف'},
+  {id:'authorityMatrix',label:'🔐 الصلاحيات'},
+  {id:'policies',label:'📋 السياسات'},
+  {id:'kpis',label:'📈 KPI'},
+  {id:'governance',label:'⚖️ الحوكمة'}
+];
+
+let activeTab = 'summary';
+
+function renderResult(data) {
+  const tabsRow = document.getElementById('tabsRow');
+  tabsRow.innerHTML = TABS.map(t =>
+    `<button class="tab ${t.id===activeTab?'active':''}" onclick="switchTab('${t.id}',this)">${t.label}</button>`
+  ).join('');
+  renderTab(data, activeTab);
 }
 
-function renderOrg(o) {
-  if(!o||!o.levels) return;
-  const bc={top:'rgba(245,158,11,0.5)',mid:'rgba(167,139,250,0.5)',bottom:'rgba(52,211,153,0.4)'};
-  const bg={top:'linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05))',mid:'linear-gradient(135deg,rgba(167,139,250,0.15),rgba(167,139,250,0.05))',bottom:'linear-gradient(135deg,rgba(52,211,153,0.1),rgba(52,211,153,0.03))'};
-  const tc={top:'#fbbf24',mid:'#c4b5fd',bottom:'#6ee7b7'};
-  let h='<div class="sec"><div class="sec-title" style="color:#60a5fa">المخطط الهرمي التنظيمي</div>';
-  h+='<div style="overflow-x:auto;padding:10px 0"><div style="display:flex;flex-direction:column;align-items:center;min-width:max-content;margin:0 auto">';
-  o.levels.forEach((lv,li)=>{
-    if(li>0){
-      h+='<div class="org-conn-v"></div>';
-      if(lv.nodes.length>1){h+='<div class="org-conn-h" style="width:'+Math.min(lv.nodes.length*170,800)+'px"></div>';}
-    }
-    const col=lv.levelColor||'bottom';
-    h+='<div style="display:flex;justify-content:center;gap:12px">';
-    lv.nodes.forEach(nd=>{
-      h+='<div style="display:flex;flex-direction:column;align-items:center">';
-      if(li>0&&lv.nodes.length>1) h+='<div class="org-conn-v"></div>';
-      h+='<div class="org-node" style="border:1.5px solid '+bc[col]+';background:'+bg[col]+'" onclick="showTab(\'perm\')">';
-      h+='<div style="font-size:11px;font-weight:800;color:#e2e8f0;margin-bottom:3px">'+nd.title+'</div>';
-      h+='<div style="font-size:10px;color:#64748b">'+nd.dept+'</div>';
-      h+='<div style="font-size:10px;color:'+tc[col]+';font-weight:700;margin-top:3px">'+nd.headcount+' موظف</div>';
-      if(nd.reportsTo&&li>0) h+='<div style="font-size:9px;color:#334155;margin-top:2px">↑ '+nd.reportsTo+'</div>';
-      h+='</div></div>';
-    });
-    h+='</div>';
-  });
-  h+='</div></div>';
-  h+='<div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">';
-  [['#fbbf24','الإدارة العليا'],['#c4b5fd','الإدارة الوسطى'],['#6ee7b7','التشغيل']].forEach(([c,l])=>{
-    h+='<div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:3px;background:'+c+';opacity:0.8"></div><span style="font-size:11px;color:#64748b">'+l+'</span></div>';
-  });
-  h+='</div></div>';
-  document.getElementById('tOrg').innerHTML=h;
+function switchTab(id, btn) {
+  activeTab = id;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderTab(lastResult, id);
 }
 
-function renderDept(depts) {
-  if(!depts) return;
-  const pal={blue:{b:'rgba(59,130,246,0.3)',bg:'rgba(59,130,246,0.08)',t:'#60a5fa'},green:{b:'rgba(52,211,153,0.3)',bg:'rgba(52,211,153,0.08)',t:'#34d399'},purple:{b:'rgba(167,139,250,0.3)',bg:'rgba(167,139,250,0.08)',t:'#a78bfa'},orange:{b:'rgba(245,158,11,0.3)',bg:'rgba(245,158,11,0.08)',t:'#fbbf24'},red:{b:'rgba(239,68,68,0.3)',bg:'rgba(239,68,68,0.08)',t:'#fca5a5'}};
-  let h='';
-  depts.forEach(d=>{
-    const p=pal[d.color]||pal.blue;
-    const total=d.employees.reduce((a,e)=>a+e.count,0);
-    h+='<div class="dept-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">';
-    h+='<div style="display:flex;align-items:center;gap:10px"><div style="width:40px;height:40px;border-radius:11px;border:1.5px solid '+p.b+';background:'+p.bg+';display:flex;align-items:center;justify-content:center;font-size:19px">'+d.icon+'</div>';
-    h+='<div><div style="font-size:15px;font-weight:800;color:#e2e8f0">'+d.name+'</div><div style="color:#64748b;font-size:12px;margin-top:1px">'+d.description+'</div></div></div>';
-    h+='<span style="background:'+p.bg+';border:1px solid '+p.b+';border-radius:8px;padding:3px 11px;font-size:11px;color:'+p.t+';font-weight:700">'+total+' موظف</span></div>';
-    d.employees.forEach(emp=>{
-      h+='<div class="job-row"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div style="font-size:13px;font-weight:700;color:#e2e8f0">'+emp.title+'</div>';
-      h+='<span class="badge badge-gray">'+emp.count+' شاغل</span></div>';
-      emp.duties.forEach(duty=>{h+='<div style="color:#64748b;font-size:12px;padding:3px 0;line-height:1.6">• '+duty+'</div>';});
-      h+='</div>';
-    });
-    h+='</div>';
-  });
-  document.getElementById('tDept').innerHTML=h;
-}
+function renderTab(data, tab) {
+  const c = document.getElementById('resultContent');
+  if (!data) return;
 
-function renderJobs(jobs) {
-  if(!jobs) return;
-  let h='';
-  jobs.forEach((job,i)=>{
-    h+='<div class="sec" style="margin-bottom:14px">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">';
-    h+='<div><div style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:3px">'+job.title+'</div>';
-    h+='<div style="color:#64748b;font-size:12px">'+job.dept+' · '+job.level+'</div></div>';
-    h+='<span class="badge badge-green">وظيفة '+(i+1)+'</span></div>';
-    if(job.objective) h+='<div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:9px;padding:10px 13px;font-size:13px;color:#94a3b8;line-height:1.7;margin-bottom:12px"><strong style="color:#60a5fa;font-size:11px">الهدف: </strong>'+job.objective+'</div>';
-    h+='<div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">';
-    if(job.responsibilities&&job.responsibilities.length){
-      h+='<div><div style="color:#60a5fa;font-size:10px;font-weight:700;margin-bottom:7px;letter-spacing:1px">المسؤوليات</div>';
-      job.responsibilities.forEach(r=>{h+='<div style="color:#94a3b8;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);line-height:1.6">• '+r+'</div>';});
-      h+='</div>';
-    }
-    h+='<div>';
-    if(job.skills&&job.skills.length){
-      h+='<div style="color:#a78bfa;font-size:10px;font-weight:700;margin-bottom:7px;letter-spacing:1px">المهارات</div>';
-      job.skills.forEach(s=>{h+='<div style="color:#94a3b8;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);line-height:1.6">◆ '+s+'</div>';});
-    }
-    if(job.kpis&&job.kpis.length){
-      h+='<div style="color:#34d399;font-size:10px;font-weight:700;margin:10px 0 6px;letter-spacing:1px">مؤشرات الأداء KPI</div>';
-      job.kpis.forEach(k=>{h+='<div style="color:#94a3b8;font-size:12px;padding:3px 0;line-height:1.6">📊 '+k+'</div>';});
-    }
-    h+='</div></div></div>';
-  });
-  document.getElementById('tJobs').innerHTML=h;
-}
-
-function renderPerm(perms) {
-  if(!perms) return;
-  const lc={full:{l:'كاملة',cl:'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5',i:'🔴'},partial:{l:'جزئية',cl:'background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#fbbf24',i:'🟡'},view:{l:'عرض فقط',cl:'background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#60a5fa',i:'🔵'},none:{l:'لا صلاحية',cl:'background:rgba(100,116,139,0.1);border:1px solid rgba(100,116,139,0.3);color:#64748b',i:'⚫'}};
-  const pl={hiring:'👥 التوظيف',purchasing:'🛒 المشتريات',signing:'✍️ التوقيع',contracts:'📄 العقود',expenses:'💰 المصروفات',approvals:'✅ الموافقات'};
-  let h='<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:9px 11px;margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#64748b"><span>🔴 كاملة</span><span>🟡 جزئية</span><span>🔵 عرض فقط</span><span>⚫ لا صلاحية</span></div>';
-  perms.forEach(perm=>{
-    h+='<div class="sec" style="margin-bottom:12px"><div style="font-size:14px;font-weight:800;color:#e2e8f0;margin-bottom:2px">'+perm.role+'</div>';
-    h+='<div style="color:#64748b;font-size:12px;margin-bottom:12px">'+perm.dept+'</div>';
-    Object.entries(perm.permissions).forEach(([k,v])=>{
-      const c=lc[v.level]||lc.none;
-      h+='<div class="perm-row"><span style="font-size:13px">'+c.i+'</span>';
-      h+='<div style="flex:1"><div style="font-size:12px;color:#cbd5e1;font-weight:600;margin-bottom:1px">'+(pl[k]||k)+'</div>';
-      h+='<div style="font-size:11px;color:#64748b;line-height:1.5">'+v.details+'</div></div>';
-      h+='<span class="plev" style="'+c.cl+'">'+c.l+'</span></div>';
-    });
-    h+='</div>';
-  });
-  document.getElementById('tPerm').innerHTML=h;
-}
-
-function renderPolicy(policies) {
-  if(!policies) return;
-  const catColors={HR:'badge-blue',مالية:'badge-yellow',تقنية:'badge-purple',مخاطر:'badge-red'};
-  let h='';
-  policies.forEach((p,i)=>{
-    const cc=catColors[p.category]||'badge-gray';
-    h+='<div class="policy-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:6px">';
-    h+='<div style="font-size:14px;font-weight:800;color:#e2e8f0">'+p.name+'</div>';
-    h+='<span class="badge '+cc+'">'+p.category+'</span></div>';
-    h+='<p style="color:#64748b;font-size:13px;line-height:1.7;margin-bottom:10px">'+p.summary+'</p>';
-    if(p.keyPoints&&p.keyPoints.length){
-      h+='<div style="display:flex;flex-direction:column;gap:4px">';
-      p.keyPoints.forEach(kp=>{h+='<div style="color:#94a3b8;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);line-height:1.6">• '+kp+'</div>';});
-      h+='</div>';
-    }
-    h+='</div>';
-  });
-  document.getElementById('tPolicy').innerHTML=h;
-}
-
-function renderKpi(kpis) {
-  if(!kpis) return;
-  let h='';
-  kpis.forEach(dept=>{
-    h+='<div class="sec" style="margin-bottom:12px"><div class="sec-title" style="color:#34d399">📊 '+dept.dept+'</div>';
-    dept.indicators.forEach(ind=>{
-      h+='<div class="kpi-item"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">';
-      h+='<div style="font-weight:700;color:#e2e8f0;font-size:13px">'+ind.name+'</div>';
-      h+='<span class="badge badge-blue" style="flex-shrink:0">'+ind.frequency+'</span></div>';
-      h+='<div style="color:#64748b;font-size:12px;margin-top:4px">🎯 الهدف: '+ind.target+'</div></div>';
-    });
-    h+='</div>';
-  });
-  document.getElementById('tKpi').innerHTML=h;
-}
-
-function renderGov(gov) {
-  if(!gov) return;
-  let h='<div class="sec"><div class="sec-title" style="color:#f59e0b">إطار الحوكمة</div><p style="color:#94a3b8;line-height:1.9;margin:0;font-size:14px">'+gov.framework+'</p></div>';
-  if(gov.committees&&gov.committees.length){
-    h+='<div class="sec"><div class="sec-title" style="color:#a78bfa">اللجان</div>';
-    gov.committees.forEach((c,i)=>{
-      h+='<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:'+(i<gov.committees.length-1?'1px solid rgba(255,255,255,0.05)':'none')+'"><div style="font-weight:700;color:#e2e8f0;font-size:13px;margin-bottom:3px">'+c.name+'</div><div style="color:#64748b;font-size:12px;line-height:1.6">'+c.mandate+'</div></div>';
-    });
-    h+='</div>';
+  if (tab === 'summary') {
+    const s = data.summary || {};
+    c.innerHTML = `
+      <div class="result-card">
+        <h3>ملخص المنشأة</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          ${Object.entries({
+            '🏢 اسم المنشأة': s.companyName,
+            '🏭 القطاع': s.sector,
+            '📍 الموقع': s.location,
+            '📊 المرحلة': s.stage,
+            '👥 إجمالي الموظفين': s.totalEmployees
+          }).map(([k,v]) => v ? `<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px"><div style="font-size:11px;color:#475569;margin-bottom:4px">${k}</div><div style="font-size:14px;font-weight:700;color:#e2e8f0">${v}</div></div>` : '').join('')}
+        </div>
+      </div>`;
   }
-  if(gov.compliance&&gov.compliance.length){
-    h+='<div class="sec"><div class="sec-title" style="color:#34d399">متطلبات الامتثال</div><div style="display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">';
-    gov.compliance.forEach(c=>{h+='<div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:9px;padding:8px 12px;font-size:12px;color:#94a3b8;line-height:1.6">✓ '+c+'</div>';});
-    h+='</div></div>';
+
+  else if (tab === 'orgChart') {
+    const nodes = data.orgChart || [];
+    c.innerHTML = `<div class="result-card"><h3>الهيكل التنظيمي</h3>${
+      nodes.map(n => `<div class="org-node" style="margin-right:${(n.level-1)*20}px">
+        <div class="org-title">المستوى ${n.level}: ${n.title}</div>
+        <div class="org-desc">${n.description} · يشرف على ${n.reports} موظف</div>
+      </div>`).join('')
+    }</div>`;
   }
-  document.getElementById('tGov').innerHTML=h;
-}
 
-function showTab(name) {
-  const allTabs=['org','dept','jobs','perm','policy','kpi','gov'];
-  allTabs.forEach(t=>{
-    document.getElementById('t-'+t).className='rtab off';
-    const cap=t.charAt(0).toUpperCase()+t.slice(1);
-    document.getElementById('t'+cap).classList.add('hidden');
-    document.getElementById('t'+cap).classList.remove('fade');
-  });
-  document.getElementById('t-'+name).className='rtab on';
-  const cap=name.charAt(0).toUpperCase()+name.slice(1);
-  const el=document.getElementById('t'+cap);
-  el.classList.remove('hidden');
-  el.classList.add('fade');
-}
-
-
-// ── ISIC4 DATABASE ──
-const COUNTRIES_DB = {
-  "SA": {
-    name: "المملكة العربية السعودية",
-    entityTypes: ["شركة مساهمة","شركة ذات مسؤولية محدودة","مؤسسة فردية","شركة تضامن","جمعية غير ربحية","جهة حكومية"],
-    regions: [
-      {name:"منطقة الرياض", cities:["الرياض","الخرج","الدوادمي","المجمعة","القويعية","وادي الدواسر","الأفلاج","الزلفي","شقراء","حوطة بني تميم","الدرعية"]},
-      {name:"منطقة مكة المكرمة", cities:["جدة","مكة المكرمة","الطائف","القنفذة","رابغ","الليث","الجموم"]},
-      {name:"منطقة المدينة المنورة", cities:["المدينة المنورة","ينبع","العلا","المهد","بدر","خيبر"]},
-      {name:"منطقة القصيم", cities:["بريدة","عنيزة","الرس","المذنب","النبهانية","البدائع"]},
-      {name:"المنطقة الشرقية", cities:["الدمام","الأحساء","الخبر","الجبيل","حفر الباطن","القطيف","رأس تنورة"]},
-      {name:"منطقة عسير", cities:["أبها","خميس مشيط","بيشة","محايل عسير","النماص"]},
-      {name:"منطقة تبوك", cities:["تبوك","ضباء","أملج","تيماء","الوجه","حقل"]},
-      {name:"منطقة حائل", cities:["حائل","بقعاء","الشنان","الغزالة"]},
-      {name:"منطقة الحدود الشمالية", cities:["عرعر","رفحاء","طريف"]},
-      {name:"منطقة جازان", cities:["جازان","صبيا","أبو عريش","الدرب","بيش"]},
-      {name:"منطقة نجران", cities:["نجران","شرورة","حبونا"]},
-      {name:"منطقة الباحة", cities:["الباحة","بلجرشي","العقيق","قلوة"]},
-      {name:"منطقة الجوف", cities:["سكاكا","دومة الجندل","القريات","طبرجل"]}
-    ]
-  },
-  "AE": {
-    name: "الإمارات العربية المتحدة",
-    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة عامة","شركة مساهمة خاصة","مؤسسة فردية"],
-    regions: [
-      {name:"أبوظبي", cities:["أبوظبي","العين","مدينة محمد بن زايد","الظفرة"]},
-      {name:"دبي", cities:["دبي","جبل علي","مرسى دبي","ديرة"]},
-      {name:"الشارقة", cities:["الشارقة","خورفكان","كلباء","الذيد"]},
-      {name:"عجمان", cities:["عجمان","مصفوت"]},
-      {name:"أم القيوين", cities:["أم القيوين"]},
-      {name:"رأس الخيمة", cities:["رأس الخيمة","الجزيرة الحمراء","خور خوير"]},
-      {name:"الفجيرة", cities:["الفجيرة","دبا الفجيرة","مسافي"]}
-    ]
-  },
-  "KW": {
-    name: "الكويت",
-    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة","مؤسسة فردية","شركة خاصة مقفلة"],
-    regions: [
-      {name:"محافظة العاصمة", cities:["الكويت","القبة","الشامية","الروضة","مرقاب"]},
-      {name:"محافظة حولي", cities:["حولي","الجابرية","السالمية","بيان","الرميثية"]},
-      {name:"محافظة الفروانية", cities:["الفروانية","جليب الشيوخ","الرقعي","خيطان"]},
-      {name:"محافظة الأحمدي", cities:["الأحمدي","الفحيحيل","مينا عبدالله","الزور","المنقف"]},
-      {name:"محافظة الجهراء", cities:["الجهراء","القصر","الصليبيخات","العبدلي"]},
-      {name:"محافظة مبارك الكبير", cities:["مبارك الكبير","أبوحليفة","صباح السالم"]}
-    ]
-  },
-  "QA": {
-    name: "قطر",
-    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة","مؤسسة فردية","شركة خاصة"],
-    regions: [
-      {name:"بلدية الدوحة", cities:["الدوحة","لوسيل","مشيرب","الخليج الغربي"]},
-      {name:"بلدية الريان", cities:["الريان","أم غويلينة","غانم"]},
-      {name:"بلدية الوكرة", cities:["الوكرة","مسيعيد","باقر"]},
-      {name:"بلدية الخور", cities:["الخور","الذخيرة"]},
-      {name:"بلدية الشمال", cities:["الشمال","الغويرية"]},
-      {name:"بلدية الشحانية", cities:["الشحانية"]},
-      {name:"بلدية أم صلال", cities:["أم صلال"]},
-      {name:"بلدية الضعيان", cities:["الضعيان"]}
-    ]
-  },
-  "BH": {
-    name: "البحرين",
-    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة","مؤسسة فردية","شركة شخص واحد"],
-    regions: [
-      {name:"محافظة العاصمة", cities:["المنامة","جدحفص","النعيم"]},
-      {name:"محافظة المحرق", cities:["المحرق","عراد","الحد","عالي"]},
-      {name:"محافظة الشمالية", cities:["سترة","البديع","الحملة","قلالي"]},
-      {name:"محافظة الجنوبية", cities:["الرفاع","عوالي","الزلاق","عيسى"]}
-    ]
-  },
-  "OM": {
-    name: "سلطنة عُمان",
-    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة مغفلة","مؤسسة فردية","شركة تضامن"],
-    regions: [
-      {name:"محافظة مسقط", cities:["مسقط","مطرح","بوشر","السيب","قريات","العامرات"]},
-      {name:"محافظة مسندم", cities:["خصب","بخا","دبا","مدحاء"]},
-      {name:"محافظة البريمي", cities:["البريمي","محضة"]},
-      {name:"محافظة الداخلية", cities:["نزوى","إزكي","بهلاء","الحمراء","منح"]},
-      {name:"محافظة الشرقية الشمالية", cities:["إبراء","المضيبي","صور","وادي بني خالد"]},
-      {name:"محافظة الشرقية الجنوبية", cities:["صور","مرباط","الكامل"]},
-      {name:"محافظة ظفار", cities:["صلالة","طاقة","سدح","ثمريت"]},
-      {name:"محافظة الظاهرة", cities:["عبري","ينقل","ضنك"]},
-      {name:"محافظة الباطنة الشمالية", cities:["صحار","شناص","لوى"]},
-      {name:"محافظة الباطنة الجنوبية", cities:["الرستاق","بركاء","نخل"]}
-    ]
-  },
-  "EG": {
-    name: "مصر",
-    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة","مؤسسة فردية","شركة توصية بالأسهم"],
-    regions: [
-      {name:"محافظة القاهرة", cities:["القاهرة","مدينة نصر","التجمع الخامس","العباسية","مصر الجديدة"]},
-      {name:"محافظة الجيزة", cities:["الجيزة","6 أكتوبر","الشيخ زايد","إمبابة","الهرم"]},
-      {name:"محافظة الإسكندرية", cities:["الإسكندرية","سموحة","العجمي","برج العرب","المنتزه"]},
-      {name:"محافظة البحيرة", cities:["دمنهور","كفر الدوار","إيتاي البارود"]},
-      {name:"محافظة الشرقية", cities:["الزقازيق","العاشر من رمضان","بلبيس","منيا القمح"]},
-      {name:"محافظة الدقهلية", cities:["المنصورة","طلخا","ميت غمر","الجمالية"]},
-      {name:"محافظة الغربية", cities:["طنطا","المحلة الكبرى","كفر الزيات"]},
-      {name:"محافظة المنوفية", cities:["شبين الكوم","قويسنا","منوف"]}
-    ]
-  },
-  "JO": {
-    name: "الأردن",
-    entityTypes: ["شركة ذات مسؤولية محدودة","شركة مساهمة عامة","مؤسسة فردية","شركة تضامن"],
-    regions: [
-      {name:"محافظة عمان", cities:["عمان","الزرقاء","ماركا","وادي السير","الجويدة"]},
-      {name:"محافظة إربد", cities:["إربد","الرمثا","الكورة","بني كنانة"]},
-      {name:"محافظة الزرقاء", cities:["الزرقاء","الرصيفة","الهاشمية"]},
-      {name:"محافظة البلقاء", cities:["السلط","ماحص","عين الباشا","دير علا"]},
-      {name:"محافظة العقبة", cities:["العقبة","رأس النقب"]},
-      {name:"محافظة المفرق", cities:["المفرق","الرويشد"]},
-      {name:"محافظة الكرك", cities:["الكرك","المزار الجنوبي"]}
-    ]
+  else if (tab === 'departments') {
+    const depts = data.departments || [];
+    c.innerHTML = depts.map(d => `
+      <div class="dept-card">
+        <div class="dept-name">🏢 ${d.name}</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:8px">المدير: ${d.manager} · ${d.headcount} موظف</div>
+        <div style="margin-bottom:8px">${(d.roles||[]).map(r => `<span class="role-tag">${r}</span>`).join('')}</div>
+        <div style="font-size:12px;color:#475569">${d.responsibilities}</div>
+      </div>`).join('');
   }
-};
 
-function updateRegions() {
-  const countryCode = document.getElementById('country').value;
-  const regionSel = document.getElementById('region');
-  const cityField = document.getElementById('cityField');
-  const citySel = document.getElementById('city');
-  
-  regionSel.innerHTML = '<option value="">— اختر المنطقة —</option>';
-  citySel.innerHTML = '<option value="">— اختر المنطقة أولاً —</option>';
-  cityField.style.display = 'none';
-  
-  if (!countryCode || !COUNTRIES_DB[countryCode]) return;
-  
-  const country = COUNTRIES_DB[countryCode];
-  country.regions.forEach(r => {
-    const opt = document.createElement('option');
-    opt.value = r.name;
-    opt.textContent = r.name;
-    regionSel.appendChild(opt);
-  });
-  
-  // Update entity types
-  const entitySel = document.getElementById('entityType');
-  if (entitySel) {
-    entitySel.innerHTML = '<option value="">— اختر —</option>';
-    country.entityTypes.forEach(e => {
-      const opt = document.createElement('option');
-      opt.value = e;
-      opt.textContent = e;
-      entitySel.appendChild(opt);
-    });
+  else if (tab === 'jobDescriptions') {
+    const jobs = data.jobDescriptions || [];
+    c.innerHTML = jobs.map(j => `
+      <div class="result-card">
+        <h3>${j.title} — ${j.department}</h3>
+        <div style="font-size:12px;color:#64748b;margin-bottom:10px">المستوى: ${j.level}</div>
+        <div style="font-size:13px;font-weight:700;color:#94a3b8;margin-bottom:6px">المهام:</div>
+        ${(j.duties||[]).map(d => `<div style="font-size:13px;color:#64748b;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04)">• ${d}</div>`).join('')}
+        <div style="font-size:13px;font-weight:700;color:#94a3b8;margin:10px 0 6px">المؤهلات:</div>
+        <div style="font-size:13px;color:#64748b">${j.qualifications}</div>
+      </div>`).join('');
+  }
+
+  else if (tab === 'authorityMatrix') {
+    const matrix = data.authorityMatrix || [];
+    c.innerHTML = `<div class="result-card"><h3>مصفوفة الصلاحيات</h3>
+      <table class="matrix-table"><thead><tr><th>الدور</th><th>اعتماد</th><th>توصية</th><th>تنفيذ</th><th>مراجعة</th></tr></thead><tbody>
+      ${matrix.map(r => `<tr><td style="color:#e2e8f0;font-weight:700">${r.role}</td>
+        ${['approve','recommend','execute','review'].map(k => `<td style="text-align:center"><span class="perm ${r[k]?'perm-yes':'perm-no'}">${r[k]?'✓':'✗'}</span></td>`).join('')}
+      </tr>`).join('')}
+      </tbody></table></div>`;
+  }
+
+  else if (tab === 'policies') {
+    const pols = data.policies || [];
+    c.innerHTML = pols.map(p => `
+      <div class="result-card">
+        <h3>${p.title} <span style="font-size:11px;background:rgba(59,130,246,0.1);border-radius:5px;padding:2px 8px;color:#60a5fa">${p.category}</span></h3>
+        <div class="policy-item">${p.content}</div>
+      </div>`).join('');
+  }
+
+  else if (tab === 'kpis') {
+    c.innerHTML = `<div class="result-card"><h3>مؤشرات الأداء KPI</h3>${
+      (data.kpis||[]).map(k => `
+        <div class="kpi-row">
+          <div><div class="kpi-name">${k.indicator}</div><div style="font-size:11px;color:#334155">${k.department}</div></div>
+          <div style="text-align:left"><div class="kpi-val">${k.target}</div><div style="font-size:11px;color:#334155">${k.frequency}</div></div>
+        </div>`).join('')
+    }</div>`;
+  }
+
+  else if (tab === 'governance') {
+    const g = data.governance || {};
+    c.innerHTML = `
+      <div class="result-card"><h3>هيكل الحوكمة</h3><div class="policy-item">${g.boardStructure||''}</div></div>
+      <div class="result-card"><h3>اللجان</h3>${(g.committees||[]).map(c=>`<div class="policy-item">• ${c}</div>`).join('')}</div>
+      <div class="result-card"><h3>سياسة التدقيق</h3><div class="policy-item">${g.auditPolicy||''}</div></div>
+      <div class="result-card"><h3>إدارة المخاطر</h3><div class="policy-item">${g.riskFramework||''}</div></div>`;
   }
 }
 
-function updateCities() {
-  const countryCode = document.getElementById('country').value;
-  const regionName = document.getElementById('region').value;
-  const cityField = document.getElementById('cityField');
-  const citySel = document.getElementById('city');
-  
-  citySel.innerHTML = '<option value="">— اختر المدينة —</option>';
-  cityField.style.display = 'none';
-  
-  if (!countryCode || !regionName || !COUNTRIES_DB[countryCode]) return;
-  
-  const country = COUNTRIES_DB[countryCode];
-  const region = country.regions.find(r => r.name === regionName);
-  if (!region) return;
-  
-  cityField.style.display = 'block';
-  region.cities.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    citySel.appendChild(opt);
-  });
-}
-
-function updateSubActivities() {
-  const val = document.getElementById('mainActivity').value;
-  if (val) {
-    const parts = val.split('|');
-    document.getElementById('subActivity').placeholder = 'مثال: ' + (parts[0] || '');
-  }
-}
-
-
-// ── AUTH STATE ──
-let currentUser = null;
-let authToken = null;
-
-function openAuth(mode) {
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+function openModal(mode) {
   document.getElementById('authModal').classList.remove('hidden');
-  document.getElementById('authModal').style.display = 'flex';
-  if (mode === 'signup') showSignup(); else showLogin();
+  if (mode === 'signup') switchToSignup(); else switchToLogin();
 }
 
-function closeAuth() {
+function closeModal() {
   document.getElementById('authModal').classList.add('hidden');
-  document.getElementById('authModal').style.display = 'none';
 }
 
-function showLogin() {
-  document.getElementById('loginForm').style.display = 'block';
-  document.getElementById('signupForm').style.display = 'none';
+function switchToLogin() {
+  document.getElementById('loginView').style.display = 'block';
+  document.getElementById('signupView').style.display = 'none';
 }
 
-function showSignup() {
-  document.getElementById('loginForm').style.display = 'none';
-  document.getElementById('signupForm').style.display = 'block';
+function switchToSignup() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('signupView').style.display = 'block';
 }
 
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
+  const email = document.getElementById('lEmail').value.trim();
+  const pass = document.getElementById('lPass').value;
+  const errEl = document.getElementById('lErr');
   errEl.style.display = 'none';
-  if (!email || !password) { errEl.textContent = 'يرجى تعبئة جميع الحقول'; errEl.style.display = 'block'; return; }
+  if (!email || !pass) { errEl.textContent = 'يرجى تعبئة جميع الحقول'; errEl.style.display = 'block'; return; }
   try {
     const res = await fetch('/api/auth', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({action:'login', email, password})
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'login', email, password:pass})
     });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = data.error || 'خطأ في تسجيل الدخول'; errEl.style.display = 'block'; return; }
     setUser(data.user, data.access_token);
-    closeAuth();
-    showDashboard();
+    closeModal();
+    openDash();
   } catch(e) { errEl.textContent = 'خطأ في الاتصال'; errEl.style.display = 'block'; }
 }
 
 async function doSignup() {
-  const name = document.getElementById('signupName').value.trim();
-  const email = document.getElementById('signupEmail').value.trim();
-  const password = document.getElementById('signupPassword').value;
-  const errEl = document.getElementById('signupError');
-  errEl.style.display = 'none';
-  if (!name || !email || !password) { errEl.textContent = 'يرجى تعبئة جميع الحقول'; errEl.style.display = 'block'; return; }
-  if (password.length < 8) { errEl.textContent = 'كلمة السر يجب أن تكون 8 أحرف على الأقل'; errEl.style.display = 'block'; return; }
+  const name = document.getElementById('sName').value.trim();
+  const email = document.getElementById('sEmail').value.trim();
+  const pass = document.getElementById('sPass').value;
+  const errEl = document.getElementById('sErr');
+  const okEl = document.getElementById('sOk');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+  if (!name || !email || !pass) { errEl.textContent = 'يرجى تعبئة جميع الحقول'; errEl.style.display = 'block'; return; }
+  if (pass.length < 8) { errEl.textContent = 'كلمة السر يجب 8 أحرف على الأقل'; errEl.style.display = 'block'; return; }
   try {
     const res = await fetch('/api/auth', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({action:'signup', email, password, name})
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'signup', email, password:pass, name})
     });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = data.error || 'خطأ في إنشاء الحساب'; errEl.style.display = 'block'; return; }
-    if (data.user) {
-      setUser(data.user, data.access_token);
-      closeAuth();
-      showDashboard();
-    } else {
-      errEl.style.background = 'rgba(52,211,153,0.1)';
-      errEl.style.borderColor = 'rgba(52,211,153,0.3)';
-      errEl.style.color = '#34d399';
-      errEl.textContent = '✅ تم إنشاء الحساب! تفقد بريدك الإلكتروني للتأكيد';
-      errEl.style.display = 'block';
-    }
+    if (data.user) { setUser(data.user, data.access_token); closeModal(); openDash(); }
+    else { okEl.textContent = '✅ تم إنشاء الحساب! تفقد بريدك للتأكيد'; okEl.style.display = 'block'; }
   } catch(e) { errEl.textContent = 'خطأ في الاتصال'; errEl.style.display = 'block'; }
 }
 
 async function doLogout() {
-  if (authToken) {
-    await fetch('/api/auth', {
-      method: 'POST', headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + authToken},
+  try {
+    if (authToken) await fetch('/api/auth', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
       body: JSON.stringify({action:'logout'})
     });
-  }
+  } catch(e) {}
   clearUser();
   showPage('pgLand');
 }
 
 function setUser(user, token) {
-  currentUser = user;
-  authToken = token;
-  localStorage.setItem('munsha_token', token);
-  localStorage.setItem('munsha_user', JSON.stringify(user));
-  updateNavUser();
+  currentUser = user; authToken = token;
+  try { localStorage.setItem('mt', token); localStorage.setItem('mu', JSON.stringify(user)); } catch(e) {}
+  updateNav();
 }
 
 function clearUser() {
-  currentUser = null;
-  authToken = null;
-  localStorage.removeItem('munsha_token');
-  localStorage.removeItem('munsha_user');
-  updateNavUser();
+  currentUser = null; authToken = null;
+  try { localStorage.removeItem('mt'); localStorage.removeItem('mu'); } catch(e) {}
+  updateNav();
 }
 
-function updateNavUser() {
-  const guestNav = document.getElementById('navGuest');
-  const userNav = document.getElementById('navUser');
+function updateNav() {
+  const g = document.getElementById('navGuest');
+  const u = document.getElementById('navUser');
   if (currentUser) {
-    const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'المستخدم';
+    const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'مستخدم';
     document.getElementById('navUserName').textContent = '👤 ' + name;
-    document.getElementById('dashUserName').textContent = name;
-    guestNav.style.display = 'none';
-    userNav.style.display = 'flex';
+    document.getElementById('dashName').textContent = name;
+    g.style.display = 'none'; u.style.display = 'flex';
   } else {
-    guestNav.style.display = 'flex';
-    userNav.style.display = 'none';
+    g.style.display = 'flex'; u.style.display = 'none';
   }
 }
 
-// ── DASHBOARD ──
-async function showDashboard() {
-  if (!currentUser || !authToken) { openAuth('login'); return; }
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+async function openDash() {
+  if (!currentUser) { openModal('login'); return; }
   showPage('pgDash');
   await loadCompanies();
 }
 
 async function loadCompanies() {
-  const list = document.getElementById('companiesList');
-  const noComp = document.getElementById('noCompanies');
+  const list = document.getElementById('dashList');
+  const empty = document.getElementById('dashEmpty');
   list.innerHTML = '<div style="text-align:center;padding:40px;color:#475569">جاري التحميل...</div>';
-  noComp.style.display = 'none';
-
+  empty.classList.add('hidden');
   try {
-    const res = await fetch('/api/companies', {
-      headers: {'Authorization': 'Bearer ' + authToken}
-    });
+    const res = await fetch('/api/companies', { headers:{'Authorization':'Bearer '+authToken} });
     const companies = await res.json();
-
-    if (!companies || companies.length === 0) {
-      list.innerHTML = '';
-      noComp.style.display = 'block';
-      return;
+    if (!Array.isArray(companies) || companies.length === 0) {
+      list.innerHTML = ''; empty.classList.remove('hidden'); return;
     }
-
     list.innerHTML = companies.map(c => {
       const fd = JSON.parse(c.form_data || '{}');
       const date = new Date(c.created_at).toLocaleDateString('ar-SA');
-      return \`
-        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:14px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(59,130,246,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
-            <div>
-              <h3 style="font-size:1rem;font-weight:800;color:#e2e8f0;margin-bottom:4px">\${c.name}</h3>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-                <span style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:7px;padding:3px 10px;font-size:11px;color:#60a5fa">\${fd.activity || ''}</span>
-                <span style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:3px 10px;font-size:11px;color:#64748b">\${fd.employees || ''} موظف</span>
-                <span style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:3px 10px;font-size:11px;color:#64748b">\${fd.country || ''}</span>
-                <span style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:7px;padding:3px 10px;font-size:11px;color:#334155">\${date}</span>
-              </div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button onclick="viewCompany('\${c.id}')" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:9px;padding:8px 14px;color:#60a5fa;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif">👁 عرض</button>
-              <button onclick="editCompany('\${c.id}')" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);border-radius:9px;padding:8px 14px;color:#34d399;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif">✏️ تعديل</button>
-              <button onclick="deleteCompany('\${c.id}',this)" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:9px;padding:8px 14px;color:#fca5a5;font-size:12px;cursor:pointer;font-family:'Cairo',sans-serif">🗑 حذف</button>
+      return `<div class="company-card">
+        <div class="company-card-header">
+          <div>
+            <div class="company-name">${c.name}</div>
+            <div class="company-tags">
+              ${fd.activity ? `<span class="company-tag">${fd.activity}</span>` : ''}
+              ${fd.stage ? `<span class="company-tag gray">${fd.stage}</span>` : ''}
+              ${fd.country ? `<span class="company-tag gray">${DB[fd.country]?.name||fd.country}</span>` : ''}
+              <span class="company-tag gray">${date}</span>
             </div>
           </div>
+          <div class="company-actions">
+            <button class="btn-action btn-view" onclick="viewCompany('${c.id}')">👁 عرض</button>
+            <button class="btn-action btn-del" onclick="delCompany('${c.id}',this)">🗑 حذف</button>
+          </div>
         </div>
-      \`;
+      </div>`;
     }).join('');
   } catch(e) {
     list.innerHTML = '<div style="text-align:center;padding:40px;color:#fca5a5">خطأ في تحميل البيانات</div>';
   }
 }
 
-let allCompaniesData = [];
-
 async function viewCompany(id) {
   try {
-    const res = await fetch('/api/companies', { headers: {'Authorization': 'Bearer ' + authToken} });
+    const res = await fetch('/api/companies', { headers:{'Authorization':'Bearer '+authToken} });
     const companies = await res.json();
-    allCompaniesData = companies;
-    const company = companies.find(c => c.id === id);
-    if (!company) return;
-    const data = JSON.parse(company.data || '{}');
-    const fd = JSON.parse(company.form_data || '{}');
-    renderAll(data, fd.activity || company.name, fd.employees || 0, fd.entityType || '', fd.country || '', fd.city || '', fd.stage || '');
+    const c = companies.find(x => x.id === id);
+    if (!c) return;
+    lastResult = JSON.parse(c.data || '{}');
+    lastFormData = JSON.parse(c.form_data || '{}');
+    activeTab = 'summary';
+    renderResult(lastResult);
     showPage('pgResult');
-    window._currentCompanyId = id;
+    document.getElementById('saveBtn').style.display = 'flex';
   } catch(e) { alert('خطأ في تحميل المنشأة'); }
 }
 
-async function editCompany(id) {
-  try {
-    const res = await fetch('/api/companies', { headers: {'Authorization': 'Bearer ' + authToken} });
-    const companies = await res.json();
-    const company = companies.find(c => c.id === id);
-    if (!company) return;
-    const fd = JSON.parse(company.form_data || '{}');
-    // Fill form with existing data
-    showPage('pgLand');
-    setTimeout(() => {
-      document.getElementById('formSec').scrollIntoView({behavior:'smooth'});
-      if (fd.activity) document.getElementById('mainActivity').value = fd.activity;
-      if (fd.employees) document.getElementById('adminEmp').value = fd.employees;
-      if (fd.country) { document.getElementById('country').value = fd.country; updateRegions(); }
-      if (fd.entityType) document.getElementById('entityType').value = fd.entityType;
-      if (fd.stage) {
-        document.querySelectorAll('.stage-btn').forEach(b => {
-          if (b.textContent.includes(fd.stage)) { b.classList.add('active'); selectedStage = fd.stage; }
-        });
-      }
-      window._editCompanyId = id;
-    }, 300);
-  } catch(e) { alert('خطأ'); }
-}
-
-async function deleteCompany(id, btn) {
-  if (!confirm('هل أنت متأكد من حذف هذه المنشأة؟')) return;
+async function delCompany(id, btn) {
+  if (!confirm('حذف هذه المنشأة؟')) return;
   btn.textContent = '...';
   try {
     await fetch('/api/companies', {
-      method: 'DELETE',
-      headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + authToken},
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
       body: JSON.stringify({id})
     });
     await loadCompanies();
   } catch(e) { alert('خطأ في الحذف'); }
 }
 
-// ── SAVE COMPANY AFTER GENERATION ──
-async function saveCompanyResult(resultData, formData) {
+async function saveCompany(data, fd) {
   if (!currentUser || !authToken) return;
-  const name = formData.activity + ' - ' + formData.city;
-  const id = window._editCompanyId;
+  const name = (fd.activity || 'منشأة') + ' — ' + (fd.city || fd.region || DB[fd.country]?.name || '');
   try {
-    if (id) {
-      await fetch('/api/companies', {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + authToken},
-        body: JSON.stringify({id, name, data: resultData, formData})
-      });
-      window._editCompanyId = null;
-    } else {
-      await fetch('/api/companies', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + authToken},
-        body: JSON.stringify({name, data: resultData, formData})
-      });
-    }
+    await fetch('/api/companies', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
+      body: JSON.stringify({name, data, formData: fd})
+    });
   } catch(e) { console.error('Save error:', e); }
 }
 
-// ── RESTORE SESSION ──
-function restoreSession() {
-  const token = localStorage.getItem('munsha_token');
-  const user = localStorage.getItem('munsha_user');
-  if (token && user) {
-    try {
-      authToken = token;
-      currentUser = JSON.parse(user);
-      updateNavUser();
-    } catch(e) { clearUser(); }
-  }
-}
-
-// Init
-restoreSession();
-showPage('pgLand');
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+(function init() {
+  try {
+    const t = localStorage.getItem('mt');
+    const u = localStorage.getItem('mu');
+    if (t && u) { authToken = t; currentUser = JSON.parse(u); updateNav(); }
+  } catch(e) {}
+  showPage('pgLand');
+})();
 </script>
-
-<!-- AUTH MODAL -->
-<div id="authModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem">
-  <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px 28px;width:100%;max-width:420px;position:relative">
-    <button onclick="closeAuth()" style="position:absolute;top:16px;left:16px;background:transparent;border:none;color:#64748b;font-size:18px;cursor:pointer">✕</button>
-    
-    <!-- Login Form -->
-    <div id="loginForm">
-      <div style="text-align:center;margin-bottom:24px">
-        <div style="font-size:2rem;margin-bottom:8px">🔐</div>
-        <h2 style="color:#f0f4ff;font-size:1.3rem;font-weight:800;margin-bottom:4px">تسجيل الدخول</h2>
-        <p style="color:#475569;font-size:13px">ادخل لحسابك وشاهد منشآتك</p>
-      </div>
-      <div style="margin-bottom:16px">
-        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">📧 البريد الإلكتروني</label>
-        <input type="email" id="loginEmail" placeholder="example@email.com" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
-      </div>
-      <div style="margin-bottom:20px">
-        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">🔑 كلمة السر</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
-      </div>
-      <div id="loginError" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:9px;padding:10px 14px;color:#fca5a5;font-size:13px;margin-bottom:14px;display:none"></div>
-      <button onclick="doLogin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;margin-bottom:12px">تسجيل الدخول</button>
-      <p style="text-align:center;color:#64748b;font-size:13px">ليس لديك حساب؟ <span onclick="showSignup()" style="color:#60a5fa;cursor:pointer;font-weight:700">إنشاء حساب</span></p>
-    </div>
-
-    <!-- Signup Form -->
-    <div id="signupForm" style="display:none">
-      <div style="text-align:center;margin-bottom:24px">
-        <div style="font-size:2rem;margin-bottom:8px">✨</div>
-        <h2 style="color:#f0f4ff;font-size:1.3rem;font-weight:800;margin-bottom:4px">إنشاء حساب جديد</h2>
-        <p style="color:#475569;font-size:13px">مجاني تماماً · ابدأ الآن</p>
-      </div>
-      <div style="margin-bottom:14px">
-        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">👤 الاسم الكامل</label>
-        <input type="text" id="signupName" placeholder="محمد العلي" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
-      </div>
-      <div style="margin-bottom:14px">
-        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">📧 البريد الإلكتروني</label>
-        <input type="email" id="signupEmail" placeholder="example@email.com" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
-      </div>
-      <div style="margin-bottom:20px">
-        <label style="color:#94a3b8;font-size:12px;font-weight:700;display:block;margin-bottom:7px">🔑 كلمة السر</label>
-        <input type="password" id="signupPassword" placeholder="8 أحرف على الأقل" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f0f4ff;font-size:14px;outline:none;font-family:'Cairo',sans-serif">
-      </div>
-      <div id="signupError" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:9px;padding:10px 14px;color:#fca5a5;font-size:13px;margin-bottom:14px;display:none"></div>
-      <button onclick="doSignup()" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;margin-bottom:12px">إنشاء الحساب</button>
-      <p style="text-align:center;color:#64748b;font-size:13px">لديك حساب؟ <span onclick="showLogin()" style="color:#60a5fa;cursor:pointer;font-weight:700">تسجيل الدخول</span></p>
-    </div>
-  </div>
-</div>
-
-<!-- DASHBOARD PAGE -->
-<div id="pgDash" class="hidden" style="min-height:100vh;background:#0b1120;padding:0">
-  <!-- Dashboard Nav -->
-  <nav style="background:rgba(11,17,32,0.95);border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100">
-    <div style="font-size:1.1rem;font-weight:900;color:#f0f4ff">منشأتك <span style="color:#3b82f6">AI</span></div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <span id="dashUserName" style="color:#94a3b8;font-size:13px"></span>
-      <button onclick="showPage('pgLand')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:8px 14px;color:#94a3b8;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif">🏠 الرئيسية</button>
-      <button onclick="doLogout()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:9px;padding:8px 14px;color:#fca5a5;cursor:pointer;font-size:12px;font-family:'Cairo',sans-serif">خروج</button>
-    </div>
-  </nav>
-
-  <div style="max-width:1000px;margin:0 auto;padding:2rem 1.25rem">
-    <!-- Header -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px">
-      <div>
-        <h1 style="font-size:1.5rem;font-weight:800;color:#f0f4ff;margin-bottom:4px">منشآتي</h1>
-        <p style="color:#475569;font-size:13px">كل المنشآت التي أنشأتها</p>
-      </div>
-      <button onclick="goToForm()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;padding:12px 24px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">+ إنشاء منشأة جديدة</button>
-    </div>
-
-    <!-- Companies List -->
-    <div id="companiesList"></div>
-    <div id="noCompanies" style="text-align:center;padding:60px 20px;display:none">
-      <div style="font-size:48px;margin-bottom:16px">🏢</div>
-      <h3 style="color:#e2e8f0;font-size:1.1rem;margin-bottom:8px">لا توجد منشآت بعد</h3>
-      <p style="color:#475569;font-size:13px;margin-bottom:24px">ابدأ بإنشاء أول منشأة ذكية</p>
-      <button onclick="goToForm()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;padding:12px 28px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif">إنشاء منشأة ✨</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>

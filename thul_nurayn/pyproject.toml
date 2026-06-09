@@ -1,0 +1,32 @@
+[project]
+name = "thul-nurayn"
+version = "1.0.0"
+description = "THUL-NURAYN v1 — quantitative trading system foundation (D1)"
+requires-python = ">=3.11"
+
+# Runtime dependencies are OPTIONAL for the D1 foundation: the core layers
+# (enums, models, validation, config, logging, redis key schema + in-memory
+# backend) are pure standard library so the unit tests run with zero installs.
+# A live deployment adds the drivers below.
+[project.optional-dependencies]
+live = [
+    "redis>=5.0",        # Redis operational layer (RedisPyBackend)
+    "psycopg[binary]>=3.1",  # PostgreSQL source of truth
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [".."]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["thul_nurayn"]
+omit = ["thul_nurayn/tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

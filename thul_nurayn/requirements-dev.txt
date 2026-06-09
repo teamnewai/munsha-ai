@@ -1,0 +1,8 @@
+# D1 foundation: core layers are pure standard library. Only the test runner
+# is required to execute the unit tests.
+pytest>=8.0
+pytest-cov>=4.1
+
+# Optional, for a LIVE deployment (not needed to run the D1 unit tests):
+# redis>=5.0
+# psycopg[binary]>=3.1

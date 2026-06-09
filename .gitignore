@@ -3,3 +3,12 @@
 node_modules/
 .DS_Store
 *.pem
+
+# THUL-NURAYN dev
+.venv-tn/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+thul_nurayn/.pytest_cache/

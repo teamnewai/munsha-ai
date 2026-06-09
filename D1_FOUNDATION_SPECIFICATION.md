@@ -1,121 +1,92 @@
 # D1_FOUNDATION_SPECIFICATION
 
-**Phase:** B1 — D1 Foundation (the true P1)
+**Phase:** B1 — D1 Foundation (the true P1).
 **Status:** Official build specification for B1.
-**Derived only from:** `THUL-NURAYN_v1_MASTER_SPECIFICATION` · `D1_FOUNDATION_REPORT` · `IMPLEMENTATION_RESET_REPORT`.
-**Constraints:** No code. No SQL. No implementation. Specification of *what* to build — B1 produces the SQL/code under this spec.
-**Frozen policy:** v1 = FROZEN. Every value transcribed from the Master Spec; no invented rules. Any strategic change → V2_BACKLOG + stop.
+**Sources used (ONLY these):**
+- `[MS]` THUL-NURAYN_v1_MASTER_SPECIFICATION.md
+- `[D1]` D1_FOUNDATION_REPORT.md
+- `[RR]` IMPLEMENTATION_RESET_REPORT.md
 
-> **Derivation discipline:** This document states only what the three sources establish. Attributes the sources name explicitly are listed. Attributes the sources imply by relationship but do not enumerate are marked **[detail in B1]** — to be finalized during B1 from the relationships/constraints below, still with no invented business rules.
+**Rules for this document:** No assumptions. No invented requirements. No code. No SQL. No implementation. Any item not explicitly stated in the three sources above is marked verbatim:
+> **"To be produced during B1 implementation."**
+
+Each statement is tagged with its source `[MS]` / `[D1]` / `[RR]`. v1 = FROZEN; values are transcribed, not invented `[MS]`.
 
 ---
 
-## 1. Repository Structure (D1 scope)
+## 1. Repository Structure
 
-From `D1_FOUNDATION_REPORT §2` and the `IMPLEMENTATION_RESET_REPORT` (B1 deliverables). B1 touches only the foundation subset of the full repository tree:
+Explicit D1 repository tree `[D1 §2]`:
 
 ```
 thul-nurayn/
-├── docs/
-│   ├── THUL-NURAYN_v1_MASTER_SPECIFICATION.md
-│   ├── D1_FOUNDATION_REPORT.md
-│   ├── IMPLEMENTATION_RESET_REPORT.md
-│   ├── D1_FOUNDATION_SPECIFICATION.md      # this document
-│   ├── CHANGE_REQUESTS/                     # every change logged here
-│   └── V2_BACKLOG/                          # deferred items only
-│
-├── db/
-│   ├── migrations/        # initial schema artifact (produced in B1)
-│   └── partitions/        # partition + retention artifact (produced in B1)
-│
-├── src/
-│   ├── enums/             # the approved enumerations (Section 2)
-│   ├── models/            # the 17 entities + 2 bridges (Section 3)
-│   ├── config/            # placeholder only — later layer
-│   ├── logging/           # placeholder only — later layer
-│   ├── redis/             # placeholder only — later layer
-│   └── validation/        # placeholder only — later layer
-│
-└── tests/                 # D1 unit tests (Section 10)
+  docs/ (+ CHANGE_REQUESTS/ + V2_BACKLOG/)
+  db/migrations/001_init_schema.sql
+  db/partitions/partition_retention.sql
+  src/enums/__init__.py
+  src/models/__init__.py
+  src/{config,logging,redis,validation}/   (later layers)
+  tests/
 ```
 
-**Out of B1's structure (later phases):** `data_access`, `selection`, `risk`, `execution`, `portfolio`, `broker`, `api`, `workers`, `ops`, `docker`, and any dashboard. `config/logging/redis/validation` exist as **placeholders only** — D1 foundation = enums + schema + models (`D1_FOUNDATION_REPORT §8`).
+- `src/config`, `src/logging`, `src/redis`, `src/validation` are **later layers**; D1 foundation = enums + schema + models only `[D1 §2, §8]`.
+- B1 deliverables also include the test harness and D1 unit tests `[RR §6]`.
+- Any directory/file detail beyond the tree above: **To be produced during B1 implementation.**
 
 ---
 
 ## 2. Enum Definitions
 
-The approved enumerations (`D1_FOUNDATION_REPORT §6`), with members transcribed from the Master Spec.
+The approved enumeration **names** `[D1 §6]`:
 
-### Core enums
+> MarketRegime · EngineType · Direction · OrderStatus · PositionStatus · UserRole · RiskDecision · SeverityLevel
+> (supporting) TradeClassification · Market · SystemEventType · AuditEventType
 
-| Enum | Members | Source |
-|------|---------|--------|
-| **MarketRegime** | Bull · Bear · Sideways | Master §4 |
-| **EngineType** | Core · Turbo | Master §1 / §8 (Core Swing + Turbo Intraday) |
-| **Direction** | Long · Short | Master §2 / §12–13 |
-| **OrderStatus** | New · Sent · Filled · Rejected · Cancelled | Master §20; D5 lifecycle |
-| **PositionStatus** | Open · Closed | Master §20; D6 |
-| **UserRole** | Owner · Operator · Viewer | Master §20 |
-| **RiskDecision** | Accepted · Rejected | Master §14; D4 Decision Engine |
-| **SeverityLevel** | Warning · Critical · Emergency | D8 alerting levels (foundation enum) |
+**Members** — only those explicitly stated in the three sources are listed; all others are gaps:
 
-### Supporting enums
+| Enum | Members (explicit in sources) | Source / Status |
+|------|-------------------------------|-----------------|
+| **MarketRegime** | Bull · Bear · Sideways | `[MS §4]` |
+| **EngineType** | Core · Turbo | `[MS §1, §8]` (Core Swing + Turbo Intraday) |
+| **Direction** | Long · Short | `[MS §2, §12–13]` |
+| **OrderStatus** | **To be produced during B1 implementation.** | Name `[D1 §6]`; member set not enumerated in the three sources |
+| **PositionStatus** | **To be produced during B1 implementation.** | Name `[D1 §6]`; member set not enumerated in the three sources |
+| **UserRole** | Owner · Operator · Viewer | `[MS §20]` |
+| **RiskDecision** | **To be produced during B1 implementation.** | Name `[D1 §6]`; member set not enumerated in the three sources |
+| **SeverityLevel** | **To be produced during B1 implementation.** | Name `[D1 §6]`; member set not enumerated in the three sources |
+| **TradeClassification** | Ultra Golden (=100) · Golden (95–99) · Strong (90–94) · Watchlist (<90) | `[MS §9–§11]` |
+| **Market** | NASDAQ · NYSE | `[MS §2]` |
+| **SystemEventType** | **To be produced during B1 implementation.** | Name `[D1 §6]`; member set not enumerated in the three sources |
+| **AuditEventType** | **To be produced during B1 implementation.** | Name `[D1 §6]`; member set not enumerated in the three sources |
 
-| Enum | Members | Source |
-|------|---------|--------|
-| **TradeClassification** | UltraGolden (=100) · Golden (95–99) · Strong (90–94) · Watchlist (<90) | Master §9–§11 |
-| **Market** | NASDAQ · NYSE | Master §2 |
-| **SystemEventType** | ServiceStarted · ServiceStopped · WorkerFailure · Redis/Postgres/Gateway events · KillSwitchActivated | D8 §6 (technical events) |
-| **AuditEventType** | Login · Setting/Risk Change · Order · Shutdown · Error | D8 §6 (decision/user events) |
-
-**Rules for enums in B1:**
-- Enums are the canonical, closed value sets; every enum-typed table column is constrained to its members (Section 6).
-- No additional members may be introduced (FROZEN). A needed new value = V2 + stop.
-- Exact string/identifier spellings of members are finalized in B1 but must map 1:1 to the members above.
+- Enum-typed columns are constrained to their members via CHECK constraints `[D1 §3]` (see Section 6).
+- Exact identifier spellings of members: **To be produced during B1 implementation.**
 
 ---
 
 ## 3. Domain Models
 
-**17 entities + 2 bridges = 19 models** (`D1_FOUNDATION_REPORT §3, §5`), implemented as dataclasses with: money as `Decimal`, identifiers as UUID, timestamps timezone-aware (UTC). `VIX/State`-type fields are nullable where the spec marks them optional (`D1_FOUNDATION_REPORT §5`).
+Composition: **17 entities + 2 bridges** as dataclasses `[D1 §5]`.
 
-### 17 Entities
+**Global field rules (explicit) `[D1 §5]`:**
+- Money values → `Decimal`.
+- Identifiers → UUID.
+- Timestamps → timezone-aware.
+- `VIX`/`State`-type fields are nullable; model columns mirror the physical tables.
 
-| # | Model | Purpose (derived) | Key / notable attributes |
-|---|-------|-------------------|--------------------------|
-| 1 | **Sector** | Sector reference used for the ≤25% sector-exposure rule | id; name. (Master §6/§14) |
-| 2 | **User** | Actor with a role; basis for authorization | id; role (UserRole). **No secrets stored** (CLAUDE.md §5; D8 §11). [detail in B1] |
-| 3 | **Instrument** | Tradable symbol within the universe | id; symbol; market (Market); sector_id → Sector. (Master §2) |
-| 4 | **MarketSnapshot** | Point-in-time market/regime facts (e.g., SPY vs SMA200) | id; timestamp; regime (MarketRegime); optional VIX/state (nullable). (Master §4) |
-| 5 | **ScannerResult** | Output of a scanner pass for a candidate | id; engine (EngineType); instrument ref. (Master §3; D3) |
-| 6 | **Signal** | A generated trade signal | id; engine (EngineType); direction (Direction); instrument ref; timestamp. (Master §3 → §20 chain) |
-| 7 | **Score** | Scoring result, **1:1 with Signal** | id; signal_id → Signal (unique); engine; total /100; component breakdown. (Master §8) |
-| 8 | **RiskCheck** | Risk-gate decision, **1:1 with Signal** | id; signal_id → Signal (unique); decision (RiskDecision); gate results. (Master §14; D4) |
-| 9 | **Order** | Order lifecycle record | id; status (OrderStatus); instrument ref; direction; user ref; timestamp. (Master §20; D5) |
-| 10 | **Position** | Open/closed position | id; status (PositionStatus); engine; instrument ref; direction. (Master §20; D6) |
-| 11 | **Fill** | Execution fill event (final/immutable event) | id; order_id → Order; position_id → Position; quantity; price (Decimal); timestamp. (Master §20; D5) |
-| 12 | **RiskSnapshot** | Point-in-time risk state (drawdowns, counts, exposures) | id; timestamp; drawdown/positions/consecutive-loss/sector-exposure fields. (Master §14; D4/D6) |
-| 13 | **NewsEvent** | News / catalyst event | id; instrument ref; timestamp. (Master §7) |
-| 14 | **EarningsEvent** | Earnings event (PEAD, surprise within ≤10 days) | id; instrument ref; timestamp. (Master §3/§7) |
-| 15 | **PerformanceRecord** | Realized performance / period statistics | id; period; trades/wins/losses/realized/win_rate fields. (D6) |
-| 16 | **AuditLog** | **Append-only** decision/user audit trail | id; event type (AuditEventType); actor (User) ref; timestamp; payload. (D8 §6) |
-| 17 | **SystemEvent** | **Append-only** technical/system event log | id; event type (SystemEventType); severity (SeverityLevel); timestamp; payload. (D8 §6) |
+**The 17 entity models** (1:1 with the entity tables, Section 4) `[D1 §3]`:
+sectors · users · instruments · market_snapshots · scanner_results · signals · scores · risk_checks · orders · positions · fills · risk_snapshots · news_events · earnings_events · performance_records · audit_logs · system_events.
 
-### 2 Bridges (junction models)
+**The 2 bridge models** `[D1 §3, §4]`:
+signal_news · signal_earnings (link Signal ↔ News / Signal ↔ Earnings).
 
-| # | Bridge | Purpose | Composition |
-|---|--------|---------|-------------|
-| 18 | **SignalNews** | Many-to-many link Signal ↔ NewsEvent | signal_id → Signal; news_event_id → NewsEvent (composite key). (D1 §3; D2 BridgeRepository) |
-| 19 | **SignalEarnings** | Many-to-many link Signal ↔ EarningsEvent | signal_id → Signal; earnings_event_id → EarningsEvent (composite key). (D1 §3; D2 BridgeRepository) |
-
-**Model standards (CLAUDE.md §9; D1 §5):** explicit type hints; `Decimal` for all monetary values; UUID identifiers; timezone-aware UTC timestamps; no business logic inside models (D1 is structure only).
+- **Per-model field/attribute schemas (names, types, nullability beyond the global rules above):** **To be produced during B1 implementation.** The three sources state the model set, the global typing rules, and the relationships (Section 5), but do not enumerate per-model columns.
 
 ---
 
 ## 4. Database Tables
 
-The **19 tables** (`D1_FOUNDATION_REPORT §3`), one per domain model above, matching Phase-4A naming:
+The **19 tables**, matching Phase-4A naming `[D1 §3]`:
 
 ```
 sectors · users · instruments · market_snapshots · scanner_results ·
@@ -124,133 +95,126 @@ risk_snapshots · news_events · earnings_events · performance_records ·
 audit_logs · system_events · signal_news · signal_earnings
 ```
 
-- Table-to-model mapping is 1:1 with Section 3 (17 entity tables + 2 bridge tables).
-- Column-level definitions (names/types/nullability beyond what Sections 2–3 and 6 establish) are **[detail in B1]**, produced under this spec without introducing new rules.
-- Append-only tables: `audit_logs`, `system_events` (Section 6).
-- Partitioned tables: see Section 7.
+- Table set = 17 entity tables + 2 bridge tables (`signal_news`, `signal_earnings`) `[D1 §3, §5]`.
+- Table-to-model mapping is 1:1 with Section 3.
+- **Column-level table definitions (names, datatypes, nullability):** **To be produced during B1 implementation.**
 
 ---
 
 ## 5. Relationships
 
-The execution/data chain (`D1_FOUNDATION_REPORT §4`; Master §20):
+Explicit data/execution chain `[D1 §4]`:
 
 ```
-MarketSnapshot → ScannerResult → Signal → Score(1:1) → RiskCheck(1:1)
-              → Order → Fill → Position → PerformanceRecord
+Market Snapshot → Scanner Result → Signal → Score (1:1) → Risk Check (1:1)
+               → Order → Fill → Position → Performance
 ```
 
-Cardinalities (Master §20; D2 §4):
+Additional explicit relationships `[D1 §4]`:
+- News / Earnings ─ Signal, via the bridge tables `signal_news` / `signal_earnings` (many-to-many).
+- User → Orders / Positions / Audit.
+- Every step → `audit_logs` / `system_events` (Append-only).
+
+Explicit cardinalities `[MS §20]`:
 
 | Relationship | Cardinality |
 |--------------|-------------|
-| Order ↔ Fill | **1 ─ \*** (one order, many fills) |
-| Fill ↔ Position | **\* ─ 1** (many fills, one position) |
-| Order ↔ Position | **\* ─ 1** (many orders, one position) |
-| Signal ↔ Score | **1 ─ 1** |
-| Signal ↔ RiskCheck | **1 ─ 1** |
-| Instrument ↔ Sector | **\* ─ 1** |
-| Signal ↔ NewsEvent | **\* ─ \*** via `signal_news` |
-| Signal ↔ EarningsEvent | **\* ─ \*** via `signal_earnings` |
-| User ↔ Orders / Positions / AuditLogs | **1 ─ \*** |
+| Order ↔ Fill | 1 ─ * |
+| Fill ↔ Position | * ─ 1 |
+| Order ↔ Position | * ─ 1 |
+| Signal ↔ Score | 1 ─ 1 `[D1 §4]` |
+| Signal ↔ Risk Check | 1 ─ 1 `[D1 §4]` |
 
-Audit coverage (Master §20; D8 §6): every step emits to `audit_logs` / `system_events` (append-only).
+Explicit execution path `[MS §20]`: Execution → Fill → Portfolio → Position.
+
+- **Any foreign-key relationship not listed above** (e.g., Instrument↔Sector, User↔specific tables beyond Orders/Positions/Audit): **To be produced during B1 implementation.**
 
 ---
 
 ## 6. Constraints
 
-From `D1_FOUNDATION_REPORT §3, §7` and CLAUDE.md:
+Explicit constraints `[D1 §3, §4, §5]`:
 
-1. **Primary keys** — synthetic **UUID** PKs on all tables.
-2. **Foreign keys** — referential integrity with **`ON DELETE RESTRICT`** (no cascading deletion of referenced rows).
-3. **Enum check constraints** — every enum-typed column is constrained to its enum's members (Section 2).
-4. **Append-only immutability** — `audit_logs` and `system_events` reject update/delete (foundation supports immutability; enforcement surfaces as `ImmutableViolation` at the D2 layer — out of B1 behavior, but the table design must permit it).
-5. **1:1 uniqueness** — `scores.signal_id` and `risk_checks.signal_id` are unique (enforces Signal↔Score and Signal↔RiskCheck 1:1).
-6. **Bridge composite keys** — `signal_news` and `signal_earnings` keyed on their two FKs.
-7. **Typing constraints** — monetary columns are decimal-typed (`Decimal`); timestamps are timezone-aware (UTC); identifiers are UUID.
-8. **Required fields / not-null** — applied to keys, enum columns, and timestamps. Field-level nullability beyond keys/enums is **[detail in B1]**, except where the spec marks a field optional (e.g., VIX/state nullable).
-9. **No invented constraints** — only constraints derivable from the three sources; any further rule = stop + clarify.
+1. **Primary keys** — synthetic **UUID** primary keys `[D1 §3]`.
+2. **Foreign keys** — **`ON DELETE RESTRICT`** `[D1 §3]`.
+3. **Enum CHECK constraints** — on enumeration-typed columns `[D1 §3]`.
+4. **Indexes** — on hot lookups: **sector / state / classification / engine / time** `[D1 §3]`.
+5. **Append-only** — `audit_logs` and `system_events` are append-only `[D1 §4]`.
+6. **Typing** — `Decimal` money, UUID ids, timezone-aware timestamps `[D1 §5]`.
+7. **1:1 links** — Signal↔Score and Signal↔Risk Check are 1:1 `[D1 §4]`.
 
-> Business validations (e.g., Σfills ≤ order qty, money > 0) belong to **later domains (D5/D4/D6)**, not D1.
+- **Not-null / uniqueness / default / additional constraint details beyond the above:** **To be produced during B1 implementation.**
 
 ---
 
 ## 7. Partition Strategy
 
-From `D1_FOUNDATION_REPORT §7`:
+Explicit `[D1 §7]`:
 
-- **Scheme:** time-based **RANGE partitioning, monthly**.
-- **Partitioned tables (6):**
-  `signals · orders · audit_logs · system_events · market_snapshots · risk_snapshots`.
-- Rationale: these are the high-volume, time-series / append-heavy tables; monthly ranges support retention tiering (Section 8) and bounded query/maintenance scope.
-- Non-partitioned tables: the remaining reference/state tables (`sectors`, `users`, `instruments`, `scanner_results`, `scores`, `risk_checks`, `positions`, `fills`, `news_events`, `earnings_events`, `performance_records`, `signal_news`, `signal_earnings`) unless the spec directs otherwise. Partition key per table = its primary timestamp. **[detail in B1]**
+- Scheme: **time-based RANGE partitioning, monthly**.
+- Partitioned tables: **`signals` · `orders` · `audit_logs` · `system_events` · `market_snapshots` · `risk_snapshots`**.
+
+- **Partition key column per table, and partitioning of any other table:** **To be produced during B1 implementation.**
 
 ---
 
 ## 8. Retention Strategy
 
-From `D1_FOUNDATION_REPORT §7` (and D8 maintenance notes):
+Explicit `[D1 §7]`:
 
-- **Tiering:** **Hot → Warm → Cold**.
-- **Compliance / audit data is archived, never deleted** — `audit_logs` and `system_events` (and audit/compliance partitions) move to Cold/archive but are retained.
-- Cold archive supports audit/back-test access (read).
-- Retention/archival operates on the monthly partitions from Section 7.
-- Concrete retention windows (RPO/RTO and per-tier durations) are **operationally defined later** (D8) — not a hard-coded value in D1, and not invented here.
+- Tiering: **Hot → Warm → Cold**.
+- Audit / back-test (compliance) data is **archived (مؤرشف) — not deleted**.
+
+- **Concrete retention windows / tier durations / RPO-RTO values:** **To be produced during B1 implementation.** (`[D1 §7]` states tiering and "not deleted"; no numeric windows are specified in the three sources.)
 
 ---
 
 ## 9. Validation Rules
 
-D1 validation is **data-integrity only**; behavioral validation is deferred (`D1_FOUNDATION_REPORT §8` — config/logging/validation are later placeholder layers).
+Scope statement `[D1 §8]`: validation/configuration/logging are **later placeholder layers**; D1 foundation = enums + schema + models only.
 
-In-scope for B1:
-1. **Enum membership** — values must belong to the declared enum (via check constraints, Section 6.3).
-2. **Referential integrity** — FK targets must exist; deletes restricted (Section 6.2).
-3. **Type correctness** — `Decimal` money, UTC tz-aware timestamps, UUID ids (Section 6.7).
-4. **Required-field presence** — keys, enum columns, timestamps not null (Section 6.8).
-5. **Uniqueness** — 1:1 signal links and bridge composite keys (Section 6.5–6.6).
-6. **Append-only intent** — audit/system tables structurally support immutability (Section 6.4).
+Explicit D1-level integrity rules (from Section 6) `[D1 §3, §4, §5]`:
+- Enum membership enforced by CHECK constraints.
+- Referential integrity via FK `ON DELETE RESTRICT`.
+- Type correctness: `Decimal` / UUID / timezone-aware.
+- Append-only integrity for `audit_logs` / `system_events`.
 
-Explicitly **out of D1** (deferred): scanner thresholds, score math, risk limits, Σfills ≤ qty, duplicate-order checks, money>0 / drawdown checks, position verification — these live in D3/D4/D5/D6.
+- **Any behavioral/business validation rules:** **To be produced during B1 implementation.** (Explicitly deferred to later layers per `[D1 §8]`; not part of D1 foundation.)
 
 ---
 
 ## 10. Test Plan
 
-Framework `unittest`, **no network**, offline (`D1_FOUNDATION_REPORT §9`; IMPLEMENTATION_RESET_REPORT §5). D1 tests must stay green at the Stop Gate.
+Explicit basis `[RR §5, §6]` and `[D1 §9]`:
+- Framework posture: unit tests, **no network** `[RR §5]`.
+- D1 unit tests cover: **enum integrity, model construction/typing, schema constraint expectations** `[RR §6]`.
+- Tests originate from the D1 enumerations and the foundation builds upward `[D1 §9]`.
+- D1 forms the first slice of the cumulative **D2–D6 = 91** acceptance baseline targeted later `[RR §5]`.
+- Applying the schema to a live PostgreSQL is **B7**, not B1, and does not gate B1 `[RR §3, §6]`.
 
-| Group | Coverage |
-|-------|----------|
-| **Enum integrity** | Each enum exposes exactly its specified members (Section 2); no extras; stable identifiers. |
-| **Model construction & typing** | All 19 models instantiate with correct field types — `Decimal` money, UUID ids, tz-aware UTC timestamps; nullable fields (e.g., VIX/state) accept null. |
-| **Schema constraints** | UUID PKs present; FK `ON DELETE RESTRICT` expectations; enum check-constraint expectations; 1:1 uniqueness on `scores.signal_id` / `risk_checks.signal_id`; bridge composite keys. |
-| **Append-only intent** | Schema/model design permits immutability for `audit_logs` / `system_events` (deletion/update intent rejected — enforcement verified fully in D2). |
-| **Relationship shape** | Order→Fill→Position cardinalities (1─\*, \*─1, \*─1) and the MarketSnapshot→…→PerformanceRecord chain are representable; bridges link Signal↔News / Signal↔Earnings. |
-| **Partition/retention metadata** | Declared partitioned set = the 6 tables in Section 7; retention tiering metadata present; audit/system never marked for deletion. |
-
-- Offline schema validation only; **applying the schema to a live PostgreSQL is B7**, not B1, and does not gate B1.
-- These tests form the first slice of the cumulative **D2–D6 = 91** acceptance baseline targeted by B6 (IMPLEMENTATION_RESET_REPORT §5).
+- **Detailed test cases, counts, fixtures, and file layout for D1:** **To be produced during B1 implementation.**
 
 ---
 
 ## 11. Definition Of Done
 
-B1 is complete when (IMPLEMENTATION_RESET_REPORT §3/§6; CLAUDE.md DoD):
+Explicit B1 Definition of Done `[RR §3, §6]` and `[D1 §11]`:
 
-1. **Spec conformance** — schema, models, and enums match this specification and the Master Spec exactly; **no invented values or rules**.
-2. **Schema validity** — initial schema + partition/retention artifacts are valid and self-consistent (offline validation OK; live PostgreSQL apply = B7).
-3. **Enums complete** — all core + supporting enums present with exactly the specified members.
-4. **Models complete** — all 17 entities + 2 bridges present with correct typing and relationships.
-5. **Constraints expressed** — UUID PKs, FK `ON DELETE RESTRICT`, enum checks, 1:1 uniqueness, bridge keys, append-only intent.
-6. **Partition + retention defined** — 6 monthly-partitioned tables; Hot→Warm→Cold; audit/compliance never deleted.
-7. **Tests green** — all D1 unit tests pass (Section 10); no network dependency.
-8. **No out-of-scope logic** — no Scanner/Score/Risk/Execution/Portfolio/Broker/API/UI behavior introduced.
-9. **Documentation** — change log entry in `docs/CHANGE_REQUESTS/`; this spec is the recorded source for B1.
-10. **Stop Gate** — halt for owner review/approval before starting **B2 (D2 Data Access)**.
+1. **Spec conformance** — schema, models, and enums match the specification; **no invented values** `[RR §6]`.
+2. **Schema validity** — initial schema is valid and self-consistent; offline validation is acceptable (live PostgreSQL apply = B7) `[RR §3, §6]`.
+3. **Enums** — present per Section 2 `[D1 §6]`.
+4. **Models** — all 17 entities + 2 bridges present `[D1 §5; RR §6]`.
+5. **Constraints expressed** — per Section 6 `[D1 §3, §4]`.
+6. **Partition + retention defined** — per Sections 7–8 `[D1 §7]`.
+7. **Tests green** — D1 unit tests pass, no network `[RR §5, §6]`.
+8. **No out-of-scope logic** — no Scanner / Score / Risk / Execution / Portfolio / Broker / API / UI behavior `[D1 §1; RR §6]`.
+9. **Documentation** — change-log entry recorded `[RR §6]`; this spec is the recorded source for B1.
+10. **Stop Gate** — halt for owner review/approval before **B2 (D2 Data Access)** `[D1 §11; RR §3]`.
+
+- **Any additional acceptance criteria beyond the above:** **To be produced during B1 implementation.**
 
 ---
 
-**This document is the official build specification for B1 (D1 Foundation).** It contains no code, no SQL, and no implementation. B1 produces the schema/model/enum artifacts and tests strictly under this spec.
+**This document is the official build specification for B1 (D1 Foundation),** derived only from the three named sources, with all unspecified items explicitly marked. It contains no code, no SQL, and no implementation.
 
-**STOP.** Awaiting approval before beginning B1 implementation.
+**STOP.**

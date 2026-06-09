@@ -61,6 +61,7 @@ The approved enumeration **names** `[D1 §6]`:
 
 - Enum-typed columns are constrained to their members via CHECK constraints `[D1 §3]` (see Section 6).
 - Exact identifier spellings of members: **To be produced during B1 implementation.**
+- **Verification:** the six gap enums were re-checked against `[D1]` (esp. §6) and `[MS]`. `[D1 §6]` lists enum **names only**; `[D1 §1, §3, §6]` states the enumerations match the **Phase 4A shared enumerations** — an artifact *referenced by* `[D1]` but **not contained** in the allowed source set. The full member sets are therefore not present in any D1-approved source. See **Section 12 (Gap Analysis)**.
 
 ---
 
@@ -212,6 +213,42 @@ Explicit B1 Definition of Done `[RR §3, §6]` and `[D1 §11]`:
 10. **Stop Gate** — halt for owner review/approval before **B2 (D2 Data Access)** `[D1 §11; RR §3]`.
 
 - **Any additional acceptance criteria beyond the above:** **To be produced during B1 implementation.**
+
+---
+
+## 12. Gap Analysis — Enum Member Sets
+
+**Method:** Each enum's **member set** was verified against the D1-approved sources only — `[D1]` D1_FOUNDATION_REPORT (especially §6) and `[MS]` Master Specification. `[D1 §1, §3, §6]` states the enumerations match the **Phase 4A shared enumerations**; Phase 4A is *referenced by* `[D1]` but its content is **not contained** in the allowed source set. D2–D9 reports are excluded by instruction. No values were invented.
+
+### A. Included from source — member sets explicitly defined
+
+| Enum | Members | Source |
+|------|---------|--------|
+| MarketRegime | Bull · Bear · Sideways | `[MS §4]` |
+| EngineType | Core · Turbo | `[MS §1, §8]` |
+| Direction | Long · Short | `[MS §2, §12–13]` |
+| UserRole | Owner · Operator · Viewer | `[MS §20]` |
+| TradeClassification | Ultra Golden (=100) · Golden (95–99) · Strong (90–94) · Watchlist (<90) | `[MS §9–§11]` |
+| Market | NASDAQ · NYSE | `[MS §2]` |
+
+### B. Missing from source — name present, member set NOT enumerated in any D1-approved source
+
+| Enum | Status in allowed sources | Partial concept reference (not the full enum) |
+|------|---------------------------|-----------------------------------------------|
+| OrderStatus | name only `[D1 §6]` | "Order Rejected" mentioned `[MS §20]` — a single state, not the set |
+| PositionStatus | name only `[D1 §6]` | "Open" via "Max Open Positions" `[MS §14, §17]` — a single state, not the set |
+| RiskDecision | name only `[D1 §6]` | none explicit |
+| SeverityLevel | name only `[D1 §6]` | none explicit |
+| SystemEventType | name only `[D1 §6]` | `system_events` referenced `[MS §19]`; event types not listed |
+| AuditEventType | name only `[D1 §6]` | `audit_logs` referenced `[D1 §4]`; event types not listed |
+
+> The partial references in column 3 are isolated single states. Adopting them as the enum definition would be incomplete and misleading, so they are **not** included as member sets.
+
+### C. Requires future definition
+
+The six enums in (B). Per `[D1 §1, §3, §6]`, their authoritative member sets reside in the **Phase 4A shared-enumerations** artifact, which `[D1]` is built to match but which is **not present in the allowed source set**. They are therefore marked **"To be produced during B1 implementation"** — to be obtained by **transcription from the Phase 4A shared-enumerations artifact** (not by invention). Availability of that artifact is a precondition for completing these enums in B1.
+
+**Conclusion:** The "To be produced during B1 implementation" marking on these six enum member sets is **verified correct, not over-aggressive** — the values exist only in Phase 4A / D2–D9, all outside the allowed source set. All other "To be produced" markings in this document (per-model columns, partition keys, retention windows, not-null/uniqueness details, test counts) likewise remain accurate, as those items are not specified in the three sources.
 
 ---
 

@@ -201,3 +201,117 @@ class TestSizingResult:
     def test_no_trade_helper(self):
         r = SizingResult.no_trade("x")
         assert r.tradable is False and r.quantity == 0 and r.reason == "x"
+
+
+# --------------------------------------------------------------------------- #
+# Non-finite hardening (NaN / +Infinity / -Infinity) — Recommendation A
+# --------------------------------------------------------------------------- #
+
+_NAN = Decimal("NaN")
+_POS_INF = Decimal("Infinity")
+_NEG_INF = Decimal("-Infinity")
+_NONFINITE = (_NAN, _POS_INF, _NEG_INF)
+
+
+class TestNonFiniteMark:
+    @pytest.mark.parametrize("mark", _NONFINITE)
+    def test_nonfinite_mark_no_trade(self, mark):
+        r = _policy().size(None, _settings("100000", "0.10"), mark)
+        assert r.tradable is False
+        assert r.quantity == 0
+        assert "non-finite mark" in r.reason
+
+    def test_nan_mark_does_not_raise(self):
+        # regression: NaN previously raised InvalidOperation
+        r = _policy().size(None, _settings(), _NAN)
+        assert r.tradable is False and "non-finite mark" in r.reason
+
+    def test_pos_inf_mark_not_mislabeled_unaffordable(self):
+        # regression: +Inf mark previously returned reason "unaffordable …"
+        r = _policy().size(None, _settings(), _POS_INF)
+        assert "non-finite mark" in r.reason
+        assert "unaffordable" not in r.reason
+
+
+class TestNonFiniteCapital:
+    @pytest.mark.parametrize("cap", _NONFINITE)
+    def test_nonfinite_capital_no_trade(self, cap):
+        r = _policy().size(
+            None, CapitalSettings(capital=cap, allocation_fraction=Decimal("0.10")),
+            Decimal("10"),
+        )
+        assert r.tradable is False
+        assert r.quantity == 0
+        assert "non-finite capital" in r.reason
+
+    def test_pos_inf_capital_does_not_overflow(self):
+        # regression: +Inf capital previously raised OverflowError on int()
+        r = _policy().size(
+            None, CapitalSettings(capital=_POS_INF, allocation_fraction=Decimal("0.10")),
+            Decimal("10"),
+        )
+        assert r.tradable is False and "non-finite capital" in r.reason
+
+
+class TestNonFiniteAllocation:
+    @pytest.mark.parametrize("alloc", _NONFINITE)
+    def test_nonfinite_allocation_no_trade(self, alloc):
+        r = _policy().size(
+            None, CapitalSettings(capital=Decimal("100000"), allocation_fraction=alloc),
+            Decimal("10"),
+        )
+        assert r.tradable is False
+        assert r.quantity == 0
+        assert "non-finite allocation" in r.reason
+
+
+class TestNeverRaisesOnAnyDecimal:
+    """Property: size() returns a SizingResult and NEVER raises on any Decimal."""
+
+    _VALUES = (_NAN, _POS_INF, _NEG_INF, Decimal("0"), Decimal("-1"),
+               Decimal("10"), Decimal("100000"), Decimal("0.10"), Decimal("1"),
+               Decimal("1.5"))
+
+    def test_size_never_raises(self):
+        pol = _policy()
+        for cap in self._VALUES:
+            for alloc in self._VALUES:
+                for mark in self._VALUES + (None,):
+                    settings = CapitalSettings(capital=cap, allocation_fraction=alloc)
+                    try:
+                        r = pol.size(None, settings, mark)
+                    except Exception as exc:  # pragma: no cover - must never happen
+                        raise AssertionError(
+                            f"size() raised {type(exc).__name__} for "
+                            f"cap={cap} alloc={alloc} mark={mark}"
+                        ) from exc
+                    assert isinstance(r, SizingResult)
+                    # never fabricate: any non-tradable result has quantity 0 + reason
+                    if not r.tradable:
+                        assert r.quantity == 0 and r.reason
+
+
+class TestFromEnvRejectsNonFinite:
+    def test_rejects_nan_capital(self, monkeypatch):
+        monkeypatch.setenv(ENV_CAPITAL, "NaN")
+        monkeypatch.setenv(ENV_ALLOCATION, "0.10")
+        with pytest.raises(ValueError):
+            CapitalSettings.from_env()
+
+    def test_rejects_infinity_capital(self, monkeypatch):
+        monkeypatch.setenv(ENV_CAPITAL, "Infinity")
+        monkeypatch.setenv(ENV_ALLOCATION, "0.10")
+        with pytest.raises(ValueError):
+            CapitalSettings.from_env()
+
+    def test_rejects_neg_infinity_allocation(self, monkeypatch):
+        monkeypatch.setenv(ENV_CAPITAL, "100000")
+        monkeypatch.setenv(ENV_ALLOCATION, "-Infinity")
+        with pytest.raises(ValueError):
+            CapitalSettings.from_env()
+
+    def test_rejects_nan_allocation(self, monkeypatch):
+        monkeypatch.setenv(ENV_CAPITAL, "100000")
+        monkeypatch.setenv(ENV_ALLOCATION, "NaN")
+        with pytest.raises(ValueError):
+            CapitalSettings.from_env()

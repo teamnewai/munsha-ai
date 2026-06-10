@@ -66,6 +66,12 @@ class CapitalSettings:
             raise ValueError(
                 f"unparseable capital/allocation config: {exc}"
             ) from exc
+        # Reject non-finite config (NaN / +Infinity / -Infinity) — Decimal parses
+        # these but they are never valid capital/allocation values (fail fast).
+        if not capital.is_finite():
+            raise ValueError(f"{ENV_CAPITAL} is non-finite ({capital})")
+        if not allocation.is_finite():
+            raise ValueError(f"{ENV_ALLOCATION} is non-finite ({allocation})")
         return cls(capital=capital, allocation_fraction=allocation)
 
 
@@ -120,16 +126,26 @@ class SizingPolicy:
             return SizingResult.no_trade("missing mark")
         if not isinstance(mark, Decimal):
             return SizingResult.no_trade("invalid mark type")
+        # Finiteness FIRST — guard NaN/+Inf/-Inf before any comparison so the
+        # function never raises (InvalidOperation/OverflowError) on non-finite input.
+        if not mark.is_finite():
+            return SizingResult.no_trade(f"non-finite mark ({mark})")
         if mark <= Decimal("0"):
             return SizingResult.no_trade(f"invalid mark ({mark})")
 
         # -- capital validation (owner-defined; non-compounding base) ------ #
         capital = settings.capital
+        if not capital.is_finite():
+            return SizingResult.no_trade(f"non-finite capital ({capital})")
         if capital <= Decimal("0"):
             return SizingResult.no_trade(f"invalid capital ({capital})")
 
         # -- allocation validation (0 < fraction <= 1; never clamp) -------- #
         fraction = settings.allocation_fraction
+        if not fraction.is_finite():
+            return SizingResult.no_trade(
+                f"non-finite allocation fraction ({fraction})", capital_base=capital
+            )
         if fraction <= Decimal("0") or fraction > Decimal("1"):
             return SizingResult.no_trade(
                 f"invalid allocation fraction ({fraction})", capital_base=capital

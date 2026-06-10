@@ -9,6 +9,23 @@
 
 ---
 
+## 0. Ratified Owner Decisions (LOCKED)
+
+The following owner decisions are **approved and binding** for B9 implementation (ref: `B9_OWNER_REVIEW_REPORT.md` §11). Where they refine the original assumptions, this section governs.
+
+| # | Decision | Ratified value |
+|---|----------|----------------|
+| **D1** | `starting_capital` source | **Environment / Configuration** (env/config value; not a persisted entity) |
+| **D2** | `trades_today` day boundary | **America/New_York market session** (NASDAQ/NYSE trading day), implemented purely in the B9 RiskState input builder — **no D4 rule change** |
+| **D3** | Broker boundary for E2E | **Mock / In-Memory `BrokerSyncContract` only** (no network, no D7) |
+| **D4** | Recovery sub-order | **Kill-Switch → Portfolio → Duplicate Protection → Risk State → Warm Redis** |
+| **D5** | Recovery-time inconsistencies | **Alert + DLQ + Continue** (non-destructive; consistent subset; never repair/mutate domain rows) |
+| **D6** | Scheduler startup | **Explicit `start()`** — `bootstrap()` composes + recovers only; the operator/entrypoint calls `application.start()` to begin the scheduler |
+
+These rulings are reflected in §3 (bootstrap returns a composed, recovered, **not-yet-started** `Application`), §5–§10 (recovery order D4), §9 (trades_today boundary D2), §11 (explicit scheduler start D6), and §18 (assumptions updated for D1/D3/D5).
+
+---
+
 ## 1. Purpose
 
 B9 is the **integration & recovery** layer. It composes the already-built, independently-tested phases (D1–D6 domain, B7 persistence, B8 operations) into a single runnable application, and it defines how the system **recovers its transient in-memory state from PostgreSQL on startup/restart**.
@@ -53,13 +70,15 @@ A single composition root assembles the object graph in dependency order and ret
 
 Composition order (each step depends only on prior steps):
 
-1. **Config & logging** — `OperationsConfig.from_env()`; `configure_logging()` (B8; secrets redacted). No DSNs in code.
+1. **Config & logging** — `OperationsConfig.from_env()`; `configure_logging()` (B8; secrets redacted). No DSNs in code. `starting_capital` read from env/config (**D1**).
 2. **Infrastructure** — `ConnectionPool` (B7; env DSN; startup health check — raises `PersistenceError` if PostgreSQL unreachable); `RedisClient` (B7; non-fatal/degraded).
 3. **DAL** — `PostgresDataAccessLayer(pool)` (B7). This single DAL instance is injected everywhere.
 4. **Operations (B8)** — `AlertManager`, `DeadLetterQueue`, `KillSwitchLevelCache`, `HealthMonitor`, `MetricsCollector`, `Scheduler` (+ workers). All receive the DAL/Redis.
-5. **Recovery (B9)** — run the rebuild flows (§5–§10) to reconstruct transient aggregates from PostgreSQL.
-6. **Domain engines (D3–D6)** — construct `SelectionEngine`, `RiskDecisionEngine`, `ExecutionEngine`, and the rebuilt `PortfolioState`, injecting the DAL where each already expects it. No engine internals change.
-7. **Scheduler start** — register B8 workers and start the background loop.
+5. **Recovery (B9)** — run the rebuild flows in the ratified order (**D4**): Kill-Switch → Portfolio → Duplicate Protection → Risk State → Warm Redis (§5–§10).
+6. **Domain engines (D3–D6)** — construct `SelectionEngine`, `RiskDecisionEngine`, `ExecutionEngine` (broker boundary = mock `BrokerSyncContract`, **D3**), and the rebuilt `PortfolioState`, injecting the DAL where each already expects it. No engine internals change.
+7. **Register scheduler workers** — register B8 workers and emit `ServiceStarted`, but **do NOT start the loop here**.
+
+`bootstrap()` returns a fully composed and recovered `Application` that is **not yet started** (**D6**). The scheduler background loop begins only when the operator/entrypoint explicitly calls `application.start()` (§11). This gives the operator a chance to inspect the recovered state before background jobs run.
 
 Bootstrap is **idempotent per process** and performs **no destructive action**. It never writes domain rows during composition except the operational lifecycle event `ServiceStarted` (B8 `HeartbeatEmitter`).
 
@@ -94,7 +113,9 @@ General recovery contract:
 1. Confirm PostgreSQL reachable (already guaranteed by step 2 of bootstrap; otherwise the process aborts).
 2. Read the durable facts via the DAL (`list`/`count`/structural lookups) — no writes.
 3. Replay those facts into freshly-constructed transient aggregates using **only the existing public methods** of D5/D6 (so all invariants/state-machine rules are honored by the owning phase).
-4. Surface any inconsistency as a B8 alert + DLQ entry (operational), never by mutating domain rows.
+4. Surface any inconsistency as a B8 alert + DLQ entry (operational), never by mutating domain rows (**D5: Alert + DLQ + Continue** — startup proceeds with the consistent subset; domain rows are never repaired/mutated).
+
+**Ratified recovery order (D4):** **Kill-Switch (§10) → Portfolio (§7) → Duplicate Protection (§8) → Risk State builder ready (§9) → Warm Redis (§6).** All steps are read-only and mutually independent (no cross-write dependency); the kill-switch level is recovered first so it is available to the RiskState builder and the operational-state computation.
 
 The recovery flows for the four transient aggregates are detailed in §6–§10.
 
@@ -157,7 +178,7 @@ D4 consumes a `RiskState` of *passed-in* figures (D4 explicitly does not compute
 |-------------------|--------------------|
 | `kill_switch_level` | B8 `KillSwitchLevelCache.current_level()` (§10) |
 | `open_positions` | `dal.positions.count(status=Open)` (or rebuilt `PortfolioState.open_count`) |
-| `trades_today` | `orders` created in the current trading day |
+| `trades_today` | `orders` created in the current **America/New_York market-session day** (**D2**); boundary computed in the B9 input builder — no D4 rule change |
 | `daily_drawdown` / `weekly_drawdown` | figures from D6 `PortfolioState.snapshot(marks)` (D6 computes; D4 consumes) |
 | `monthly_pause_active` | derived from the same D6 figures / recorded flag |
 | `consecutive_losses` | closed `positions` realized-PnL sequence (read-only) |
@@ -180,11 +201,17 @@ B9 only *supplies* these inputs to the existing D4 engine; it changes no thresho
 
 ## 11. Scheduler Startup
 
+Scheduler startup is **explicit (D6)** — split between bootstrap (compose/register) and an operator-invoked `start()`:
+
+*During `bootstrap()` (compose only):*
 1. Construct the B8 `Scheduler(dal, alert_manager, dlq)`.
 2. Register workers: `HealthPoller`, `DLQMonitor`, `MissingPartitionDetector` (detect-only, A2 — backed by B9's read-only `pg_catalog` checker), `RetentionTierer` (read-only — backed by B9's read-only lister).
 3. Emit `ServiceStarted` (B8 `HeartbeatEmitter.on_start()`).
+
+*On explicit `application.start()` (operator/entrypoint):*
 4. `scheduler.start(tick_sec=…)` — the existing synchronous daemon loop; per-worker failure isolation is already built (a failing `run_once()` is recorded as `WorkerFailure` + dead-lettered; the scheduler survives).
-5. Scheduler start happens **after** recovery (§5–§10) so workers observe a consistent rebuilt state.
+
+The loop is started **only** by the explicit `start()` call, which by construction occurs **after** recovery (§5–§10), so workers observe a consistent rebuilt state. `bootstrap()` never auto-starts the loop.
 
 No new scheduling primitives are introduced; B9 only registers existing workers and starts the existing loop.
 
@@ -287,7 +314,7 @@ Broker boundary:       D5 BrokerSyncContract (ABC) → mock/in-memory only (no n
 6. **RiskState builder** assembles D4's expected inputs read-only from PostgreSQL + rebuilt aggregates; no rule change.
 7. **Kill-switch cache rebuild** invoked at startup; level recovered from latest `KillSwitchActivated`; never set by B9.
 8. **Redis cold-start**: caches warmed from PostgreSQL after recovery; skipped gracefully if Redis down.
-9. **Scheduler** registers existing B8 workers (incl. detect-only partition + read-only retention backed by B9 `pg_catalog` readers) and starts after recovery.
+9. **Scheduler** registers existing B8 workers during bootstrap (incl. detect-only partition + read-only retention backed by B9 `pg_catalog` readers); the loop starts **only** on explicit `application.start()` (D6), which occurs after recovery.
 10. **Health transitions** surfaced via B8; operational state observational only.
 11. **Graceful shutdown** stops scheduler, emits `ServiceStopped`, closes pool; idempotent; no data loss.
 12. **Restart semantics**: recovery is read-only, deterministic, idempotent; crash ≡ graceful restart.
@@ -296,20 +323,21 @@ Broker boundary:       D5 BrokerSyncContract (ABC) → mock/in-memory only (no n
 15. **All existing 254 tests remain green**; B9 integration tests cover bootstrap wiring, each rebuild flow, health-gated startup, scheduler start/stop, and an in-memory E2E pipeline pass; PostgreSQL-backed E2E behind `DATABASE_URL`.
 16. **No secrets** in code or version control.
 17. **Invariants preserved**: PostgreSQL sole source of truth · Redis non-authoritative · Portfolio ⟂ Risk ⟂ Execution · no broker connectivity · no API/UI · no strategy/risk-rule/sizing changes.
-18. `B9_BUILD_REPORT.md` produced; stop at the B9 gate.
+18. **Ratified decisions D1–D6 (§0) honored**: env/config capital · America/New_York trades-today boundary · mock broker only · recovery order Kill-Switch→Portfolio→DuplicateProtection→RiskState→WarmRedis · Alert+DLQ+Continue on inconsistency · explicit `start()`.
+19. `B9_BUILD_REPORT.md` produced; stop at the B9 gate.
 
 ---
 
 ## 18. Assumptions
 
 1. **B9 adds a new integration package** (`src/app/`), analogous to how B8 added `src/operations/`. It contains only composition and read-only rebuild glue; it imports and orchestrates D1–D8 but modifies none of them.
-2. **`starting_capital` is configuration**, supplied via env/config (B6 assumption 9), not a persisted entity. B9 reads it from config to construct `PortfolioState`.
+2. **`starting_capital` is configuration** (**D1 ratified**), supplied via env/config (B6 assumption 9), not a persisted entity. B9 reads it from config to construct `PortfolioState`; the value used is logged at startup.
 3. **Marks are not part of rebuild.** D6 never fetches prices; `snapshot(marks)` receives marks at call time. B9 rebuilds registries/cash only; equity/drawdown are computed later by D6 when marks are supplied (out of B9's rebuild path).
-4. **`trades_today` / trading-day boundary** is computed from `orders.created_at` against a UTC trading-day window; B9 supplies the figure as a D4 input without changing D4 rules. (If a precise market-calendar boundary is later required, that is a clarification, not a B9 rule change.)
+4. **`trades_today` / trading-day boundary** (**D2 ratified**) is computed from `orders.created_at` against the **America/New_York market-session day** (NASDAQ/NYSE), entirely within the B9 RiskState input builder; D4 rules are unchanged.
 5. **`consecutive_losses`** is derived read-only from the closed-position realized-PnL sequence (win = PnL > 0, loss = PnL ≤ 0, per B6 assumption 11) and supplied as a D4 input. No new persistence.
-6. **Broker boundary uses a mock only.** v1 E2E wires an in-memory `BrokerSyncContract` implementation (no network, no D7). Real broker adapters and `Sent`-order reconciliation remain owner-gated.
+6. **Broker boundary uses a mock only** (**D3 ratified**). v1 E2E wires an in-memory `BrokerSyncContract` implementation (no network, no D7). Real broker adapters and `Sent`-order reconciliation remain owner-gated.
 7. **`pg_catalog` readers are read-only.** B9 backs the B8 partition detector/retention lister with `SELECT`-only queries against `pg_catalog`/`information_schema`; they create/alter/drop nothing (honoring A2).
-8. **Recovery is non-destructive.** Inconsistencies discovered during replay are surfaced as B8 alerts + DLQ entries; B9 never repairs, deletes, or mutates domain rows to "fix" them.
+8. **Recovery is non-destructive** (**D5 ratified: Alert + DLQ + Continue**). Inconsistencies discovered during replay are surfaced as B8 alerts + DLQ entries and startup continues with the consistent subset; B9 never repairs, deletes, or mutates domain rows to "fix" them.
 9. **Single process, synchronous.** B9 composes the synchronous stack (psycopg2/redis-py/synchronous engines). No async/await; the scheduler uses the existing B8 daemon-thread loop. Multi-process/HA orchestration is out of v1 scope.
 10. **Append-only operational events on restart are expected.** Repeated `ServiceStarted` rows are harmless; kill-switch uses latest-row-wins; DLQ items are keyed by id.
 11. **No automatic retry.** Consistent with B5/B7/B8; DLQ resolution is manual.

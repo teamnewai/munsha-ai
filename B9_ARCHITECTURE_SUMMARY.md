@@ -5,6 +5,19 @@
 
 ---
 
+## 0. Ratified Owner Decisions (LOCKED)
+
+| # | Decision | Ratified value |
+|---|----------|----------------|
+| D1 | `starting_capital` source | **Environment / Configuration** |
+| D2 | `trades_today` boundary | **America/New_York market session** (in B9 input builder; no D4 rule change) |
+| D3 | Broker boundary | **Mock / In-Memory only** (no network, no D7) |
+| D4 | Recovery order | **Kill-Switch → Portfolio → Duplicate Protection → Risk State → Warm Redis** |
+| D5 | Recovery inconsistencies | **Alert + DLQ + Continue** (non-destructive) |
+| D6 | Scheduler startup | **Explicit `start()`** (bootstrap composes + recovers; operator starts loop) |
+
+---
+
 ## 1. What B9 Is
 
 The **integration & recovery** layer. It composes the already-built phases (D1–D6 domain, B7 persistence, B8 operations) into one runnable application and defines how transient in-memory state is **rebuilt from PostgreSQL on startup/restart**. It is **wiring + read-only rebuild glue** — no domain logic.
@@ -16,7 +29,7 @@ The **integration & recovery** layer. It composes the already-built phases (D1�
 
 ## 3. Startup Sequence (high level)
 
-`config/logging → ConnectionPool + RedisClient → PostgresDataAccessLayer → B8 operations → recovery (rebuilds) → D3–D6 engines → start scheduler`. PostgreSQL unreachable ⇒ **abort**. Redis down ⇒ **DEGRADED**, continue.
+`config/logging → ConnectionPool + RedisClient → PostgresDataAccessLayer → B8 operations → recovery (rebuilds, order per D4) → D3–D6 engines → register workers`. `bootstrap()` returns a composed, recovered, **not-yet-started** `Application`; the scheduler loop begins only on **explicit `application.start()`** (D6). PostgreSQL unreachable ⇒ **abort**. Redis down ⇒ **DEGRADED**, continue.
 
 ## 4. The Four Rebuilds (all read-only from PostgreSQL)
 
@@ -65,9 +78,9 @@ PostgreSQL down at startup ⇒ abort. Redis down ⇒ DEGRADED. PostgreSQL lost m
 
 Bootstrap + recovery package; health-gated startup; four rebuilds correct; scheduler start/stop; observational health/state; E2E pipeline over durable DAL with mock broker; **all 254 existing tests green** + new B9 integration tests; D1–D8 unmodified; no schema/table/enum/secret changes; `B9_BUILD_REPORT.md`; stop at gate.
 
-## 11. Key Assumptions
+## 11. Key Assumptions (aligned with ratified D1–D6)
 
-`starting_capital` is config (not persisted) · marks are supplied at snapshot time, not during rebuild · `trades_today`/`consecutive_losses` derived read-only as D4 inputs (no rule change) · broker = mock only · `pg_catalog` readers read-only · single synchronous process · in-memory DAL is the default test backend, PostgreSQL E2E behind `DATABASE_URL`.
+`starting_capital` is config (D1, not persisted) · marks are supplied at snapshot time, not during rebuild · `trades_today` uses the America/New_York session boundary (D2) and `consecutive_losses` derived read-only as D4 inputs (no rule change) · broker = mock only (D3) · recovery order Kill-Switch→Portfolio→DuplicateProtection→RiskState→WarmRedis (D4) · inconsistencies = Alert + DLQ + Continue (D5) · scheduler explicit `start()` (D6) · `pg_catalog` readers read-only · single synchronous process · in-memory DAL is the default test backend, PostgreSQL E2E behind `DATABASE_URL`.
 
 ## 12. Stop Gate
 

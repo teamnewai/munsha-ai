@@ -20,15 +20,18 @@ Hard guarantees (per the ratified owner decisions):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
+from zoneinfo import ZoneInfo
 
-from src.enums import SeverityLevel, SystemEventType
+from src.enums import PositionStatus, SeverityLevel, SystemEventType
 from src.execution.errors import ExecutionError
 from src.models import RiskCheck, Score, Signal
 from src.operations.events import emit_system_event
 from src.operations.scheduler import Worker
+from src.portfolio import PnLCalculator
 
 from .exit_decision import (
     ExitConfig,
@@ -49,6 +52,10 @@ COMPLETED = "COMPLETED"
 
 # kill-switch level thresholds (data values; mirror the L1–L4 ladder).
 _L1, _L2, _L3, _L4 = 1, 2, 3, 4
+
+# America/New_York session (Owner Decision D2) for the daily-drawdown window.
+_NY = ZoneInfo("America/New_York")
+_MIN_DT = datetime.min.replace(tzinfo=timezone.utc)
 
 
 @dataclass
@@ -214,9 +221,17 @@ class PipelineOrchestrator:
                     {"kind": "scan", "stage": "selection", "regime": regime,
                      "core": len(result.core), "turbo": len(result.turbo)})
 
-        # portfolio snapshot → daily drawdown input for D4 (D6 computes) --- #
+        # portfolio snapshot + the FULL D4 input set (F-8): windowed daily/weekly
+        # realized drawdowns and per-candidate sector exposure — all D6-computed,
+        # relayed to D4 (previously only daily was fed; weekly/sector defaulted 0,
+        # so those gates never bound). D6 computes; D4 decides; P-ORCH only relays.
         marks_by_instrument = self._marks_by_instrument(frame)
-        snapshot = self._portfolio.snapshot(marks_by_instrument, captured_at=now)
+        self._portfolio.snapshot(marks_by_instrument, captured_at=now)  # updates HWM
+        daily_drawdown = self._realized_drawdown_since(
+            now.astimezone(_NY).replace(hour=0, minute=0, second=0, microsecond=0)
+        )
+        weekly_drawdown = self._realized_drawdown_since(now - timedelta(days=7))
+        open_instruments = self._open_instruments_map()
 
         res = CycleResult(state=COMPLETED, kill_switch_level=level, regime=regime,
                           scored=len(candidates), closed=closed)
@@ -240,7 +255,19 @@ class PipelineOrchestrator:
                 created_at=now, breakdown=dict(cand.breakdown)))
 
             # RISK (D4) — kill-switch L2 blocks here via KillSwitchGate ---- #
-            state = self._rsb.build(daily_drawdown=snapshot.drawdown)
+            instrument = self._dal.instruments.get_or_none(inst_id)
+            sector_current = (
+                self._portfolio.sector_exposure(
+                    instrument.sector_id, open_instruments, marks_by_instrument
+                )
+                if instrument is not None else Decimal("0")
+            )
+            state = self._rsb.build(
+                daily_drawdown=daily_drawdown,
+                weekly_drawdown=weekly_drawdown,
+                candidate_sector_current_exposure=sector_current,
+                candidate_sector_added_exposure=self._capital.allocation_fraction,
+            )
             decision = self._risk.evaluate(state, cand)
             self._dal.risk_checks.add(RiskCheck(
                 id=uuid4(), signal_id=signal.id, decision=decision.decision,
@@ -339,6 +366,47 @@ class PipelineOrchestrator:
                          "position_id": str(pos.id), "exit_reason": decision.reason,
                          "exit_price": str(closed_pos.exit_price)})
         return closed
+
+    # -- D4 input figures (F-8): D6-computed, relayed read-only ------------ #
+    def _realized_drawdown_since(self, window_start: datetime) -> Decimal:
+        """Realized drawdown over [window_start, now] from the closed-trade equity
+        curve (D6/D14 convention: equity = starting_capital + cumulative realized
+        PnL). Trades closed before the window are folded into the window's opening
+        equity; the figure is (current − window_peak)/window_peak, clamped ≤ 0.
+        Reuses D6 `PnLCalculator`; computes no new formula. 0 when no closed trades.
+        """
+        closed = self._dal.positions.list(status=PositionStatus.CLOSED)
+        if not closed:
+            return Decimal("0")
+        ordered = sorted(
+            closed, key=lambda p: (p.closed_at or _MIN_DT, p.opened_at)
+        )
+        equity_at_start = self._portfolio.account.starting_capital
+        running = equity_at_start
+        in_window: list = []
+        for pos in ordered:
+            pnl = PnLCalculator.realized_for_position(pos)
+            ca = pos.closed_at
+            if ca is not None and ca < window_start:
+                equity_at_start += pnl
+                running = equity_at_start
+            else:
+                running += pnl
+                in_window.append(running)
+        peak = max([equity_at_start] + in_window)
+        if peak <= Decimal("0"):
+            return Decimal("0")
+        return min((running - peak) / peak, Decimal("0"))
+
+    def _open_instruments_map(self) -> dict:
+        """{instrument_id: Instrument} for current open positions (for D6 sector
+        exposure). Read-only view; no mutation."""
+        out: dict = {}
+        for pos in self._portfolio._open.list():
+            inst = self._dal.instruments.get_or_none(pos.instrument_id)
+            if inst is not None:
+                out[pos.instrument_id] = inst
+        return out
 
     # -- helpers ----------------------------------------------------------- #
     def _resolve_instrument(self, symbol: str) -> Optional[UUID]:

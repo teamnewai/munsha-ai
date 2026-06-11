@@ -75,6 +75,22 @@ class ExecutionTarget(ABC):
         """Act on a candidate already accepted by D4. Never decides risk/score/size."""
         ...
 
+    def handle_close(
+        self,
+        position: Position,
+        mark: Optional[Decimal],
+        *,
+        user_id: UUID,
+        at: Optional[datetime] = None,
+    ) -> Optional[Position]:
+        """Close an open position at the supplied mark (EX-3).
+
+        Returns the CLOSED position on success, or None for non-executing targets
+        (Signals-Only never opened a real position, so there is nothing to close).
+        Default: no-op. Executing targets (Paper) override this.
+        """
+        return None
+
     def shutdown(self) -> None:
         """Graceful teardown. Default: no-op."""
         return None

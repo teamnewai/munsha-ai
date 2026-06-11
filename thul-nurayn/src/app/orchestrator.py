@@ -25,10 +25,17 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from src.enums import SeverityLevel, SystemEventType
+from src.execution.errors import ExecutionError
 from src.models import RiskCheck, Score, Signal
 from src.operations.events import emit_system_event
 from src.operations.scheduler import Worker
 
+from .exit_decision import (
+    ExitConfig,
+    ExitDecisionEngine,
+    ExitEvaluationContext,
+    ExitState,
+)
 from .sizing import CapitalSettings, SizingPolicy
 from .targets.base import ExecutionIntent
 
@@ -56,6 +63,7 @@ class CycleResult:
     accepted: int = 0
     executed: int = 0
     no_trade: int = 0
+    closed: int = 0
     outcomes: list = field(default_factory=list)
 
 
@@ -86,6 +94,7 @@ class PipelineOrchestrator:
         alert_manager=None,
         dlq=None,
         clock=None,
+        exit_engine=None,
     ) -> None:
         self._dal = dal
         self._selection = selection_engine
@@ -100,6 +109,10 @@ class PipelineOrchestrator:
         self._alerts = alert_manager
         self._dlq = dlq
         self._clock = clock or (lambda: datetime.now(timezone.utc))
+        # EX-4: exit-decision engine (EX-1) + transient, re-derivable per-position
+        # exit-state (no persistence; rebuilt by replay on restart — X-2 scope).
+        self._exit = exit_engine or ExitDecisionEngine(ExitConfig.provisional())
+        self._exit_states: dict[UUID, ExitState] = {}
 
     @classmethod
     def from_application(
@@ -111,6 +124,7 @@ class PipelineOrchestrator:
         capital_settings: CapitalSettings,
         operator_user_id: UUID,
         clock=None,
+        exit_engine=None,
     ) -> "PipelineOrchestrator":
         return cls(
             dal=app.dal,
@@ -126,6 +140,7 @@ class PipelineOrchestrator:
             alert_manager=app.alert_manager,
             dlq=app.dlq,
             clock=clock,
+            exit_engine=exit_engine,
         )
 
     # -- audit helpers (durable; existing members only) -------------------- #
@@ -151,6 +166,12 @@ class PipelineOrchestrator:
             return CycleResult(state=HALTED, reason="kill-switch L4: shutdown",
                                kill_switch_level=level)
 
+        # [EXIT] evaluate open positions for CLOSE — exits are RISK-REDUCING,
+        # so they are permitted at kill-switch L1–L3 (only L4, above, halts all).
+        # They run before the entry data-quality/scanner gates so open positions
+        # are never trapped by an entry-side reject. (EX-4 wiring of EX-1/EX-2.)
+        closed = self._run_exits(frame, now)
+
         # [1] DATA-QUALITY GATE — Reject Cycle → Audit → Alert → No Trade -- #
         if not frame.tradable:
             detail = {"kind": "data_quality_reject", "stage": "data",
@@ -169,6 +190,7 @@ class PipelineOrchestrator:
                 state=REJECTED,
                 reason="data-quality reject: " + ", ".join(frame.quality.fatal_issues),
                 kill_switch_level=level,
+                closed=closed,
             )
 
         # [L1] kill-switch — pause scanner (skip scan/score) -------------- #
@@ -178,7 +200,7 @@ class PipelineOrchestrator:
                          "level": level, "action": "pause_scanner"})
             return CycleResult(state=PAUSED_SCANNER,
                                reason="kill-switch L1: scanner paused",
-                               kill_switch_level=level)
+                               kill_switch_level=level, closed=closed)
 
         # [2/3] SCAN + SCORE (D3) ----------------------------------------- #
         result = self._selection.run(
@@ -197,7 +219,7 @@ class PipelineOrchestrator:
         snapshot = self._portfolio.snapshot(marks_by_instrument, captured_at=now)
 
         res = CycleResult(state=COMPLETED, kill_switch_level=level, regime=regime,
-                          scored=len(candidates))
+                          scored=len(candidates), closed=closed)
 
         # [4] per-candidate: Risk → Size → Execute → Portfolio ------------ #
         for cand in candidates:
@@ -265,6 +287,58 @@ class PipelineOrchestrator:
                      "executed": res.executed, "no_trade": res.no_trade,
                      "kill_switch_level": level})
         return res
+
+    # -- exit stage (EX-4) ------------------------------------------------- #
+    def _run_exits(self, frame, now) -> int:
+        """Evaluate every open position for CLOSE; execute closes via the target.
+
+        Decision is owned by EX-1; execution by the target's `handle_close`
+        (EX-2/EX-3); portfolio reflection by D6 `close_position`. Per-position
+        failures are isolated (audited, skipped) so one bad close cannot abort
+        the cycle. Returns the number of positions closed this cycle.
+        """
+        open_positions = list(self._portfolio._open.list())  # snapshot (mutation-safe)
+        if not open_positions:
+            return 0
+        market_open = bool(getattr(frame, "market_open", True))
+        closed = 0
+        for pos in open_positions:
+            instr = self._dal.instruments.get_or_none(pos.instrument_id)
+            mark = frame.marks.get(instr.symbol) if instr is not None else None
+
+            state = self._exit.advance_state(
+                self._exit_states.get(pos.id, ExitState.initial()), pos, mark
+            )
+            self._exit_states[pos.id] = state
+
+            decision = self._exit.evaluate(ExitEvaluationContext(
+                position=pos, mark=mark, state=state,
+                regime_is_bull=None, trend_stage2=None,   # C-3 marks-computable (F-5)
+                market_open=market_open, minutes_to_close=None,
+            ))
+            if not decision.close:
+                continue
+
+            try:
+                closed_pos = self._target.handle_close(
+                    pos, mark, user_id=self._user_id, at=now
+                )
+            except (ExecutionError, ValueError) as exc:
+                self._audit(SeverityLevel.WARNING,
+                            {"kind": "exit_error", "stage": "exit",
+                             "position_id": str(pos.id), "reason": str(exc)})
+                continue
+
+            if closed_pos is None:
+                continue  # non-executing target (signals) — nothing to reflect
+            self._portfolio.close_position(closed_pos)
+            self._exit_states.pop(pos.id, None)
+            closed += 1
+            self._audit(SeverityLevel.WARNING,
+                        {"kind": "exit_close", "stage": "exit",
+                         "position_id": str(pos.id), "exit_reason": decision.reason,
+                         "exit_price": str(closed_pos.exit_price)})
+        return closed
 
     # -- helpers ----------------------------------------------------------- #
     def _resolve_instrument(self, symbol: str) -> Optional[UUID]:

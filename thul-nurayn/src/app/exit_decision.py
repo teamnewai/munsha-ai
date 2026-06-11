@@ -2,9 +2,9 @@
 
 The Exit Decision Engine decides, per open position per cycle, whether to CLOSE
 or HOLD — implementing the owner-ratified exit philosophy. It DECIDES ONLY; it
-never executes a close (EX-2), never touches the execution target (EX-3), never
-runs in the orchestrator (EX-4). It is pure, deterministic, stateless, and
-config-driven — the same discipline as P-SIZE (`sizing.py`).
+never executes a close (EX-2), never touches the execution target (EX-3). It is
+pure, deterministic, stateless, and config-driven — the same discipline as
+P-SIZE (`sizing.py`).
 
 Ratified philosophy (owner-final):
   * Core  — structure/trend exit + hard-stop-only · winners run · no fixed target.
@@ -15,18 +15,18 @@ Ratified philosophy (owner-final):
             OR within the session-close cutoff. Basis: percentage (T-1/T-4).
   * Shared — full close only (no partial) · Long/Short symmetry (X-1) ·
              gap-through-stop fills at the actual mark (the *engine* signals CLOSE;
-             EX-2 later fills at the supplied mark) · exits permitted at kill-switch
-             L1–L3 (the orchestrator gates that later; L4 halts all).
+             EX-2 fills at the supplied mark) · exits permitted at kill-switch
+             L1–L3 (the orchestrator gates that; L4 halts all).
 
 Data scope (C-3 = marks-computable Core path): for an open position the engine
 consumes per-cycle PRICE MARKS plus whatever facts the caller can supply. Under
 the marks-computable path the per-instrument `trend_stage2` fact is NOT
-recomputed for open positions, so it will be supplied as ``None``; per the
-fail-safe rule a missing/unknown structural fact never forces a close (the
-Trend-Stage component stays unconfirmed and the position holds on the structure
-path — the hard stop still protects downside). The engine is forward-compatible:
-when a future, separately-gated data path supplies `trend_stage2`, the
-Trend-Stage component activates with no code change.
+recomputed for open positions, so it is supplied as ``None``; per the fail-safe
+rule a missing/unknown structural fact never forces a close (the Trend-Stage
+component stays unconfirmed and the position holds on the structure path — the
+hard stop still protects downside). The engine is forward-compatible: when a
+future, separately-gated data path supplies `trend_stage2`, the Trend-Stage
+component activates with no code change.
 
 Fail-safe (Master §13 discipline): the engine NEVER raises on bad input — a
 missing/invalid mark, missing entry price, or invalid configuration yields HOLD
@@ -35,8 +35,7 @@ data.
 
 Values V-1…V-6 are CONFIGURATION ONLY (`ExitConfig`); the engine hardcodes no
 strategy value. `ExitConfig.provisional()` supplies the owner-reviewed
-*provisional* Moderate brackets (clearly NOT the final Master-Spec values) so the
-engine can be built and exercised before the campaign.
+*provisional* Moderate brackets (clearly NOT the final Master-Spec values).
 """
 
 from __future__ import annotations
@@ -78,16 +77,16 @@ class ExitConfig:
     def provisional(cls) -> "ExitConfig":
         """PROVISIONAL placeholder config — owner-reviewed *Moderate* brackets
         from EXIT_VALUE_DECISION_MATRIX. These are NOT the final Master-Spec
-        values; they exist only so EX-1 can be built and exercised. Final values
-        are supplied (and gate the campaign) at EX-5/OR-2, with no code change.
+        values; they exist only so the exit leg can run. Final values are
+        supplied (and gate the campaign) later, with no code change.
         """
         return cls(
-            core_hard_stop_pct=Decimal("0.08"),          # V-1 ~8%
-            turbo_hard_stop_pct=Decimal("0.02"),         # V-2 ~2%
+            core_hard_stop_pct=Decimal("0.08"),            # V-1 ~8%
+            turbo_hard_stop_pct=Decimal("0.02"),           # V-2 ~2%
             turbo_breakeven_trigger_pct=Decimal("0.015"),  # V-3 ~1.5%
             turbo_breakeven_offset_pct=Decimal("0.0025"),  # V-4 ~0.25%
-            turbo_trailing_pct=Decimal("0.02"),          # V-5 ~2%
-            turbo_session_close_cutoff_min=10,           # V-6 ~10 min
+            turbo_trailing_pct=Decimal("0.02"),            # V-5 ~2%
+            turbo_session_close_cutoff_min=10,             # V-6 ~10 min
         )
 
     def invalid_reason(self) -> Optional[str]:
@@ -180,7 +179,7 @@ class ExitDecision:
 # --------------------------------------------------------------------------- #
 # helpers
 # --------------------------------------------------------------------------- #
-def _usable(value: Optional[Decimal]) -> bool:
+def _positive_finite(value: Optional[Decimal]) -> bool:
     return isinstance(value, Decimal) and value.is_finite() and value > _ZERO
 
 
@@ -210,7 +209,10 @@ class ExitDecisionEngine:
 
         Returns the state unchanged on an unusable mark or entry. Pure.
         """
-        if not _usable(mark) or not _usable(position.entry_price):
+        entry = position.entry_price
+        if mark is None or not mark.is_finite() or mark <= _ZERO:
+            return state
+        if entry is None or not entry.is_finite() or entry <= _ZERO:
             return state
         is_long = position.direction == Direction.LONG
         prev = state.favorable_extreme
@@ -221,14 +223,13 @@ class ExitDecisionEngine:
         else:
             new_extreme = min(prev, mark)
         armed = state.breakeven_armed or self._be_trigger_reached(
-            position, new_extreme, is_long
+            entry, new_extreme, is_long
         )
         return replace(state, favorable_extreme=new_extreme, breakeven_armed=armed)
 
     def _be_trigger_reached(
-        self, position: Position, extreme: Decimal, is_long: bool
+        self, entry: Decimal, extreme: Decimal, is_long: bool
     ) -> bool:
-        entry = position.entry_price
         trig = self._config.turbo_breakeven_trigger_pct
         if is_long:
             return extreme >= entry * (_ONE + trig)
@@ -240,27 +241,27 @@ class ExitDecisionEngine:
         if cfg_bad is not None:
             return ExitDecision.hold(f"invalid_config:{cfg_bad}")
 
-        pos = ctx.position
-        if not _usable(ctx.mark):
+        mark = ctx.mark
+        if mark is None or not mark.is_finite() or mark <= _ZERO:
             return ExitDecision.hold("missing_mark")
-        if not _usable(pos.entry_price):
+        entry = ctx.position.entry_price
+        if entry is None or not entry.is_finite() or entry <= _ZERO:
             return ExitDecision.hold("missing_entry")
 
-        if pos.engine == EngineType.CORE:
-            return self._evaluate_core(ctx)
-        if pos.engine == EngineType.TURBO:
-            return self._evaluate_turbo(ctx)
+        engine = ctx.position.engine
+        if engine == EngineType.CORE:
+            return self._evaluate_core(ctx, mark, entry)
+        if engine == EngineType.TURBO:
+            return self._evaluate_turbo(ctx, mark, entry)
         return ExitDecision.hold("unknown_engine")
 
     # -- Core: hard stop OR (trend-stage break AND regime flip) ------------ #
-    def _evaluate_core(self, ctx: ExitEvaluationContext) -> ExitDecision:
-        pos = ctx.position
-        mark = ctx.mark
-        entry = pos.entry_price
+    def _evaluate_core(
+        self, ctx: ExitEvaluationContext, mark: Decimal, entry: Decimal
+    ) -> ExitDecision:
         pct = self._config.core_hard_stop_pct
-        is_long = pos.direction == Direction.LONG  # Core is long-only; mirror defensively
+        is_long = ctx.position.direction == Direction.LONG  # Core long-only; mirror defensively
 
-        # Hard-stop floor (downside protection).
         if is_long:
             if mark <= entry * (_ONE - pct):
                 return ExitDecision.to_close("core_hard_stop")
@@ -278,12 +279,11 @@ class ExitDecisionEngine:
         return ExitDecision.hold("core_thesis_intact")
 
     # -- Turbo: effective stop (hard→BE→trail) breach OR session flatten --- #
-    def _evaluate_turbo(self, ctx: ExitEvaluationContext) -> ExitDecision:
-        pos = ctx.position
-        mark = ctx.mark
-        entry = pos.entry_price
+    def _evaluate_turbo(
+        self, ctx: ExitEvaluationContext, mark: Decimal, entry: Decimal
+    ) -> ExitDecision:
         cfg = self._config
-        is_long = pos.direction == Direction.LONG
+        is_long = ctx.position.direction == Direction.LONG
 
         # Working extreme includes the current mark (idempotent with advance_state).
         prev = ctx.state.favorable_extreme
@@ -294,7 +294,7 @@ class ExitDecisionEngine:
         else:
             extreme = min(prev, mark)
         armed = ctx.state.breakeven_armed or self._be_trigger_reached(
-            pos, extreme, is_long
+            entry, extreme, is_long
         )
 
         hard = entry * (_ONE - cfg.turbo_hard_stop_pct) if is_long \

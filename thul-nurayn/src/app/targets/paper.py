@@ -20,14 +20,16 @@ invariants.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Optional
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from src.enums import OrderStatus, PositionStatus
 from src.execution.requests import OrderRequest
 from src.models import Fill, Position
 
 from ..broker_mock import MockBrokerSyncContract
+from ..exit_execution import close_position
 from .base import ExecutionIntent, ExecutionOutcome, ExecutionTarget
 
 _NAME = "paper"
@@ -122,6 +124,25 @@ class PaperTarget(ExecutionTarget):
             position=position,
             fill=fill,
         )
+
+    def handle_close(
+        self,
+        position: Position,
+        mark: Optional[Decimal],
+        *,
+        user_id: UUID,
+        at: Optional[datetime] = None,
+    ) -> Optional[Position]:
+        """Simulate the closing fill at the supplied mark via the existing D5 engine.
+
+        Delegates the mechanics to EX-2 `close_position` (the same shared D5 path
+        live targets will use); paper only *simulates the fill*. Returns the
+        CLOSED position on success, else None.
+        """
+        outcome = close_position(
+            self._engine, position, mark, user_id, at=at or self._clock()
+        )
+        return outcome.position if outcome.closed else None
 
 
 __all__ = ["PaperTarget", "PaperBrokerSyncContract"]

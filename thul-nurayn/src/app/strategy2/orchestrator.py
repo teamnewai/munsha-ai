@@ -24,17 +24,18 @@ from typing import Optional
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 
-from src.enums import PositionStatus, SeverityLevel, SystemEventType
+from src.enums import MarketRegime, PositionStatus, SeverityLevel, SystemEventType
 from src.execution.errors import ExecutionError
 from src.models import RiskCheck, Score, Signal
 from src.operations.events import emit_system_event
 from src.portfolio import PnLCalculator
+from src.selection.regime import MarketRegimeEngine
 
 from ..exit_decision import (
-    ExitDecisionEngine,
     ExitEvaluationContext,
     ExitState,
 )
+from .exit_engine import Strategy2ExitEngine
 from ..orchestrator import (  # neutral shared DTO + state labels (not strategy logic)
     COMPLETED,
     HALTED,
@@ -94,10 +95,11 @@ class Strategy2Orchestrator:
         self._alerts = alert_manager
         self._dlq = dlq
         self._clock = clock or (lambda: datetime.now(timezone.utc))
-        # independent exit engine (sound-approach config) + transient exit-state.
-        self._exit = exit_engine or ExitDecisionEngine(proposed_exit_config())
+        # independent exit engine (active Core profit exit) + transient exit-state.
+        self._exit = exit_engine or Strategy2ExitEngine(proposed_exit_config())
         self._exit_states: dict[UUID, ExitState] = {}
         self._min_score = min_score
+        self._regime_engine = MarketRegimeEngine()
 
     @classmethod
     def from_application(
@@ -284,6 +286,7 @@ class Strategy2Orchestrator:
         if not open_positions:
             return 0
         market_open = bool(getattr(frame, "market_open", True))
+        regime_is_bull = self._regime_is_bull(frame)   # per-cycle, read-only
         closed = 0
         for pos in open_positions:
             instr = self._dal.instruments.get_or_none(pos.instrument_id)
@@ -293,7 +296,7 @@ class Strategy2Orchestrator:
             self._exit_states[pos.id] = state
             decision = self._exit.evaluate(ExitEvaluationContext(
                 position=pos, mark=mark, state=state,
-                regime_is_bull=None, trend_stage2=None,
+                regime_is_bull=regime_is_bull, trend_stage2=None,
                 market_open=market_open, minutes_to_close=None))
             if not decision.close:
                 continue
@@ -346,6 +349,20 @@ class Strategy2Orchestrator:
             if inst is not None:
                 out[pos.instrument_id] = inst
         return out
+
+    def _regime_is_bull(self, frame):
+        """Per-cycle regime for the Core thesis exit (read-only reuse of D3).
+
+        None when market_facts are absent (e.g. a withheld/closed frame) — the
+        Core regime exit then holds (fail-safe); stop/trail still protect.
+        """
+        mf = getattr(frame, "market_facts", None)
+        if mf is None or mf.spy_price is None or mf.spy_sma_200 is None:
+            return None
+        try:
+            return self._regime_engine.evaluate(mf) == MarketRegime.BULL
+        except (ArithmeticError, TypeError):
+            return None
 
     def _resolve_instrument(self, symbol: str) -> Optional[UUID]:
         rows = self._dal.instruments.list(symbol=symbol)

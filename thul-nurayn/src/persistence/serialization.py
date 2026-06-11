@@ -16,11 +16,29 @@ assumption 4); no name-mapping layer is needed.
 from __future__ import annotations
 
 import dataclasses
+import json
 import typing
+from decimal import Decimal
 from enum import Enum
 from typing import Any
 
 import psycopg2.extras
+
+
+def _json_default(obj: Any) -> Any:
+    """JSON fallback for values psycopg2's default encoder can't handle.
+
+    Decimal -> str (exact, lossless) so JSONB fields carrying Decimal values
+    (e.g. a Score.breakdown of component scores) serialize correctly. Other
+    unsupported types raise (no silent data loss).
+    """
+    if isinstance(obj, Decimal):
+        return str(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+
+def _json_dumps(value: Any) -> str:
+    return json.dumps(value, default=_json_default)
 
 
 def _unwrap_optional(hint: Any) -> Any:
@@ -38,7 +56,7 @@ def serialize_value(value: Any) -> Any:
     if isinstance(value, Enum):
         return value.value
     if isinstance(value, dict):
-        return psycopg2.extras.Json(value)
+        return psycopg2.extras.Json(value, dumps=_json_dumps)
     return value
 
 

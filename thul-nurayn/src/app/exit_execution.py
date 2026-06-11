@@ -97,6 +97,8 @@ def close_position(
         filled_at=now,
     )
     filled = engine.apply_fill(order, fill, position)  # -> SENT->FILLED; verifies OPEN/match
+    filled = replace(filled, position_id=position.id)  # link order *-1 position
+    engine.dal.orders.update(filled)
 
     # 3) close the position (legal OPEN->CLOSED) + stamp exit fields + persist.
     transitioned = engine.position_sm.transition(position, PositionStatus.CLOSED)

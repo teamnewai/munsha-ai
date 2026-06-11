@@ -20,6 +20,7 @@ invariants.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from dataclasses import replace
 from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
@@ -103,6 +104,10 @@ class PaperTarget(ExecutionTarget):
         )
         # 3) apply via existing D5 engine -> SENT -> FILLED (D5 enforces correctness)
         filled = self._engine.apply_fill(order, fill, position)
+        # link the filled entry order to its position (Order *─1 Position) so D14
+        # score-band attribution (orders_for_position -> signal -> score) resolves.
+        filled = replace(filled, position_id=position.id)
+        self._engine.dal.orders.update(filled)
 
         # keep the simulated broker view consistent for any later reconciliation
         broker = getattr(self._engine, "broker_sync", None)

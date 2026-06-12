@@ -1,0 +1,456 @@
+"""THUL-NURAYN v1 — P-ORCH autonomous pipeline orchestrator.
+
+The SOLE autonomous conductor (P-ORCH_PIPELINE_ORCHESTRATOR_ARCHITECTURE.md). It
+sequences the existing, already-tested components in the mandatory ordered chain
+— and decides nothing itself:
+
+  Scheduler → Data (P-DATA) → Selection (D3) → Risk (D4) → Size (P-SIZE)
+            → Execution Target (D11) → Portfolio (D6) → Audit
+
+Hard guarantees (per the ratified owner decisions):
+  * Kill-switch is evaluated FIRST, highest priority (L1 pause-scan / L2 D4-block
+    / L3 pause-execution / L4 shutdown); never decided here, only read.
+  * Data-quality failure ⇒ Reject Cycle → Audit → Alert → No Trade.
+  * Every stage leaves a durable audit trace (system_events / D1 rows / D5 audit).
+  * No bypass: nothing reaches execution without clearing Selection→Risk→Sizing.
+  * P-ORCH calls only existing public methods; it adds no strategy/score/risk/
+    execution/allocation logic; PostgreSQL is the source of truth.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
+from typing import Optional
+from uuid import UUID, uuid4
+from zoneinfo import ZoneInfo
+
+from src.enums import PositionStatus, SeverityLevel, SystemEventType
+from src.execution.errors import ExecutionError
+from src.models import RiskCheck, Score, Signal
+from src.operations.events import emit_system_event
+from src.operations.scheduler import Worker
+from src.portfolio import PnLCalculator
+
+from .exit_decision import (
+    ExitConfig,
+    ExitDecisionEngine,
+    ExitEvaluationContext,
+    ExitState,
+)
+from .sizing import CapitalSettings, SizingPolicy
+from .targets.base import ExecutionIntent
+
+# -- cycle states (transient strings; not persisted, not a new enum) --------- #
+IDLE = "IDLE"
+HALTED = "HALTED"                 # kill-switch L4 / fatal
+REJECTED = "REJECTED"            # data-quality cycle reject
+PAUSED_SCANNER = "PAUSED_SCANNER"   # kill-switch L1
+PAUSED_EXECUTION = "PAUSED_EXECUTION"  # kill-switch L3
+COMPLETED = "COMPLETED"
+
+# kill-switch level thresholds (data values; mirror the L1–L4 ladder).
+_L1, _L2, _L3, _L4 = 1, 2, 3, 4
+
+# America/New_York session (Owner Decision D2) for the daily-drawdown window.
+_NY = ZoneInfo("America/New_York")
+_MIN_DT = datetime.min.replace(tzinfo=timezone.utc)
+
+
+@dataclass
+class CycleResult:
+    """Transient outcome of one trading cycle (not persisted)."""
+
+    state: str
+    reason: str = "ok"
+    kill_switch_level: int = 0
+    regime: Optional[str] = None
+    scored: int = 0
+    accepted: int = 0
+    executed: int = 0
+    no_trade: int = 0
+    closed: int = 0
+    outcomes: list = field(default_factory=list)
+
+
+def _ks_severity(level: int) -> SeverityLevel:
+    if level >= _L4:
+        return SeverityLevel.EMERGENCY
+    if level == _L3:
+        return SeverityLevel.CRITICAL
+    return SeverityLevel.WARNING
+
+
+class PipelineOrchestrator:
+    """Drives one trading cycle through the mandatory ordered chain."""
+
+    def __init__(
+        self,
+        *,
+        dal,
+        selection_engine,
+        risk_engine,
+        risk_state_builder,
+        portfolio_state,
+        kill_switch_cache,
+        sizing_policy: SizingPolicy,
+        capital_settings: CapitalSettings,
+        execution_target,
+        operator_user_id: UUID,
+        alert_manager=None,
+        dlq=None,
+        clock=None,
+        exit_engine=None,
+    ) -> None:
+        self._dal = dal
+        self._selection = selection_engine
+        self._risk = risk_engine
+        self._rsb = risk_state_builder
+        self._portfolio = portfolio_state
+        self._ks = kill_switch_cache
+        self._sizing = sizing_policy
+        self._capital = capital_settings
+        self._target = execution_target
+        self._user_id = operator_user_id
+        self._alerts = alert_manager
+        self._dlq = dlq
+        self._clock = clock or (lambda: datetime.now(timezone.utc))
+        # EX-4: exit-decision engine (EX-1) + transient, re-derivable per-position
+        # exit-state (no persistence; rebuilt by replay on restart — X-2 scope).
+        self._exit = exit_engine or ExitDecisionEngine(ExitConfig.provisional())
+        self._exit_states: dict[UUID, ExitState] = {}
+
+    @classmethod
+    def from_application(
+        cls,
+        app,
+        *,
+        execution_target,
+        sizing_policy: SizingPolicy,
+        capital_settings: CapitalSettings,
+        operator_user_id: UUID,
+        clock=None,
+        exit_engine=None,
+    ) -> "PipelineOrchestrator":
+        return cls(
+            dal=app.dal,
+            selection_engine=app.selection_engine,
+            risk_engine=app.risk_engine,
+            risk_state_builder=app.risk_state_builder,
+            portfolio_state=app.portfolio_state,
+            kill_switch_cache=app.kill_switch_cache,
+            sizing_policy=sizing_policy,
+            capital_settings=capital_settings,
+            execution_target=execution_target,
+            operator_user_id=operator_user_id,
+            alert_manager=app.alert_manager,
+            dlq=app.dlq,
+            clock=clock,
+            exit_engine=exit_engine,
+        )
+
+    # -- audit helpers (durable; existing members only) -------------------- #
+    def _audit(self, severity: SeverityLevel, detail: dict) -> None:
+        emit_system_event(self._dal, SystemEventType.GATEWAY_EVENT, severity, detail)
+
+    def _alert(self, severity: SeverityLevel, detail: dict) -> None:
+        if self._alerts is not None:
+            self._alerts.alert(SystemEventType.GATEWAY_EVENT, severity, detail)
+        else:
+            self._audit(severity, detail)
+
+    # -- one cycle --------------------------------------------------------- #
+    def run_cycle(self, frame) -> CycleResult:
+        now = self._clock()
+
+        # [0] PRECHECK — kill-switch FIRST (highest priority) ------------- #
+        level = int(self._ks.current_level())
+        if level >= _L4:
+            self._audit(_ks_severity(level),
+                        {"kind": "kill_switch", "stage": "precheck", "level": level,
+                         "action": "shutdown_no_new_activity"})
+            return CycleResult(state=HALTED, reason="kill-switch L4: shutdown",
+                               kill_switch_level=level)
+
+        # [EXIT] evaluate open positions for CLOSE — exits are RISK-REDUCING,
+        # so they are permitted at kill-switch L1–L3 (only L4, above, halts all).
+        # They run before the entry data-quality/scanner gates so open positions
+        # are never trapped by an entry-side reject. (EX-4 wiring of EX-1/EX-2.)
+        closed = self._run_exits(frame, now)
+
+        # [1] DATA-QUALITY GATE — Reject Cycle → Audit → Alert → No Trade -- #
+        if not frame.tradable:
+            detail = {"kind": "data_quality_reject", "stage": "data",
+                      "fatal_issues": list(frame.quality.fatal_issues),
+                      "dropped": [list(d) for d in frame.quality.dropped],
+                      "market_open": frame.market_open}
+            self._alert(SeverityLevel.WARNING, detail)
+            if self._dlq is not None:
+                self._dlq.dead_letter(
+                    item_type="cycle:data_quality",
+                    payload={"bar_id": getattr(frame, "bar_id", None)},
+                    reason="data-quality: " + ", ".join(frame.quality.fatal_issues),
+                    correlation={"bar_id": getattr(frame, "bar_id", None)},
+                )
+            return CycleResult(
+                state=REJECTED,
+                reason="data-quality reject: " + ", ".join(frame.quality.fatal_issues),
+                kill_switch_level=level,
+                closed=closed,
+            )
+
+        # [L1] kill-switch — pause scanner (skip scan/score) -------------- #
+        if level == _L1:
+            self._audit(SeverityLevel.WARNING,
+                        {"kind": "kill_switch", "stage": "scanner",
+                         "level": level, "action": "pause_scanner"})
+            return CycleResult(state=PAUSED_SCANNER,
+                               reason="kill-switch L1: scanner paused",
+                               kill_switch_level=level, closed=closed)
+
+        # [2/3] SCAN + SCORE (D3) ----------------------------------------- #
+        result = self._selection.run(
+            frame.market_facts,
+            list(frame.core_candidates),
+            list(frame.turbo_candidates),
+        )
+        candidates = list(result.core) + list(result.turbo)
+        regime = result.regime.value if hasattr(result.regime, "value") else str(result.regime)
+        self._audit(SeverityLevel.WARNING,
+                    {"kind": "scan", "stage": "selection", "regime": regime,
+                     "core": len(result.core), "turbo": len(result.turbo)})
+
+        # portfolio snapshot + the FULL D4 input set (F-8): windowed daily/weekly
+        # realized drawdowns and per-candidate sector exposure — all D6-computed,
+        # relayed to D4 (previously only daily was fed; weekly/sector defaulted 0,
+        # so those gates never bound). D6 computes; D4 decides; P-ORCH only relays.
+        marks_by_instrument = self._marks_by_instrument(frame)
+        self._portfolio.snapshot(marks_by_instrument, captured_at=now)  # updates HWM
+        daily_drawdown = self._realized_drawdown_since(
+            now.astimezone(_NY).replace(hour=0, minute=0, second=0, microsecond=0)
+        )
+        weekly_drawdown = self._realized_drawdown_since(now - timedelta(days=7))
+        open_instruments = self._open_instruments_map()
+
+        res = CycleResult(state=COMPLETED, kill_switch_level=level, regime=regime,
+                          scored=len(candidates), closed=closed)
+
+        # [4] per-candidate: Risk → Size → Execute → Portfolio ------------ #
+        for cand in candidates:
+            inst_id = self._resolve_instrument(cand.symbol)
+            if inst_id is None:
+                res.no_trade += 1
+                self._audit(SeverityLevel.WARNING,
+                            {"kind": "no_trade", "stage": "resolve",
+                             "symbol": cand.symbol, "reason": "unknown instrument"})
+                continue
+
+            signal = Signal(id=uuid4(), created_at=now, instrument_id=inst_id,
+                            engine=cand.engine, direction=cand.direction)
+            self._dal.signals.add(signal)
+            self._dal.scores.add(Score(
+                id=uuid4(), signal_id=signal.id, engine=cand.engine,
+                total=cand.score, classification=cand.classification,
+                created_at=now, breakdown=dict(cand.breakdown)))
+
+            # RISK (D4) — kill-switch L2 blocks here via KillSwitchGate ---- #
+            instrument = self._dal.instruments.get_or_none(inst_id)
+            sector_current = (
+                self._portfolio.sector_exposure(
+                    instrument.sector_id, open_instruments, marks_by_instrument
+                )
+                if instrument is not None else Decimal("0")
+            )
+            state = self._rsb.build(
+                daily_drawdown=daily_drawdown,
+                weekly_drawdown=weekly_drawdown,
+                candidate_sector_current_exposure=sector_current,
+                candidate_sector_added_exposure=self._capital.allocation_fraction,
+            )
+            decision = self._risk.evaluate(state, cand)
+            self._dal.risk_checks.add(RiskCheck(
+                id=uuid4(), signal_id=signal.id, decision=decision.decision,
+                created_at=now, rejected_by=decision.rejected_by))
+            if not decision.accepted:
+                res.no_trade += 1
+                continue
+            res.accepted += 1
+
+            # [L3] kill-switch — pause execution (accepted, not executed) -- #
+            if level == _L3:
+                self._audit(SeverityLevel.CRITICAL,
+                            {"kind": "kill_switch", "stage": "execution",
+                             "level": level, "action": "pause_execution",
+                             "signal_id": str(signal.id)})
+                res.no_trade += 1
+                continue
+
+            # SIZE (P-SIZE) ------------------------------------------------ #
+            mark = frame.marks.get(cand.symbol)
+            sizing = self._sizing.size(cand, self._capital, mark)
+            if not sizing.tradable:
+                res.no_trade += 1
+                self._audit(SeverityLevel.WARNING,
+                            {"kind": "no_trade", "stage": "sizing",
+                             "symbol": cand.symbol, "reason": sizing.reason})
+                continue
+
+            # EXECUTE (D11 target → D5) ------------------------------------ #
+            intent = ExecutionIntent(signal=signal, user_id=self._user_id,
+                                     quantity=sizing.quantity, mark=mark, at=now)
+            outcome = self._target.handle_accepted(intent)
+            res.outcomes.append(outcome)
+
+            # PORTFOLIO (D6 reflection) ------------------------------------ #
+            if outcome.executed and outcome.position is not None:
+                self._portfolio.open_position(outcome.position)
+                res.executed += 1
+
+        # [REPORTING] cycle summary audit --------------------------------- #
+        self._audit(SeverityLevel.WARNING,
+                    {"kind": "cycle_summary", "stage": "reporting", "regime": regime,
+                     "scored": res.scored, "accepted": res.accepted,
+                     "executed": res.executed, "no_trade": res.no_trade,
+                     "kill_switch_level": level})
+        return res
+
+    # -- exit stage (EX-4) ------------------------------------------------- #
+    def _run_exits(self, frame, now) -> int:
+        """Evaluate every open position for CLOSE; execute closes via the target.
+
+        Decision is owned by EX-1; execution by the target's `handle_close`
+        (EX-2/EX-3); portfolio reflection by D6 `close_position`. Per-position
+        failures are isolated (audited, skipped) so one bad close cannot abort
+        the cycle. Returns the number of positions closed this cycle.
+        """
+        open_positions = list(self._portfolio._open.list())  # snapshot (mutation-safe)
+        if not open_positions:
+            return 0
+        market_open = bool(getattr(frame, "market_open", True))
+        closed = 0
+        for pos in open_positions:
+            instr = self._dal.instruments.get_or_none(pos.instrument_id)
+            mark = frame.marks.get(instr.symbol) if instr is not None else None
+
+            state = self._exit.advance_state(
+                self._exit_states.get(pos.id, ExitState.initial()), pos, mark
+            )
+            self._exit_states[pos.id] = state
+
+            decision = self._exit.evaluate(ExitEvaluationContext(
+                position=pos, mark=mark, state=state,
+                regime_is_bull=None, trend_stage2=None,   # C-3 marks-computable (F-5)
+                market_open=market_open, minutes_to_close=None,
+            ))
+            if not decision.close:
+                continue
+
+            try:
+                closed_pos = self._target.handle_close(
+                    pos, mark, user_id=self._user_id, at=now
+                )
+            except (ExecutionError, ValueError) as exc:
+                self._audit(SeverityLevel.WARNING,
+                            {"kind": "exit_error", "stage": "exit",
+                             "position_id": str(pos.id), "reason": str(exc)})
+                continue
+
+            if closed_pos is None:
+                continue  # non-executing target (signals) — nothing to reflect
+            self._portfolio.close_position(closed_pos)
+            self._exit_states.pop(pos.id, None)
+            closed += 1
+            self._audit(SeverityLevel.WARNING,
+                        {"kind": "exit_close", "stage": "exit",
+                         "position_id": str(pos.id), "exit_reason": decision.reason,
+                         "exit_price": str(closed_pos.exit_price)})
+        return closed
+
+    # -- D4 input figures (F-8): D6-computed, relayed read-only ------------ #
+    def _realized_drawdown_since(self, window_start: datetime) -> Decimal:
+        """Realized drawdown over [window_start, now] from the closed-trade equity
+        curve (D6/D14 convention: equity = starting_capital + cumulative realized
+        PnL). Trades closed before the window are folded into the window's opening
+        equity; the figure is (current − window_peak)/window_peak, clamped ≤ 0.
+        Reuses D6 `PnLCalculator`; computes no new formula. 0 when no closed trades.
+        """
+        closed = self._dal.positions.list(status=PositionStatus.CLOSED)
+        if not closed:
+            return Decimal("0")
+        ordered = sorted(
+            closed, key=lambda p: (p.closed_at or _MIN_DT, p.opened_at)
+        )
+        equity_at_start = self._portfolio.account.starting_capital
+        running = equity_at_start
+        in_window: list = []
+        for pos in ordered:
+            pnl = PnLCalculator.realized_for_position(pos)
+            ca = pos.closed_at
+            if ca is not None and ca < window_start:
+                equity_at_start += pnl
+                running = equity_at_start
+            else:
+                running += pnl
+                in_window.append(running)
+        peak = max([equity_at_start] + in_window)
+        if peak <= Decimal("0"):
+            return Decimal("0")
+        return min((running - peak) / peak, Decimal("0"))
+
+    def _open_instruments_map(self) -> dict:
+        """{instrument_id: Instrument} for current open positions (for D6 sector
+        exposure). Read-only view; no mutation."""
+        out: dict = {}
+        for pos in self._portfolio._open.list():
+            inst = self._dal.instruments.get_or_none(pos.instrument_id)
+            if inst is not None:
+                out[pos.instrument_id] = inst
+        return out
+
+    # -- helpers ----------------------------------------------------------- #
+    def _resolve_instrument(self, symbol: str) -> Optional[UUID]:
+        rows = self._dal.instruments.list(symbol=symbol)
+        return rows[0].id if rows else None
+
+    def _marks_by_instrument(self, frame) -> dict:
+        """Map open-position instrument_id → mark (symbol-keyed frame marks)."""
+        out: dict = {}
+        for pos in self._portfolio._open.list():  # read-only registry view
+            instr = self._dal.instruments.get_or_none(pos.instrument_id)
+            if instr is not None:
+                mark = frame.marks.get(instr.symbol)
+                if mark is not None:
+                    out[pos.instrument_id] = mark
+        return out
+
+
+class TradingCycleWorker(Worker):
+    """B8 worker: polls the P-DATA provider and runs ONE trading cycle per tick.
+
+    Per-cycle failure isolation is provided by the B8 Scheduler. Starts only on
+    explicit application start (B9 OD-D6).
+    """
+
+    name = "trading_cycle"
+
+    def __init__(self, orchestrator: PipelineOrchestrator, provider,
+                 *, interval: float = 60.0) -> None:
+        self.interval = interval
+        self._orch = orchestrator
+        self._provider = provider
+        self.last_result: Optional[CycleResult] = None
+
+    def run_once(self) -> None:
+        if self._provider.exhausted():
+            return
+        frame = self._provider.poll()
+        self.last_result = self._orch.run_cycle(frame)
+
+
+__all__ = [
+    "PipelineOrchestrator",
+    "TradingCycleWorker",
+    "CycleResult",
+    "IDLE", "HALTED", "REJECTED", "PAUSED_SCANNER", "PAUSED_EXECUTION", "COMPLETED",
+]

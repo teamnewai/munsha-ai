@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getInvoices } from "@/lib/data";
 import { EntityList, StatusBadge } from "@/components/dashboard/EntityList";
+import { AddInvoice } from "@/components/dashboard/AddInvoice";
 import { fmtFromSAR, withVat } from "@/lib/money";
 
 export const metadata: Metadata = { title: "الفواتير" };
@@ -13,7 +14,7 @@ export default async function Page() {
       title="الفواتير"
       description="الفواتير وحالات السداد (شاملة ضريبة القيمة المضافة 15%)."
       isReal={isReal}
-      addLabel="فاتورة جديدة"
+      action={<AddInvoice />}
       columns={[
         { key: "amount", label: "المبلغ" },
         { key: "withVat", label: "شامل الضريبة" },

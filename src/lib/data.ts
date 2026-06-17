@@ -214,3 +214,79 @@ export async function getProviders(): Promise<ListResult<ServiceProvider>> {
   const { data } = await ctx.supabase.from("service_providers").select("id, org_id, name, phone, category, composite_score, created_at").eq("org_id", ctx.orgId).order("composite_score", { ascending: false }).limit(200);
   return { isReal: true, rows: (data as ServiceProvider[]) ?? [] };
 }
+
+/* ============================ المالية ============================ */
+export interface AgingRow { bucket: string; count: number; sum: number; }
+export interface FinanceData {
+  isReal: boolean;
+  collected: number;
+  pendingSum: number;
+  pendingCount: number;
+  overdueSum: number;
+  overdueCount: number;
+  paidSum: number;
+  aging: AgingRow[];
+  recentPayments: { amount: number | null; method: string | null; paid_on: string | null }[];
+}
+
+const PENDING_STATUSES = ["pending", "unpaid", "due", "overdue"];
+const sum = (rows: { amount: number | null }[]) => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+
+export const DEMO_FINANCE: FinanceData = {
+  isReal: false,
+  collected: 1860000,
+  pendingSum: 124000,
+  pendingCount: 7,
+  overdueSum: 38000,
+  overdueCount: 3,
+  paidSum: 1860000,
+  aging: [
+    { bucket: "current", count: 4, sum: 86000 },
+    { bucket: "0_30", count: 2, sum: 24000 },
+    { bucket: "31_60", count: 1, sum: 8000 },
+    { bucket: "60_plus", count: 2, sum: 30000 },
+  ],
+  recentPayments: [
+    { amount: 18000, method: "تحويل", paid_on: "2026-06-14" },
+    { amount: 6000, method: "مدى", paid_on: "2026-06-12" },
+    { amount: 42000, method: "تحويل", paid_on: "2026-06-09" },
+  ],
+};
+
+export async function getFinance(): Promise<FinanceData> {
+  const ctx = await resolveOrg();
+  if (!ctx) return DEMO_FINANCE;
+  const { supabase, orgId } = ctx;
+
+  const [pay, inv, arr] = await Promise.all([
+    supabase.from("payments").select("amount, method, paid_on").eq("org_id", orgId).order("paid_on", { ascending: false }).limit(500),
+    supabase.from("invoices").select("amount, status, due_date").eq("org_id", orgId).limit(2000),
+    supabase.from("v_arrears").select("amount, aging_bucket").eq("org_id", orgId).limit(2000),
+  ]);
+
+  const payments = (pay.data as { amount: number | null; method: string | null; paid_on: string | null }[]) ?? [];
+  const invoices = (inv.data as { amount: number | null; status: string | null }[]) ?? [];
+  const arrears = (arr.data as { amount: number | null; aging_bucket: string | null }[]) ?? [];
+
+  const pending = invoices.filter((i) => PENDING_STATUSES.includes((i.status ?? "").toLowerCase()));
+  const overdue = invoices.filter((i) => (i.status ?? "").toLowerCase() === "overdue");
+  const paid = invoices.filter((i) => (i.status ?? "").toLowerCase() === "paid");
+
+  const buckets = ["current", "0_30", "31_60", "60_plus"];
+  const aging: AgingRow[] = buckets.map((b) => {
+    const rows = arrears.filter((a) => a.aging_bucket === b);
+    return { bucket: b, count: rows.length, sum: sum(rows) };
+  });
+
+  return {
+    isReal: true,
+    collected: sum(payments),
+    pendingSum: sum(pending),
+    pendingCount: pending.length,
+    overdueSum: sum(overdue),
+    overdueCount: overdue.length,
+    paidSum: sum(paid),
+    aging,
+    recentPayments: payments.slice(0, 8),
+  };
+}

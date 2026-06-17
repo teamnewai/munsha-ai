@@ -134,3 +134,23 @@ export interface ServiceProvider {
   composite_score: number | null;
   created_at: string;
 }
+
+export interface Payment {
+  id: string;
+  org_id: string;
+  invoice_id: string | null;
+  amount: number | null;
+  method: string | null;
+  reference: string | null;
+  paid_on: string | null;
+}
+
+export interface LedgerEntry {
+  id: string;
+  org_id: string;
+  entry_type: string | null;
+  category: string | null;
+  amount: number | null;
+  vat_amount: number | null;
+  occurred_on: string | null;
+}

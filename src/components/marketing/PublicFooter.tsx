@@ -15,6 +15,14 @@ export function PublicFooter() {
             <p className="mt-3 text-sm leading-relaxed text-mut">
               نظام تشغيل الأعمال القائم على نواة عقارية. نُسجّل المعاملات — ولا نحتفظ بأموالك أبداً.
             </p>
+            <a
+              href="https://wa.me/966565574784"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gold/15 px-3 py-1.5 text-sm font-bold text-gold hover:bg-gold/25"
+            >
+              💬 واتساب: ‎+966 56 557 4784
+            </a>
           </div>
 
           <FooterCol
@@ -28,23 +36,26 @@ export function PublicFooter() {
           <FooterCol
             title="الشركة"
             links={[
-              { label: "من نحن", href: "/#" },
-              { label: "تواصل معنا", href: "/#" },
-              { label: "الوظائف", href: "/#" },
+              { label: "من نحن", href: "/#features" },
+              { label: "تواصل معنا", href: "https://wa.me/966565574784" },
+              { label: "ابدأ مجاناً", href: "/login?mode=signup" },
             ]}
           />
           <FooterCol
             title="قانوني"
             links={[
-              { label: "الخصوصية (PDPL)", href: "/#" },
-              { label: "الشروط والأحكام", href: "/#" },
-              { label: "الامتثال (ZATCA)", href: "/#" },
+              { label: "سياسة الخصوصية (PDPL)", href: "/privacy" },
+              { label: "الشروط والأحكام", href: "/terms" },
+              { label: "الامتثال (ZATCA)", href: "/terms#zatca" },
             ]}
           />
         </div>
 
         <div className="mt-10 border-t border-line pt-6 text-center text-sm text-mut">
-          © {new Date().getFullYear()} مُلكي. جميع الحقوق محفوظة.
+          <p>© {new Date().getFullYear()} مُلكي (MULKI). جميع الحقوق محفوظة.</p>
+          <p className="mt-1 text-xs">
+            الكيان: مسجّل في الإمارات العربية المتحدة · للتواصل: ‎+966 56 557 4784
+          </p>
         </div>
       </div>
     </footer>

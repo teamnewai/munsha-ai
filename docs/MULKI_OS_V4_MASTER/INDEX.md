@@ -37,6 +37,7 @@
 | 09 | [GLOBAL_EXPANSION](./09_GLOBAL_EXPANSION/README.md) | 195 دولة · جسر الامتثال · التعدّد اللغوي · خطة السوق-بسوق | ✅ موسّع |
 | 10 | [PRODUCTION_ARCHITECTURE](./10_PRODUCTION_ARCHITECTURE/README.md) | البنية التقنية · الأمان · الأداء · النشر · المراقبة · النسخ الاحتياطي | ✅ موسّع |
 | 11 | [LAUNCH_PLAN](./11_LAUNCH_PLAN/README.md) | الجاهزية · المسار الحرج · إصلاحات ما قبل الإطلاق · أوّل 30 عميلاً | ✅ موسّع |
+| 12 | [ENTERPRISE_OPERATIONS](./12_ENTERPRISE_OPERATIONS/README.md) | الحوكمة · المخاطر · التدقيق · ISO/SOC2 · الحوادث · النضج المؤسسي | 🔵 مرجع مستقبلي (تشغيل الشركة، لا المنتج) |
 
 ---
 

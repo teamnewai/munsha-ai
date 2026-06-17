@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { ASSISTANT_NAME } from "@/lib/assistant";
 
-// مُلكي — السكرتيرة الذكية «نور» (مرجع: وثيقة «الشجرة» — العمود الأيمن لمكتب الموظف)
-// نسخة العرض: ردود محلية ذكية التوجيه؛ تُربط لاحقاً بـ Edge Function + OpenAI (M3).
+// مُلكي إدراك — المساعد الذكي. يستدعي /api/ai/chat (OpenAI) عند توفّر المفتاح،
+// ويسقط تلقائياً للتوجيه المحلي إن لم يُفعّل.
 
 const QUICK_ACTIONS = [
   { key: "summary", label: "تلخيص المعاملات", icon: "📋" },
@@ -37,17 +38,37 @@ function routeReply(input: string): string {
 
 export function SmartSecretary() {
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "noor", text: "أهلاً محمد 👋 أنا نور، مساعدتك الذكية. كيف أقدر أخدمك اليوم؟" },
+    { role: "noor", text: `أهلاً 👋 أنا ${ASSISTANT_NAME}، مساعدك الذكي. كيف أقدر أخدمك اليوم؟` },
   ]);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
+  const [thinking, setThinking] = useState(false);
   const recogRef = useRef<unknown>(null);
 
-  function send(text: string) {
+  async function send(text: string) {
     const t = text.trim();
-    if (!t) return;
-    setMessages((m) => [...m, { role: "user", text: t }, { role: "noor", text: routeReply(t) }]);
+    if (!t || thinking) return;
     setInput("");
+    const history = messages.map((m) => ({
+      role: m.role === "noor" ? "assistant" : "user",
+      content: m.text,
+    }));
+    setMessages((m) => [...m, { role: "user", text: t }]);
+    setThinking(true);
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [...history, { role: "user", content: t }] }),
+      });
+      const data = await res.json();
+      const reply = data?.reply ? String(data.reply) : routeReply(t);
+      setMessages((m) => [...m, { role: "noor", text: reply }]);
+    } catch {
+      setMessages((m) => [...m, { role: "noor", text: routeReply(t) }]);
+    } finally {
+      setThinking(false);
+    }
   }
 
   function toggleVoice() {
@@ -74,10 +95,10 @@ export function SmartSecretary() {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/5 p-4">
       <div className="flex items-center gap-2">
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-gold-500 text-lg">🌟</span>
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-gold-500 text-lg">📜</span>
         <div>
-          <div className="text-sm font-bold">نور</div>
-          <div className="text-xs text-emerald-400">● متصلة</div>
+          <div className="text-sm font-bold">{ASSISTANT_NAME}</div>
+          <div className="text-xs text-emerald-400">{thinking ? "يكتب…" : "● متصل"}</div>
         </div>
       </div>
 
@@ -148,11 +169,11 @@ export function SmartSecretary() {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="اكتب لنور..."
+          placeholder={`اكتب لـ${ASSISTANT_NAME}...`}
           className="flex-1 rounded-full bg-black/30 px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
         />
-        <button type="submit" className="rounded-full bg-gold-500 px-4 py-2 text-sm font-bold text-brand-950">
-          إرسال
+        <button type="submit" disabled={thinking} className="rounded-full bg-gold-500 px-4 py-2 text-sm font-bold text-brand-950 disabled:opacity-50">
+          {thinking ? "…" : "إرسال"}
         </button>
       </form>
     </div>

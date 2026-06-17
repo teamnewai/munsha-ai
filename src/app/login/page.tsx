@@ -23,9 +23,9 @@ function LoginInner() {
     e.preventDefault();
     setMsg(null);
 
-    // وضع تجريبي: قبل ربط Supabase، ادخل مباشرة للوحة التحكم لاستعراض المنصة.
+    // وضع تجريبي: قبل ربط Supabase، التسجيل الجديد يذهب لفتح المكتب، والدخول للوحة.
     if (!configured) {
-      router.push(redirect);
+      router.push(signup ? "/onboarding" : redirect);
       return;
     }
 

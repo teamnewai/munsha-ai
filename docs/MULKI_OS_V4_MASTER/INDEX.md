@@ -33,10 +33,10 @@
 | 05 | [MARKETPLACE](./05_MARKETPLACE/README.md) | السوق البيني · التوجيه الجغرافي · المزوّدون · العروض · المستشارون | ✅ موسّع |
 | 06 | [AI_WORKFORCE](./06_AI_WORKFORCE/README.md) | نور · CEO/CFO/HR/Legal/Marketplace AI · غرفة القرار · طبقة الذاكرة | ✅ موسّع |
 | 07 | [DIGITAL_BUSINESS_CITY](./07_DIGITAL_BUSINESS_CITY/README.md) | المكاتب الافتراضية · الأحياء · المعارض · المؤتمرات · خدمات المدينة | ✅ موسّع |
-| 08 | [PORTALS](./08_PORTALS/README.md) | بوابات المستأجر/المالك/HOA/المزوّد/المستثمر/الحكومة · White-label | 🔵 مخطّط |
-| 09 | [GLOBAL_EXPANSION](./09_GLOBAL_EXPANSION/README.md) | 195 دولة · جسر الامتثال · التعدّد اللغوي · خطة السوق-بسوق | 🔵 مخطّط |
+| 08 | [PORTALS](./08_PORTALS/README.md) | بوابات المستأجر/المالك/HOA/المزوّد/المستثمر/الحكومة · White-label | ✅ موسّع |
+| 09 | [GLOBAL_EXPANSION](./09_GLOBAL_EXPANSION/README.md) | 195 دولة · جسر الامتثال · التعدّد اللغوي · خطة السوق-بسوق | ✅ موسّع |
 | 10 | [PRODUCTION_ARCHITECTURE](./10_PRODUCTION_ARCHITECTURE/README.md) | البنية التقنية · الأمان · الأداء · النشر · المراقبة · النسخ الاحتياطي | ✅ موسّع |
-| 11 | [LAUNCH_PLAN](./11_LAUNCH_PLAN/README.md) | الجاهزية · المسار الحرج · إصلاحات ما قبل الإطلاق · أوّل 30 عميلاً | 🔵 مخطّط |
+| 11 | [LAUNCH_PLAN](./11_LAUNCH_PLAN/README.md) | الجاهزية · المسار الحرج · إصلاحات ما قبل الإطلاق · أوّل 30 عميلاً | ✅ موسّع |
 
 ---
 

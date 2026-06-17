@@ -93,7 +93,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     supabase.from("organizations").select("name").eq("id", orgId).maybeSingle(),
     supabase.from("units").select("id", { count: "exact", head: true }).eq("org_id", orgId),
     supabase.from("contracts").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "active"),
-    supabase.from("invoices").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "pending"),
+    supabase.from("invoices").select("id", { count: "exact", head: true }).eq("org_id", orgId).in("status", ["unpaid", "due", "overdue", "pending"]),
     supabase.from("org_departments").select("*").eq("org_id", orgId).order("sort", { ascending: true }),
     supabase.from("dept_members").select("full_name, present, dept_key").eq("org_id", orgId).limit(12),
   ]);
@@ -371,7 +371,7 @@ export async function getAnalytics(): Promise<AnalyticsData> {
 
   const unitRows = (units.data as { occupancy: string | null }[]) ?? [];
   const unitsTotal = unitRows.length;
-  const unitsOccupied = unitRows.filter((u) => (u.occupancy ?? "").toLowerCase() === "occupied").length;
+  const unitsOccupied = unitRows.filter((u) => ["rented", "occupied"].includes((u.occupancy ?? "").toLowerCase())).length;
   const invRows = (invoices.data as { amount: number | null; status: string | null }[]) ?? [];
   const payRows = (payments.data as { amount: number | null }[]) ?? [];
   const pending = invRows.filter((i) => PENDING_STATUSES.includes((i.status ?? "").toLowerCase()));

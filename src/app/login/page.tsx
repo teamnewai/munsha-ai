@@ -62,7 +62,7 @@ function LoginInner() {
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-card text-lg font-extrabold text-gold">
             مُ
           </span>
-          <span className="text-2xl font-extrabold">مُلكي</span>
+          <span className="text-2xl font-extrabold">مُلكي إدراك</span>
         </Link>
         <div>
           <h2 className="text-3xl font-extrabold leading-snug">
@@ -84,7 +84,7 @@ function LoginInner() {
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-gold font-extrabold text-golddark">
               مُ
             </span>
-            <span className="text-xl font-extrabold text-fg">مُلكي</span>
+            <span className="text-xl font-extrabold text-fg">مُلكي إدراك</span>
           </Link>
 
           <h1 className="text-2xl font-extrabold text-fg">

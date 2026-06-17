@@ -9,7 +9,7 @@ export function PublicNav() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-gold text-lg font-extrabold text-golddark">
             مُ
           </span>
-          <span className="text-xl font-extrabold text-fg">مُلكي</span>
+          <span className="text-xl font-extrabold text-fg">مُلكي إدراك</span>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

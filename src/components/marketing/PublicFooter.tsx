@@ -10,7 +10,7 @@ export function PublicFooter() {
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-gold font-extrabold text-golddark">
                 مُ
               </span>
-              <span className="text-lg font-extrabold text-fg">مُلكي</span>
+              <span className="text-lg font-extrabold text-fg">مُلكي إدراك</span>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-mut">
               نظام تشغيل الأعمال القائم على نواة عقارية. نُسجّل المعاملات — ولا نحتفظ بأموالك أبداً.

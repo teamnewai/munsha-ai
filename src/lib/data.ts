@@ -6,6 +6,9 @@ import type {
   Unit,
   Contract,
   Invoice,
+  MaintenanceRequest,
+  Lead,
+  ServiceProvider,
 } from "@/types/database";
 
 // مُلكي — طبقة بيانات (قراءة فقط من المخطّط الحقيقي · RLS · لا كتابة)
@@ -174,4 +177,40 @@ export async function getTeam(): Promise<ListResult<DeptMember>> {
   if (!ctx) return { isReal: false, rows: DEMO_TEAM };
   const { data } = await ctx.supabase.from("dept_members").select("id, org_id, dept_key, full_name, job_title, present, status, section, avatar_url").eq("org_id", ctx.orgId).limit(200);
   return { isReal: true, rows: (data as DeptMember[]) ?? [] };
+}
+
+const DEMO_MAINTENANCE: MaintenanceRequest[] = [
+  { id: "1", org_id: "", unit_id: null, title: "عطل تكييف — برج العليا", description: "", status: "open", estimated_cost: 1850, approval_level: "manager", created_at: "" },
+  { id: "2", org_id: "", unit_id: null, title: "تسريب مياه — وحدة A-204", description: "", status: "in_progress", estimated_cost: 420, approval_level: "auto", created_at: "" },
+  { id: "3", org_id: "", unit_id: null, title: "صيانة مصعد", description: "", status: "open", estimated_cost: 6200, approval_level: "owner", created_at: "" },
+];
+const DEMO_LEADS: Lead[] = [
+  { id: "1", kind: "إيجار", city: "الرياض", region: "الوسطى", unit_type: "apartment", budget_max: 60000, service_category: null, contact_name: "ع. الشهري", contact_phone: "05••••1234", status: "new", score: 82, created_at: "" },
+  { id: "2", kind: "صيانة", city: "جدة", region: "الغربية", unit_type: null, budget_max: 3000, service_category: "تكييف", contact_name: "م. القرني", contact_phone: "05••••5678", status: "contacted", score: 64, created_at: "" },
+];
+const DEMO_PROVIDERS: ServiceProvider[] = [
+  { id: "1", org_id: "", name: "شركة الإتقان للصيانة", phone: "0112345678", category: "صيانة عامة", composite_score: 4.6, created_at: "" },
+  { id: "2", org_id: "", name: "مؤسسة البرودة للتكييف", phone: "0119876543", category: "تكييف", composite_score: 4.2, created_at: "" },
+];
+
+export async function getMaintenance(): Promise<ListResult<MaintenanceRequest>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: DEMO_MAINTENANCE };
+  const { data } = await ctx.supabase.from("maintenance_requests").select("*").eq("org_id", ctx.orgId).order("created_at", { ascending: false }).limit(200);
+  return { isReal: true, rows: (data as MaintenanceRequest[]) ?? [] };
+}
+
+// ملاحظة: leads بدون org_id — الرؤية عبر RLS الجغرافي. نقرأ ضمن جلسة المستخدم.
+export async function getLeads(): Promise<ListResult<Lead>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: DEMO_LEADS };
+  const { data } = await ctx.supabase.from("leads").select("id, kind, city, region, unit_type, budget_max, service_category, contact_name, contact_phone, status, score, created_at").order("created_at", { ascending: false }).limit(200);
+  return { isReal: true, rows: (data as Lead[]) ?? [] };
+}
+
+export async function getProviders(): Promise<ListResult<ServiceProvider>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: DEMO_PROVIDERS };
+  const { data } = await ctx.supabase.from("service_providers").select("id, org_id, name, phone, category, composite_score, created_at").eq("org_id", ctx.orgId).order("composite_score", { ascending: false }).limit(200);
+  return { isReal: true, rows: (data as ServiceProvider[]) ?? [] };
 }

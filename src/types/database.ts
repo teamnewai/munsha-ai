@@ -97,3 +97,40 @@ export interface Invoice {
   due_date: string | null;
   status: string | null; // pending | paid | overdue ...
 }
+
+export interface MaintenanceRequest {
+  id: string;
+  org_id: string;
+  unit_id: string | null;
+  title: string | null;
+  description: string | null;
+  status: string | null;
+  estimated_cost: number | null;
+  approval_level: string | null; // auto | manager | owner
+  created_at: string;
+}
+
+export interface Lead {
+  id: string;
+  kind: string | null;
+  city: string | null;
+  region: string | null;
+  unit_type: string | null;
+  budget_max: number | null;
+  service_category: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  status: string | null;
+  score: number | null;
+  created_at: string;
+}
+
+export interface ServiceProvider {
+  id: string;
+  org_id: string;
+  name: string;
+  phone: string | null;
+  category: string | null;
+  composite_score: number | null;
+  created_at: string;
+}

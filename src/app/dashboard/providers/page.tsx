@@ -1,15 +1,32 @@
 import type { Metadata } from "next";
-import { ModulePlaceholder } from "@/components/dashboard/ModulePlaceholder";
+import { getProviders } from "@/lib/data";
+import { EntityList, StatusBadge } from "@/components/dashboard/EntityList";
 
 export const metadata: Metadata = { title: "مزودو الخدمات" };
 
-export default function Page() {
+export default async function Page() {
+  const { isReal, rows } = await getProviders();
   return (
-    <ModulePlaceholder
+    <EntityList
       icon="🛠️"
       title="مزودو الخدمات"
-      description="سجل مزودي الخدمات مع نظام تقييم مركّب رباعي العوامل."
-      features={["سجل المزودين", "تقييم مركّب (جودة/سعر/موثوقية/سرعة)", "ملفات عامة للمزودين", "اكتشاف عبر السوق"]}
+      description="سجل المزودين مع التقييم المركّب (جودة · سعر · موثوقية · سرعة)."
+      isReal={isReal}
+      addLabel="إضافة مزوّد"
+      columns={[
+        { key: "name", label: "المزوّد" },
+        { key: "category", label: "التخصص" },
+        { key: "phone", label: "الهاتف" },
+        { key: "score", label: "التقييم المركّب" },
+      ]}
+      rows={rows.map((p) => ({
+        name: <span className="font-medium text-fg">{p.name}</span>,
+        category: p.category,
+        phone: p.phone,
+        score: p.composite_score != null
+          ? <StatusBadge tone={p.composite_score >= 4 ? "green" : p.composite_score >= 3 ? "amber" : "rose"}>★ {Number(p.composite_score).toFixed(1)}</StatusBadge>
+          : "—",
+      }))}
     />
   );
 }

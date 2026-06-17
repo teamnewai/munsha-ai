@@ -39,6 +39,7 @@
 | 11 | [LAUNCH_PLAN](./11_LAUNCH_PLAN/README.md) | الجاهزية · المسار الحرج · إصلاحات ما قبل الإطلاق · أوّل 30 عميلاً | ✅ موسّع |
 | 12 | [ENTERPRISE_OPERATIONS](./12_ENTERPRISE_OPERATIONS/README.md) | الحوكمة · المخاطر · التدقيق · ISO/SOC2 · الحوادث · النضج المؤسسي | 🔵 مرجع مستقبلي (تشغيل الشركة، لا المنتج) |
 | 13 | [ECOSYSTEM_STRATEGY](./13_ECOSYSTEM_STRATEGY/README.md) | اقتصاد المنصّة · API · المطوّرون · المتاجر · الشركاء · النظام البيئي | 🔵 رؤية بعيدة المدى (بعد آلاف العملاء) |
+| 14 | [AUTONOMOUS_ENTERPRISE](./14_AUTONOMOUS_ENTERPRISE/README.md) | التشغيل الذاتي · Decision/Predictive · Digital Twin · رؤى 2035/2040 | 🔵 رؤية أفقٍ بعيد (بوصلة اتجاه) |
 
 ---
 

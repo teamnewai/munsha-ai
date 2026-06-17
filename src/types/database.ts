@@ -54,6 +54,17 @@ export interface DeptMember {
   avatar_url: string | null;
 }
 
+export interface Property {
+  id: string;
+  org_id: string;
+  ref_code: string | null;
+  name: string;
+  city: string | null;
+  district: string | null;
+  national_address: string | null;
+  created_at: string;
+}
+
 export interface Unit {
   id: string;
   org_id: string;

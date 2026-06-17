@@ -1,9 +1,39 @@
 import { createClient } from "@/lib/supabase/server";
-import type { OrgDepartment, DeptMember } from "@/types/database";
+import type {
+  OrgDepartment,
+  DeptMember,
+  Property,
+  Unit,
+  Contract,
+  Invoice,
+} from "@/types/database";
 
-// مُلكي — طبقة بيانات لوحة المالك (قراءة فقط من المخطّط الحقيقي)
-// مرجع الجداول: organizations · org_departments · dept_members · units · contracts · invoices
-// آمنة: تقرأ ضمن جلسة المستخدم (RLS)؛ لا تكتب شيئاً.
+// مُلكي — طبقة بيانات (قراءة فقط من المخطّط الحقيقي · RLS · لا كتابة)
+
+/** يحلّ منشأة المستخدم الحالي؛ يُرجع null إن لم يُربط Supabase أو لم يسجّل الدخول. */
+async function resolveOrg() {
+  const supabase = await createClient();
+  if (!supabase) return null;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: m } = await supabase
+    .from("memberships")
+    .select("org_id")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle();
+  if (!m?.org_id) return null;
+  return { supabase, orgId: m.org_id as string };
+}
+
+export interface ListResult<T> {
+  isReal: boolean;
+  rows: T[];
+}
+
+/* ============================ لوحة المالك ============================ */
 
 export interface DepartmentCard {
   name: string;
@@ -28,7 +58,6 @@ export interface DashboardData {
   presence: PresenceRow[];
 }
 
-/** بيانات تجريبية للمعاينة قبل تسجيل الدخول بحساب حقيقي */
 export const DEMO_DASHBOARD: DashboardData = {
   isReal: false,
   orgName: null,
@@ -51,29 +80,10 @@ export const DEMO_DASHBOARD: DashboardData = {
   ],
 };
 
-/**
- * يقرأ بيانات لوحة المالك من قاعدة البيانات الحقيقية لمنشأة المستخدم الحالي.
- * يُرجع DEMO_DASHBOARD إذا لم يُربط Supabase أو لم يسجّل المستخدم الدخول.
- */
 export async function getDashboardData(): Promise<DashboardData> {
-  const supabase = await createClient();
-  if (!supabase) return DEMO_DASHBOARD;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return DEMO_DASHBOARD;
-
-  // منشأة المستخدم
-  const { data: membership } = await supabase
-    .from("memberships")
-    .select("org_id")
-    .eq("user_id", user.id)
-    .limit(1)
-    .maybeSingle();
-  if (!membership?.org_id) return DEMO_DASHBOARD;
-
-  const orgId = membership.org_id as string;
+  const ctx = await resolveOrg();
+  if (!ctx) return DEMO_DASHBOARD;
+  const { supabase, orgId } = ctx;
 
   const [org, units, contracts, invoices, depts, members] = await Promise.all([
     supabase.from("organizations").select("name").eq("id", orgId).maybeSingle(),
@@ -92,7 +102,6 @@ export async function getDashboardData(): Promise<DashboardData> {
     done: d.done_tasks ?? 0,
     perf: d.perf ?? 0,
   }));
-
   const presence: PresenceRow[] = ((members.data as DeptMember[]) ?? []).map((m) => ({
     name: m.full_name ?? "—",
     present: Boolean(m.present),
@@ -108,4 +117,61 @@ export async function getDashboardData(): Promise<DashboardData> {
     departments: departments.length ? departments : DEMO_DASHBOARD.departments,
     presence: presence.length ? presence : DEMO_DASHBOARD.presence,
   };
+}
+
+/* ============================ وحدات القوائم ============================ */
+
+const DEMO_PROPERTIES: Property[] = [
+  { id: "1", org_id: "", ref_code: "P-001", name: "برج العليا", city: "الرياض", district: "العليا", national_address: "RRRD2929", created_at: "" },
+  { id: "2", org_id: "", ref_code: "P-002", name: "مجمع النخيل السكني", city: "جدة", district: "النخيل", national_address: "JJDA1820", created_at: "" },
+];
+const DEMO_UNITS: Unit[] = [
+  { id: "1", org_id: "", property_id: null, unit_no: "A-204", unit_type: "apartment", area: 120, occupancy: "occupied" },
+  { id: "2", org_id: "", property_id: null, unit_no: "B-110", unit_type: "office", area: 85, occupancy: "vacant" },
+  { id: "3", org_id: "", property_id: null, unit_no: "C-309", unit_type: "shop", area: 60, occupancy: "occupied" },
+];
+const DEMO_CONTRACTS: Contract[] = [
+  { id: "1", org_id: "", unit_id: null, tenant_id: null, owner_id: null, annual_rent: 48000, period: "سنوي", start_date: "2026-01-01", end_date: "2026-12-31", status: "active" },
+  { id: "2", org_id: "", unit_id: null, tenant_id: null, owner_id: null, annual_rent: 72000, period: "سنوي", start_date: "2025-06-01", end_date: "2026-05-31", status: "active" },
+];
+const DEMO_INVOICES: Invoice[] = [
+  { id: "1", org_id: "", unit_id: null, party_id: null, amount: 12000, due_date: "2026-07-01", status: "pending" },
+  { id: "2", org_id: "", unit_id: null, party_id: null, amount: 6000, due_date: "2026-06-15", status: "overdue" },
+  { id: "3", org_id: "", unit_id: null, party_id: null, amount: 18000, due_date: "2026-05-30", status: "paid" },
+];
+const DEMO_TEAM: DeptMember[] = [
+  { id: "1", org_id: "", dept_key: "finance", full_name: "أحمد العتيبي", job_title: "محاسب أول", present: true, status: "active", section: "المحاسبة", avatar_url: null },
+  { id: "2", org_id: "", dept_key: "sales", full_name: "سارة القحطاني", job_title: "مدير مبيعات", present: true, status: "active", section: "المبيعات الميدانية", avatar_url: null },
+  { id: "3", org_id: "", dept_key: "maintenance", full_name: "خالد الدوسري", job_title: "مشرف صيانة", present: false, status: "suspended", section: "الطارئة", avatar_url: null },
+];
+
+export async function getProperties(): Promise<ListResult<Property>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: DEMO_PROPERTIES };
+  const { data } = await ctx.supabase.from("properties").select("*").eq("org_id", ctx.orgId).order("created_at", { ascending: false }).limit(100);
+  return { isReal: true, rows: (data as Property[]) ?? [] };
+}
+export async function getUnits(): Promise<ListResult<Unit>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: DEMO_UNITS };
+  const { data } = await ctx.supabase.from("units").select("*").eq("org_id", ctx.orgId).limit(200);
+  return { isReal: true, rows: (data as Unit[]) ?? [] };
+}
+export async function getContracts(): Promise<ListResult<Contract>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: DEMO_CONTRACTS };
+  const { data } = await ctx.supabase.from("contracts").select("*").eq("org_id", ctx.orgId).order("start_date", { ascending: false }).limit(200);
+  return { isReal: true, rows: (data as Contract[]) ?? [] };
+}
+export async function getInvoices(): Promise<ListResult<Invoice>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: DEMO_INVOICES };
+  const { data } = await ctx.supabase.from("invoices").select("*").eq("org_id", ctx.orgId).order("due_date", { ascending: false }).limit(200);
+  return { isReal: true, rows: (data as Invoice[]) ?? [] };
+}
+export async function getTeam(): Promise<ListResult<DeptMember>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: DEMO_TEAM };
+  const { data } = await ctx.supabase.from("dept_members").select("id, org_id, dept_key, full_name, job_title, present, status, section, avatar_url").eq("org_id", ctx.orgId).limit(200);
+  return { isReal: true, rows: (data as DeptMember[]) ?? [] };
 }

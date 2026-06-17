@@ -1,15 +1,38 @@
 import type { Metadata } from "next";
-import { ModulePlaceholder } from "@/components/dashboard/ModulePlaceholder";
+import { getUnits } from "@/lib/data";
+import { EntityList, StatusBadge } from "@/components/dashboard/EntityList";
 
 export const metadata: Metadata = { title: "الوحدات" };
 
-export default function Page() {
+const TYPE_AR: Record<string, string> = {
+  apartment: "شقة", room: "غرفة", studio: "استوديو", villa: "فيلا",
+  shop: "محل", office: "مكتب", land: "أرض", warehouse: "مستودع",
+};
+
+export default async function Page() {
+  const { isReal, rows } = await getUnits();
   return (
-    <ModulePlaceholder
+    <EntityList
       icon="🚪"
       title="الوحدات"
-      description="إدارة الوحدات بأنواعها (شقق، فلل، مكاتب، محلات) وحالات الإشغال."
-      features={["أنواع وحدات متعددة", "متابعة حالة الإشغال", "ربط بالعقود والفواتير", "جاهزية عدّادات ذكية (IoT)"]}
+      description="إدارة الوحدات بأنواعها وحالات الإشغال."
+      isReal={isReal}
+      addLabel="إضافة وحدة"
+      columns={[
+        { key: "no", label: "رقم الوحدة" },
+        { key: "type", label: "النوع" },
+        { key: "area", label: "المساحة (م²)" },
+        { key: "occ", label: "الإشغال" },
+      ]}
+      rows={rows.map((u) => ({
+        no: <span className="font-medium text-slate-900">{u.unit_no}</span>,
+        type: u.unit_type ? (TYPE_AR[u.unit_type] ?? u.unit_type) : "—",
+        area: u.area ?? "—",
+        occ:
+          u.occupancy === "occupied" ? <StatusBadge tone="green">مشغولة</StatusBadge>
+          : u.occupancy === "vacant" ? <StatusBadge tone="amber">شاغرة</StatusBadge>
+          : <StatusBadge tone="slate">{u.occupancy ?? "—"}</StatusBadge>,
+      }))}
     />
   );
 }

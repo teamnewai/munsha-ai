@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getProperties } from "@/lib/data";
 import { EntityList } from "@/components/dashboard/EntityList";
+import { AddProperty } from "@/components/dashboard/AddProperty";
 
 export const metadata: Metadata = { title: "العقارات" };
 
@@ -12,7 +13,7 @@ export default async function Page() {
       title="العقارات"
       description="سجل عقاراتك بمواقعها وأكوادها المرجعية."
       isReal={isReal}
-      addLabel="إضافة عقار"
+      action={<AddProperty />}
       columns={[
         { key: "ref", label: "الكود" },
         { key: "name", label: "الاسم" },

@@ -14,6 +14,7 @@ export function EntityList({
   columns,
   rows,
   addLabel,
+  action,
 }: {
   icon: string;
   title: string;
@@ -22,6 +23,7 @@ export function EntityList({
   columns: Column[];
   rows: Record<string, ReactNode>[];
   addLabel?: string;
+  action?: ReactNode;
 }) {
   return (
     <div className="mx-auto max-w-7xl space-y-5">
@@ -33,11 +35,13 @@ export function EntityList({
           </h1>
           <p className="mt-1 text-sm text-mut">{description}</p>
         </div>
-        {addLabel && (
-          <button className="inline-flex items-center gap-2 rounded-xl bg-gold px-4 py-2.5 text-sm font-bold text-golddark hover:bg-gold/90">
-            + {addLabel}
-          </button>
-        )}
+        {action
+          ? action
+          : addLabel && (
+              <button className="inline-flex items-center gap-2 rounded-xl bg-gold px-4 py-2.5 text-sm font-bold text-golddark hover:bg-gold/90">
+                + {addLabel}
+              </button>
+            )}
       </div>
 
       <div

@@ -324,6 +324,79 @@ export async function getCommunityData(): Promise<CommunityData> {
   };
 }
 
+/* ============================ التحليلات (المرحلة 12) ============================ */
+export interface AnalyticsData {
+  isReal: boolean;
+  unitsTotal: number;
+  unitsOccupied: number;
+  occupancyRate: number;
+  contractsActive: number;
+  contractsTotal: number;
+  collected: number;
+  pendingSum: number;
+  pendingCount: number;
+  overdueCount: number;
+  maintOpen: number;
+  maintDone: number;
+  teamSize: number;
+  feedbackOpen: number;
+  errorsOpen: number;
+}
+
+export const DEMO_ANALYTICS: AnalyticsData = {
+  isReal: false,
+  unitsTotal: 42, unitsOccupied: 31, occupancyRate: 74,
+  contractsActive: 31, contractsTotal: 38,
+  collected: 1860000, pendingSum: 124000, pendingCount: 7, overdueCount: 3,
+  maintOpen: 12, maintDone: 54, teamSize: 18, feedbackOpen: 2, errorsOpen: 0,
+};
+
+export async function getAnalytics(): Promise<AnalyticsData> {
+  const ctx = await resolveOrg();
+  if (!ctx) return DEMO_ANALYTICS;
+  const { supabase, orgId } = ctx;
+
+  const [units, contractsActive, contractsTotal, invoices, payments, maint, team, feedback, errors] =
+    await Promise.all([
+      supabase.from("units").select("occupancy").eq("org_id", orgId).limit(5000),
+      supabase.from("contracts").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "active"),
+      supabase.from("contracts").select("id", { count: "exact", head: true }).eq("org_id", orgId),
+      supabase.from("invoices").select("amount, status").eq("org_id", orgId).limit(5000),
+      supabase.from("payments").select("amount").eq("org_id", orgId).limit(5000),
+      supabase.from("maintenance_requests").select("status").eq("org_id", orgId).limit(5000),
+      supabase.from("dept_members").select("id", { count: "exact", head: true }).eq("org_id", orgId),
+      supabase.from("page_feedback").select("id", { count: "exact", head: true }).eq("org_id", orgId).neq("status", "resolved"),
+      supabase.from("client_errors").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "open"),
+    ]);
+
+  const unitRows = (units.data as { occupancy: string | null }[]) ?? [];
+  const unitsTotal = unitRows.length;
+  const unitsOccupied = unitRows.filter((u) => (u.occupancy ?? "").toLowerCase() === "occupied").length;
+  const invRows = (invoices.data as { amount: number | null; status: string | null }[]) ?? [];
+  const payRows = (payments.data as { amount: number | null }[]) ?? [];
+  const pending = invRows.filter((i) => PENDING_STATUSES.includes((i.status ?? "").toLowerCase()));
+  const overdue = invRows.filter((i) => (i.status ?? "").toLowerCase() === "overdue");
+  const maintRows = (maint.data as { status: string | null }[]) ?? [];
+
+  return {
+    isReal: true,
+    unitsTotal,
+    unitsOccupied,
+    occupancyRate: unitsTotal ? Math.round((unitsOccupied / unitsTotal) * 100) : 0,
+    contractsActive: contractsActive.count ?? 0,
+    contractsTotal: contractsTotal.count ?? 0,
+    collected: sum(payRows),
+    pendingSum: sum(pending),
+    pendingCount: pending.length,
+    overdueCount: overdue.length,
+    maintOpen: maintRows.filter((m) => ["open", "in_progress"].includes((m.status ?? "").toLowerCase())).length,
+    maintDone: maintRows.filter((m) => ["done", "closed", "resolved"].includes((m.status ?? "").toLowerCase())).length,
+    teamSize: team.count ?? 0,
+    feedbackOpen: feedback.count ?? 0,
+    errorsOpen: errors.count ?? 0,
+  };
+}
+
 export async function getFinance(): Promise<FinanceData> {
   const ctx = await resolveOrg();
   if (!ctx) return DEMO_FINANCE;

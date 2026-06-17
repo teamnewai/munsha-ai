@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getUnits } from "@/lib/data";
 import { EntityList, StatusBadge } from "@/components/dashboard/EntityList";
+import { AddUnit } from "@/components/dashboard/AddUnit";
 
 export const metadata: Metadata = { title: "الوحدات" };
 
@@ -17,7 +18,7 @@ export default async function Page() {
       title="الوحدات"
       description="إدارة الوحدات بأنواعها وحالات الإشغال."
       isReal={isReal}
-      addLabel="إضافة وحدة"
+      action={<AddUnit />}
       columns={[
         { key: "no", label: "رقم الوحدة" },
         { key: "type", label: "النوع" },

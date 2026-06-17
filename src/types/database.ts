@@ -1,0 +1,88 @@
+// مُلكي — أنواع مطابقة للمخطّط الحقيقي في Supabase (مشروع mulki-reos)
+// مُستخرجة من information_schema (قراءة فقط). تشمل الجداول التي تعرضها الواجهة.
+
+export interface Organization {
+  id: string;
+  name: string;
+  client_type: string | null;
+  country: string | null;
+  city: string | null;
+  region: string | null;
+  verification_status: string | null;
+  brand_logo_url: string | null;
+  brand_color: string | null;
+  membership_no: string | null;
+  is_demo: boolean | null;
+  created_at: string;
+}
+
+export interface Membership {
+  id: string;
+  org_id: string;
+  user_id: string;
+  role: string;
+  permissions: string[] | null;
+  created_at: string;
+}
+
+export interface OrgDepartment {
+  id: string;
+  org_id: string;
+  dept_key: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  operation_type: string | null;
+  staff_count: number | null;
+  open_tasks: number | null;
+  done_tasks: number | null;
+  perf: number | null;
+  mission: string | null;
+  active: boolean | null;
+  sort: number | null;
+}
+
+export interface DeptMember {
+  id: string;
+  org_id: string;
+  dept_key: string;
+  full_name: string | null;
+  job_title: string | null;
+  present: boolean | null;
+  status: string | null;
+  section: string | null;
+  avatar_url: string | null;
+}
+
+export interface Unit {
+  id: string;
+  org_id: string;
+  property_id: string | null;
+  unit_no: string | null;
+  unit_type: string | null;
+  area: number | null;
+  occupancy: string | null; // vacant | occupied | ...
+}
+
+export interface Contract {
+  id: string;
+  org_id: string;
+  unit_id: string | null;
+  tenant_id: string | null;
+  owner_id: string | null;
+  annual_rent: number | null;
+  period: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string | null;
+}
+
+export interface Invoice {
+  id: string;
+  org_id: string;
+  unit_id: string | null;
+  party_id: string | null;
+  amount: number | null;
+  due_date: string | null;
+  status: string | null; // pending | paid | overdue ...
+}

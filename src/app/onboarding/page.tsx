@@ -6,7 +6,6 @@ import Link from "next/link";
 import { ACTIVITY_CATALOG, CITIES_BY_COUNTRY } from "@/lib/activities";
 import { generateStructure, type GeneratedStructure } from "@/lib/orgGenerator";
 import { Button } from "@/components/ui/Button";
-import { isSupabaseConfigured, createClient } from "@/lib/supabase/client";
 
 const COUNTRIES: { code: string; name: string }[] = [
   { code: "SA", name: "السعودية" },
@@ -42,45 +41,10 @@ export default function OnboardingPage() {
 
   async function finish() {
     setSaving(true);
-    // حفظ في Supabase إن كان مربوطاً؛ وإلا وضع تجريبي.
-    if (isSupabaseConfigured()) {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = (await supabase!.auth.getUser()) ?? { data: { user: null } };
-      if (user) {
-        const { data: org } = await supabase!
-          .from("organizations")
-          .insert({
-            name,
-            owner_id: user.id,
-            country,
-            city,
-            activity_code: activity,
-            slug: name.trim().toLowerCase().replace(/\s+/g, "-").slice(0, 40),
-          })
-          .select("id")
-          .single();
-        if (org) {
-          await supabase!.from("memberships").insert({
-            org_id: org.id,
-            user_id: user.id,
-            role: "owner",
-            seniority: "owner",
-          });
-          if (structure) {
-            await supabase!.from("office_departments").insert(
-              structure.departments.map((d) => ({
-                org_id: org.id,
-                dept_key: d.key,
-                name: d.name,
-                metadata: { sections: d.sections, roles: d.roles },
-              }))
-            );
-          }
-        }
-      }
-    }
+    // ملاحظة أمان: لا نكتب إلى قاعدة البيانات الحقيقية من هذا المعالج حالياً
+    // لتفادي إنشاء منشآت تجريبية في الإنتاج. الإنشاء الحقيقي يتم لاحقاً عبر مسارٍ
+    // مخصّص مطابق للمخطّط الفعلي (organizations: client_type, country, city...).
+    // المعاينة تُحفظ محلياً فقط (sessionStorage).
     // حفظ النتيجة محلياً لعرضها في صفحة الهيكل (مفيد في الوضع التجريبي)
     try {
       sessionStorage.setItem(

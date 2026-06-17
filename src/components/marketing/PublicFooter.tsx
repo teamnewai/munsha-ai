@@ -1,98 +1,75 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-const FOOTER_SECTIONS = [
-  {
-    title: 'الشركة',
-    links: [
-      { href: '/about',   label: 'من نحن' },
-      { href: '/team',    label: 'فريقنا' },
-      { href: '/contact', label: 'تواصل معنا' },
-    ],
-  },
-  {
-    title: 'المنتج',
-    links: [
-      { href: '/pricing',  label: 'الأسعار' },
-      { href: '/faq',      label: 'الأسئلة الشائعة' },
-      { href: '/library',  label: 'المكتبة السعودية' },
-      { href: '/consultants', label: 'المستشارون' },
-    ],
-  },
-  {
-    title: 'القانوني',
-    links: [
-      { href: '/privacy',              label: 'سياسة الخصوصية' },
-      { href: '/terms',                label: 'الشروط والأحكام' },
-      { href: '/cookies',              label: 'سياسة الكوكيز' },
-      { href: '/refund',               label: 'سياسة الاسترداد' },
-      { href: '/ai-disclaimer',        label: 'إخلاء مسؤولية AI' },
-      { href: '/consultant-disclaimer',label: 'إخلاء مسؤولية المستشارين' },
-    ],
-  },
-];
-
-const SOCIAL = [
-  { href: 'https://twitter.com/monshaati_ai',  label: 'X (Twitter)',  icon: '𝕏' },
-  { href: 'https://linkedin.com/company/monshaati', label: 'LinkedIn', icon: 'in' },
-];
-
-export default function PublicFooter() {
+export function PublicFooter() {
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-auto">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-12">
-          {/* Brand */}
-          <div className="col-span-2 sm:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center text-white font-black">م</div>
-              <span className="font-bold text-white">منشأتي AI</span>
+    <footer className="border-t border-slate-200 bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+        <div className="grid gap-8 md:grid-cols-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 font-extrabold text-white">
+                مُ
+              </span>
+              <span className="text-lg font-extrabold text-brand-900">مُلكي</span>
             </div>
-            <p className="text-sm text-gray-400 leading-relaxed mb-4">
-              نظام التشغيل الذكي للمنشآت السعودية والخليجية.
-              نبني معك الهيكل التنظيمي والسياسات ومؤشرات الأداء بدقائق.
+            <p className="mt-3 text-sm leading-relaxed text-slate-500">
+              نظام تشغيل الأعمال القائم على نواة عقارية. نُسجّل المعاملات — ولا نحتفظ بأموالك أبداً.
             </p>
-            <div className="flex gap-3">
-              {SOCIAL.map(s => (
-                <a key={s.href} href={s.href} target="_blank" rel="noopener noreferrer"
-                  className="w-9 h-9 bg-gray-800 hover:bg-brand-500 rounded-lg flex items-center justify-center text-sm font-bold transition-colors"
-                  aria-label={s.label}>
-                  {s.icon}
-                </a>
-              ))}
-            </div>
           </div>
 
-          {/* Links */}
-          {FOOTER_SECTIONS.map(section => (
-            <div key={section.title}>
-              <h3 className="text-white font-bold text-sm mb-4">{section.title}</h3>
-              <ul className="space-y-2.5">
-                {section.links.map(link => (
-                  <li key={link.href}>
-                    <Link href={link.href}
-                      className="text-sm text-gray-400 hover:text-white transition-colors">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <FooterCol
+            title="المنصة"
+            links={[
+              { label: "المزايا", href: "/#features" },
+              { label: "نظام التشغيل", href: "/#os" },
+              { label: "الأسعار", href: "/pricing" },
+            ]}
+          />
+          <FooterCol
+            title="الشركة"
+            links={[
+              { label: "من نحن", href: "/#" },
+              { label: "تواصل معنا", href: "/#" },
+              { label: "الوظائف", href: "/#" },
+            ]}
+          />
+          <FooterCol
+            title="قانوني"
+            links={[
+              { label: "الخصوصية (PDPL)", href: "/#" },
+              { label: "الشروط والأحكام", href: "/#" },
+              { label: "الامتثال (ZATCA)", href: "/#" },
+            ]}
+          />
         </div>
 
-        <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} منشأتي AI — جميع الحقوق محفوظة
-          </p>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span>🇸🇦 صُنع في المملكة العربية السعودية</span>
-            <span>·</span>
-            <a href="mailto:support@monshaati.ai" className="hover:text-white transition-colors">
-              support@monshaati.ai
-            </a>
-          </div>
+        <div className="mt-10 border-t border-slate-100 pt-6 text-center text-sm text-slate-400">
+          © {new Date().getFullYear()} مُلكي. جميع الحقوق محفوظة.
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; href: string }[];
+}) {
+  return (
+    <div>
+      <h4 className="mb-3 text-sm font-bold text-slate-800">{title}</h4>
+      <ul className="space-y-2">
+        {links.map((l) => (
+          <li key={l.label}>
+            <Link href={l.href} className="text-sm text-slate-500 hover:text-brand-700">
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

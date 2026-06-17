@@ -1,7 +1,8 @@
 {
-  "name": "monshaati-ai",
-  "version": "1.0.0",
+  "name": "mulki-os",
+  "version": "0.1.0",
   "private": true,
+  "description": "مُلكي — نظام تشغيل الأعمال القائم على نواة عقارية (REOS)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,29 +11,22 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "14.2.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "@supabase/supabase-js": "^2.43.4",
-    "@supabase/ssr": "^0.4.0",
-    "openai": "^4.52.7",
-    "jspdf": "^2.5.1",
-    "react-hot-toast": "^2.4.1",
+    "next": "16.2.9",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "@supabase/supabase-js": "^2.108.0",
+    "@supabase/ssr": "^0.12.0",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.3.0",
-    "stripe": "^16.2.0",
-    "@stripe/stripe-js": "^4.1.0",
-    "resend": "^3.2.0"
+    "tailwind-merge": "^3.4.1"
   },
   "devDependencies": {
-    "@types/node": "^20.14.9",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "typescript": "^5.5.3",
-    "tailwindcss": "^3.4.4",
-    "postcss": "^8.4.39",
-    "autoprefixer": "^10.4.19",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.5"
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "tailwindcss": "^4.3.1",
+    "@tailwindcss/postcss": "^4.3.1",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "16.2.9"
   }
 }

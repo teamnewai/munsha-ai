@@ -1,44 +1,197 @@
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
-import PublicNav from '@/components/marketing/PublicNav';
-import PublicFooter from '@/components/marketing/PublicFooter';
+import { PublicNav } from "@/components/marketing/PublicNav";
+import { PublicFooter } from "@/components/marketing/PublicFooter";
+import { ButtonLink } from "@/components/ui/Button";
 
-export default async function HomePage() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) redirect('/dashboard');
+const FEATURES = [
+  {
+    icon: "🏢",
+    title: "إدارة العقارات والوحدات",
+    desc: "سجل عقاراتك ووحداتك بأنواعها (شقق، فلل، مكاتب، محلات) مع متابعة الإشغال والإيجارات.",
+  },
+  {
+    icon: "📄",
+    title: "العقود والفواتير الذكية",
+    desc: "أتمتة العقود والفواتير مع احتساب ضريبة القيمة المضافة 15% وتنبيهات التجديد.",
+  },
+  {
+    icon: "🔧",
+    title: "طلبات الصيانة مع SLA",
+    desc: "دورة كاملة للصيانة: طلب → عرض سعر → موافقة → تنفيذ، مع تقييم مزودي الخدمة.",
+  },
+  {
+    icon: "🤝",
+    title: "اتحاد الملاك (HOA)",
+    desc: "إدارة الرسوم، التصويت على القرارات، وحجز المرافق المشتركة.",
+  },
+  {
+    icon: "🤖",
+    title: "السكرتيرة الذكية «نور»",
+    desc: "مساعد ذكي يقدّم ملخصاتك اليومية، يوجّه طلباتك، ويجيب عن أسئلتك بالعربية والصوت.",
+  },
+  {
+    icon: "🌍",
+    title: "متعدد اللغات والعملات",
+    desc: "واجهة عربية أولاً مع دعم أكثر من 100 عملة، وبنية جاهزة لـ6 لغات.",
+  },
+];
 
+const FAQS = [
+  {
+    q: "هل تحتفظ مُلكي بأموالي؟",
+    a: "لا. مبدأ REOS الأساسي: المنصة تُسجّل المعاملات ولا تحتفظ بالأموال أبداً. الدفع يتم مباشرة بينك وبين الطرف الآخر عبر بوابات معتمدة.",
+  },
+  {
+    q: "هل المنصة متوافقة مع الأنظمة السعودية؟",
+    a: "نعم. احتساب ضريبة القيمة المضافة 15% (ZATCA)، حماية البيانات (PDPL)، وبنية جاهزة للتكامل مع نفاذ وفوترة ZATCA.",
+  },
+  {
+    q: "هل يمكنني استيراد هيكل منشأتي تلقائياً؟",
+    a: "نعم، عبر «جسر منشآتي» يمكنك استيراد الهيكل التنظيمي لمنشأتك المسجّلة في بوابة منشآت بنقرة واحدة.",
+  },
+  {
+    q: "ما هو نظام التشغيل (MULKI OS)؟",
+    a: "طبقة المكتب الافتراضي فوق النواة العقارية: مكاتب للموظفين، غرفة عمليات، مركز تحكم، وقوة عمل ذكية تعمل على مدار الساعة.",
+  },
+];
+
+export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-white" dir="rtl">
+    <div className="min-h-screen bg-[var(--background)]">
       <PublicNav />
-      <main className="flex-1 flex items-center justify-center py-20 px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center text-white font-black text-3xl mx-auto mb-6">م</div>
-          <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-4">
-            منشأتي AI
+
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-brand-50 to-transparent" />
+        <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 sm:py-28">
+          <span className="inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-gold-400/10 px-4 py-1.5 text-sm font-medium text-gold-600">
+            👑 6 أشهر مجاناً للأعضاء المؤسسين
+          </span>
+          <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-brand-950 sm:text-6xl">
+            مكتبك الكامل
+            <br />
+            <span className="text-brand-600">بلا جدران، بلا إيجار، بلا حدود</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            نظام التشغيل الذكي للمنشآت السعودية والخليجية
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+            مُلكي نظام تشغيل أعمالٍ يفصل العمل عن المكان: مكتب افتراضي متكامل، وسوق بيني يجلب
+            العملاء، وحوكمة وذكاء اصطناعي يدير أعمالك — منصة واحدة، عربية أولاً.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/auth/signup"
-              className="px-8 py-4 bg-brand-500 text-white font-bold text-lg rounded-xl hover:bg-brand-600 transition-colors">
-              ابدأ مجاناً — 14 يوم
-            </Link>
-            <Link href="/about"
-              className="px-8 py-4 border-2 border-gray-300 text-gray-700 font-bold text-lg rounded-xl hover:bg-gray-50 transition-colors">
-              اعرف أكثر
-            </Link>
-          </div>
-          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-400">
-            <Link href="/about" className="hover:text-brand-600 transition-colors">من نحن</Link>
-            <Link href="/pricing" className="hover:text-brand-600 transition-colors">الأسعار</Link>
-            <Link href="/faq" className="hover:text-brand-600 transition-colors">الأسئلة الشائعة</Link>
-            <Link href="/contact" className="hover:text-brand-600 transition-colors">تواصل</Link>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <ButtonLink href="/login?mode=signup" variant="primary" size="lg">
+              ابدأ مجاناً
+            </ButtonLink>
+            <ButtonLink href="/#os" variant="secondary" size="lg">
+              جولة في نظام التشغيل
+            </ButtonLink>
           </div>
         </div>
-      </main>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-brand-950 sm:text-4xl">كل ما تحتاجه منصّة واحدة</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+            من النواة العقارية (REOS) إلى نظام التشغيل الكامل.
+          </p>
+        </div>
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div
+              key={f.title}
+              className="rounded-2xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-lg"
+            >
+              <div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-50 text-2xl">
+                {f.icon}
+              </div>
+              <h3 className="mt-4 text-lg font-bold text-slate-900">{f.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* OS Section */}
+      <section id="os" className="bg-brand-950 py-20 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div>
+              <span className="text-sm font-bold text-gold-400">MULKI OS</span>
+              <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">مكتبك الافتراضي يعمل 24/7</h2>
+              <p className="mt-4 leading-relaxed text-brand-100">
+                نظام التشغيل يحوّل البرمجيات المجرّدة إلى مكان عمل افتراضي قابل للتنقّل: مكاتب
+                للموظفين، غرفة عمليات، مركز تحكم، وقوة عمل ذكية من وكلاء AI متخصصين.
+              </p>
+              <ul className="mt-6 space-y-3">
+                {["مكتب افتراضي لكل موظف", "غرفة عمليات بمؤشرات لحظية", "قوة عمل ذكية (نور، المالية، العمليات)", "حوكمة ومصفوفة صلاحيات"].map(
+                  (item) => (
+                    <li key={item} className="flex items-center gap-3 text-brand-50">
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-gold-500 text-xs text-brand-950">
+                        ✓
+                      </span>
+                      {item}
+                    </li>
+                  )
+                )}
+              </ul>
+              <div className="mt-8">
+                <ButtonLink href="/os" variant="gold" size="lg">
+                  ادخل نظام التشغيل
+                </ButtonLink>
+              </div>
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { k: "الأقسام النشطة", v: "14" },
+                  { k: "وكلاء AI", v: "9" },
+                  { k: "اللغات المدعومة", v: "6" },
+                  { k: "العملات", v: "+100" },
+                ].map((s) => (
+                  <div key={s.k} className="rounded-2xl bg-brand-900/60 p-5 text-center">
+                    <div className="text-3xl font-extrabold text-gold-400">{s.v}</div>
+                    <div className="mt-1 text-sm text-brand-100">{s.k}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
+        <h2 className="text-center text-3xl font-extrabold text-brand-950 sm:text-4xl">الأسئلة الشائعة</h2>
+        <div className="mt-10 space-y-4">
+          {FAQS.map((f) => (
+            <details
+              key={f.q}
+              className="group rounded-2xl border border-slate-200 bg-white p-5 [&_summary]:cursor-pointer"
+            >
+              <summary className="flex items-center justify-between font-bold text-slate-900">
+                {f.q}
+                <span className="text-brand-600 transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
+        <div className="rounded-3xl bg-gradient-to-l from-brand-700 to-brand-600 px-8 py-14 text-center text-white">
+          <h2 className="text-3xl font-extrabold sm:text-4xl">جاهز تبدأ؟</h2>
+          <p className="mmt-3 mx-auto mt-3 max-w-xl text-brand-100">
+            انضم لمُلكي اليوم واحصل على 6 أشهر مجاناً كعضو مؤسس.
+          </p>
+          <div className="mt-8">
+            <ButtonLink href="/login?mode=signup" variant="gold" size="lg">
+              أنشئ حسابك الآن
+            </ButtonLink>
+          </div>
+        </div>
+      </section>
+
       <PublicFooter />
     </div>
   );

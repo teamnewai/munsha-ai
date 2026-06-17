@@ -1,88 +1,34 @@
-# منشأتي AI — Monshaati AI
+# مُلكي — MULKI OS
 
-نظام التشغيل الذكي للمنشآت | AI-Powered Business Operating System
+> مكتبك الكامل — بلا جدران، بلا إيجار، بلا حدود.
 
-## Quick Start
+نظام تشغيل أعمالٍ يفصل العمل عن المكان: مكتب افتراضي متكامل، سوق بيني، وحوكمة بالذكاء الاصطناعي. عربي أولاً (RTL)، متعدد المستأجرين.
 
-### 1. Environment Variables
-```bash
-cp .env.example .env.local
-# Fill in your values:
-# NEXT_PUBLIC_SUPABASE_URL=
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=
-# SUPABASE_SERVICE_ROLE_KEY=
-# OPENAI_API_KEY=
-```
+> هذا المشروع يُبنى اعتماداً على وثيقتي `MULKI_OS_MASTER_CONSOLIDATED_BLUEPRINT` و«الشجرة — من النواة إلى الورقة».
 
-### 2. Supabase Setup
-1. Create project at https://supabase.com
-2. Run `supabase/migrations/001_initial_schema.sql` in SQL Editor
-3. Run `supabase/migrations/002_seed_sectors.sql` in SQL Editor
-4. Enable Email auth in Authentication → Providers
+## التقنية
+- **Next.js 16** (App Router) + React 19 + TypeScript
+- **Tailwind CSS v4** — واجهة فاتحة + نظام تشغيل داكن/ذهبي
+- **Supabase** (PostgreSQL + Auth + RLS) — عزل بمعرّف المنشأة `org_id`
+- النشر: Vercel
 
-### 3. Install & Run
+## التشغيل محلياً
 ```bash
 npm install
-npm run dev
+cp .env.example .env.local   # املأ مفاتيح Supabase (اختياري — يعمل بوضع تجريبي بدونها)
+npm run dev                  # http://localhost:3000
 ```
+> بدون مفاتيح Supabase، يعمل التطبيق في **وضع تجريبي**: صفحة تسجيل الدخول تدخلك مباشرة لاستعراض المنصة.
 
-### 4. Deploy to Vercel
-```bash
-vercel --prod
-# Set environment variables in Vercel dashboard
-```
+## قاعدة البيانات
+شغّل الملفات في Supabase SQL Editor بالترتيب:
+1. `supabase/migrations/0001_init.sql` — النواة (24 جدولاً + RLS)
+2. `supabase/migrations/0002_seed.sql` — حدود الباقات وكتالوج الخدمات
 
-## Project Structure
-```
-src/
-├── app/
-│   ├── api/
-│   │   ├── ai/generate/     # POST — AI generation endpoint
-│   │   ├── ai/result/       # GET  — Fetch generation results
-│   │   ├── organizations/   # CRUD organizations
-│   │   ├── sectors/         # GET  — Sector taxonomy
-│   │   ├── export/          # POST — Log exports
-│   │   └── admin/stats|orgs # Admin endpoints
-│   ├── auth/login|signup|callback
-│   ├── dashboard/           # Main dashboard
-│   ├── onboarding/          # 3-step org creation + generation
-│   ├── results/[id]/        # Full results view with all tabs
-│   └── admin/               # Admin dashboard
-├── components/
-│   ├── ui/                  # Button, Input, Select, Card, Badge
-│   ├── layout/              # Navbar, DashboardLayout
-│   └── org-chart/           # OrgChartView
-├── lib/
-│   ├── supabase.ts          # Browser client
-│   ├── supabase-server.ts   # Server client + admin client
-│   ├── openai.ts            # AI generation
-│   ├── export.ts            # PDF + Word export
-│   └── utils.ts             # Helpers + constants
-├── types/
-│   └── database.ts          # All TypeScript types
-├── middleware.ts             # Auth protection
-└── supabase/migrations/
-    ├── 001_initial_schema.sql  # Full DB schema + RLS
-    └── 002_seed_sectors.sql    # Saudi/UAE sectors seed
-```
+## البنية الحالية (الأساس)
+- `/` صفحة الهبوط · `/pricing` الأسعار · `/login` الدخول
+- `/dashboard` لوحة التحكم + 22 وحدة (المحتوى/التسويق/الشركة)
+- `/os` نظام التشغيل + البوابات (`desk`, `ops`, `control`, `structure`, `blueprint`)
 
-## Tech Stack
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: Supabase (PostgreSQL + RLS)
-- **AI**: OpenAI GPT-4o
-- **Auth**: Supabase Auth
-- **Deploy**: Vercel
-
-## Features
-- ✅ AI-generated org chart (hierarchical, visual)
-- ✅ Job descriptions with responsibilities, requirements, competencies
-- ✅ Policies & procedures library
-- ✅ KPI dashboard with department grouping
-- ✅ Hiring plan with phases and priorities
-- ✅ PDF + Word export
-- ✅ Multi-tenant architecture (Row Level Security)
-- ✅ Arabic-first UI (RTL)
-- ✅ Admin dashboard
-- ✅ 4-region ready (KSA, UAE, US, EU)
+## الحالة
+أساسٌ شغّال (Phase 0). الوحدات التشغيلية تحمل شارة **«قيد الإنشاء/التفعيل»** وتُبنى تدريجياً وفق خارطة الطريق.

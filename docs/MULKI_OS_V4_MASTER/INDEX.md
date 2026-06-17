@@ -28,14 +28,14 @@
 |---|-------|---------|--------|
 | 01 | [VISION](./01_VISION/README.md) | الرؤية · التموضّع · الاستعارات الثلاث · نماذج العملاء · المبادئ الحاكمة | ✅ مكتمل |
 | 02 | [CORE_FOUNDATION](./02_CORE_FOUNDATION/README.md) | النواة · قاعدة البيانات · ERD · RLS · التدقيق · محرّك سير العمل | ✅ مكتمل |
-| 03 | [VIRTUAL_OFFICE](./03_VIRTUAL_OFFICE/README.md) | مكتب المالك · مكتب الموظف · غرفة العمليات · الاجتماعات · الأرشيف · الزوار | 🔵 مخطّط |
-| 04 | [BUSINESS_MODULES](./04_BUSINESS_MODULES/README.md) | العقارات · الصيانة · المالية · العقود · المستندات · الفريق · HOA | 🔵 مخطّط |
-| 05 | [MARKETPLACE](./05_MARKETPLACE/README.md) | السوق البيني · التوجيه الجغرافي · المزوّدون · العروض · المستشارون | 🔵 مخطّط |
-| 06 | [AI_WORKFORCE](./06_AI_WORKFORCE/README.md) | نور · CEO/CFO/HR/Legal/Marketplace AI · غرفة القرار · طبقة الذاكرة | 🔵 مخطّط |
-| 07 | [DIGITAL_BUSINESS_CITY](./07_DIGITAL_BUSINESS_CITY/README.md) | المكاتب الافتراضية · الأحياء · المعارض · المؤتمرات · خدمات المدينة | 🔵 مخطّط |
+| 03 | [VIRTUAL_OFFICE](./03_VIRTUAL_OFFICE/README.md) | مكتب المالك · مكتب الموظف · غرفة العمليات · الاجتماعات · الأرشيف · الزوار | ✅ موسّع |
+| 04 | [BUSINESS_MODULES](./04_BUSINESS_MODULES/README.md) | العقارات · الصيانة · المالية · العقود · المستندات · الفريق · HOA | ✅ موسّع |
+| 05 | [MARKETPLACE](./05_MARKETPLACE/README.md) | السوق البيني · التوجيه الجغرافي · المزوّدون · العروض · المستشارون | ✅ موسّع |
+| 06 | [AI_WORKFORCE](./06_AI_WORKFORCE/README.md) | نور · CEO/CFO/HR/Legal/Marketplace AI · غرفة القرار · طبقة الذاكرة | ✅ موسّع |
+| 07 | [DIGITAL_BUSINESS_CITY](./07_DIGITAL_BUSINESS_CITY/README.md) | المكاتب الافتراضية · الأحياء · المعارض · المؤتمرات · خدمات المدينة | ✅ موسّع |
 | 08 | [PORTALS](./08_PORTALS/README.md) | بوابات المستأجر/المالك/HOA/المزوّد/المستثمر/الحكومة · White-label | 🔵 مخطّط |
 | 09 | [GLOBAL_EXPANSION](./09_GLOBAL_EXPANSION/README.md) | 195 دولة · جسر الامتثال · التعدّد اللغوي · خطة السوق-بسوق | 🔵 مخطّط |
-| 10 | [PRODUCTION_ARCHITECTURE](./10_PRODUCTION_ARCHITECTURE/README.md) | البنية التقنية · الأمان · الأداء · النشر · المراقبة · النسخ الاحتياطي | 🔵 مخطّط |
+| 10 | [PRODUCTION_ARCHITECTURE](./10_PRODUCTION_ARCHITECTURE/README.md) | البنية التقنية · الأمان · الأداء · النشر · المراقبة · النسخ الاحتياطي | ✅ موسّع |
 | 11 | [LAUNCH_PLAN](./11_LAUNCH_PLAN/README.md) | الجاهزية · المسار الحرج · إصلاحات ما قبل الإطلاق · أوّل 30 عميلاً | 🔵 مخطّط |
 
 ---

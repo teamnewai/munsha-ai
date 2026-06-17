@@ -1,24 +1,33 @@
-# 05 — MARKETPLACE ENGINE
-## محرّك السوق البيني (قاعة الخدمات)
+# 05 — MARKETPLACE ENGINE ARCHITECTURE ⭐
+## النسخة الموسّعة (Expanded Blueprint)
 
-| | |
-|---|---|
-| **الحالة** | 🔵 مخطّط |
-| **يبني على** | service_catalog · service_requests (02) |
+> القلب الاقتصادي لمُلكي — شبكة قيمة ذاتية النمو. **REOS:** المنصة تسجّل وتطابق ولا تتوسّط الدفع (رسوم إدراج/ربط فقط).
 
-> **القلب الاقتصادي:** المشتركون يتبادلون الخدمات؛ والزوّار يطلبون فيتحوّلون لعملاء ثم مشتركين. شبكة قيمةٍ ذاتية النمو — كل مشترك مزوّدٌ وطالبٌ في آن. **REOS:** المنصّة تُسجّل ولا تحوز أموالاً (رسوم إدراج/ربط فقط).
+## دورة الحياة (Lifecycle)
+```text
+Client Request → Matching → Providers → Quotes → Selection → Execution → Rating
+```
 
-## المخطّط
-1. **قاعة الخدمات** — كتالوج يتوسّع ديناميكياً (الورقة التي تزيد).
-2. **التوجيه الجغرافي بخمسة مستويات** — دولة ← منطقة ← مدينة ← حي ← نوع الخدمة.
-3. **توجيه التخصّص** — تصنيف الطلب (وحدة/صيانة/نظافة/مقاول) ومطابقته بتخصّص المنشأة.
-4. **المزوّدون والتقييم المركّب** — `composite_score = جودة×0.35 + سعر×0.20 + موثوقية×0.25 + سرعة×0.20` (جدول service_providers 🔵).
-5. **دورة العرض** — طلب→عروض→اختيار→موافقة→تنفيذ→إثبات→تقييم.
-6. **حماية رقم العميل** — لا يظهر للمزوّد؛ تواصل عبر قناة آمنة.
-7. **المستشارون** — وكلاء فئة عليا بمكاتب وعملاء وتقييمات (جداول advisors/advisor_clients/advisor_ratings 🔵).
-8. **الحوكمة** — حلّ النزاعات · رسوم الإدراج/الربط (لا وساطة دفع).
+## الجداول
+```sql
+marketplace_requests(id, org_id, service_id, client_id, country, region, city, district, budget, status)
+provider_quotes(id, request_id→marketplace_requests, provider_id→service_providers, amount, timeline, status)
+service_providers(id, org_id, company_name, category, composite_score, verified)
+provider_ratings(id, provider_id→service_providers, request_id, stars, review, created_at)
+marketplace_commissions(id, request_id, provider_id, fee_type, amount)  -- listing/connection fee فقط
+```
 
-## جداول تُضاف
-service_providers · marketplace_listings · marketplace_bids · advisors · advisor_clients · advisor_ratings.
+## صيغة الترتيب (Ranking Formula)
+```text
+Rating 35% · Completion 25% · Response 20% · Price 10% · Experience 10%
+```
 
-> **التالي:** 06_AI_WORKFORCE.
+## السمعة (Reputation)
+- تقييم 1–5 نجوم · مراجعات موثّقة (Verified) · سجل النزاعات · درجة SLA.
+
+## التوجيه (Matching)
+- جغرافي 5 مستويات: دولة ← منطقة ← مدينة ← حي ← نوع الخدمة + مطابقة التخصص.
+- **خصوصية:** رقم العميل لا يظهر للمزوّد؛ التواصل عبر قناة آمنة.
+
+## الحوكمة
+- حل النزاعات (تصعيد + أدلة) · رسوم الإدراج/الربط فقط (لا وساطة دفع).

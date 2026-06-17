@@ -1,18 +1,35 @@
-# 07 — DIGITAL BUSINESS CITY
-## مدينة الأعمال الرقمية
+# 07 — DIGITAL BUSINESS CITY ARCHITECTURE ⭐
+## النسخة الموسّعة (Expanded Blueprint)
 
-| | |
-|---|---|
-| **الحالة** | 🔵 مخطّط (رؤية مستقبلية) |
+> الرؤية النهائية: مدينة أعمال افتراضية دائمة لكل منشأة فيها عنوان رقمي. ما NEOM للعقار الفيزيائي، مدينة مُلكي للعقار الرقمي.
 
-> **الرؤية النهائية:** مدينةٌ افتراضية دائمة لكل منشأةٍ فيها عنوانٌ رقمي. ما NEOM للعقار الفيزيائي، مدينة مُلكي للعقار الرقمي للأعمال.
+## الهيكل (Districts)
+```text
+Digital Business City
+├── Real Estate District
+├── Technology District
+├── Logistics District
+├── Legal District
+├── Financial District
+└── Consulting District
+```
 
-## المخطّط
-1. **المكاتب الافتراضية** — عنوان دائم `mulki.city/org/[slug]` · مدخل بعلامة المنشأة · Three.js للبيئات 3D.
-2. **أحياء الأعمال** — منظّمة حسب قطاع ISIC4 (عقار/تقنية/صحة/تعليم...).
-3. **قاعات المعارض** — معرض العقار السعودي · معرض المنشآت (جسر منشآتي).
-4. **مراكز المؤتمرات** — قاعة كبرى (+1000) · قاعات أعمال · غرف اجتماعات · مراكز تدريب.
-5. **خدمات المدينة** — دليل · بريد رقمي · سجلّ · سوق عابر للقطاعات · أخبار أعمال.
-6. **متطلبات البنية** — CDN · WebSocket للحضور اللحظي · بحث شامل · REOS ممتدّ.
+## العنوان الافتراضي (Virtual Address)
+```text
+Country → City → District → Tower → Floor → Office
+مثال: Saudi Arabia · Riyadh · Business District · Tower A · 18 · 1805
+```
 
-> **التالي:** 08_PORTALS.
+## الجداول
+```sql
+city_districts(id, key, name, sector)
+city_residents(id, org_id→organizations, district_id, virtual_address, office_level, registered_at)
+city_directory(id, org_id, name, sector, tags[], verified)
+city_events(id, organizer_org_id, title, type, start_date, end_date, max_attendees)
+```
+
+## المكوّنات
+- مكاتب افتراضية ثلاثية الأبعاد (Three.js) · أحياء حسب القطاع · معارض ومؤتمرات · دليل المدينة · سوق عابر للقطاعات · خدمات المدينة.
+
+## المراحل
+1. عناوين + دليل + أحياء. 2. معارض/مؤتمرات. 3. عالم 3D + توأم رقمي (Digital Twin).

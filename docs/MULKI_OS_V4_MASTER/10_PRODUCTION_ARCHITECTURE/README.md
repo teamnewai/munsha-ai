@@ -1,18 +1,24 @@
 # 10 — PRODUCTION ARCHITECTURE
-## بنية الإنتاج
+## النسخة الموسّعة (Expanded Blueprint)
 
-| | |
-|---|---|
-| **الحالة** | 🔵 مخطّط (رؤوس الأمان: ✅ موجودة) |
+## الستاك
+Next.js 16 + React 19 + TS · Tailwind v4 (RTL، داكن/ذهبي) · Supabase (PG+Auth+RLS+Edge) · Vercel · Resend · pgvector.
 
-## المخطّط
-1. **الستاك** — Next.js 16 + React 19 + TypeScript · Tailwind v4 RTL · Supabase (PG+Auth+RLS+Edge) · Vercel · Resend.
-2. **الأمان** — رؤوس HSTS/X-Frame/CSP (✅ في next.config) · RLS · تشفير الحقول الحسّاسة · إخفاء X-Powered-By.
-3. **طبقة الدفع المجرّدة** — Stripe/Moyasar/Tap/HyperPay · المفاتيح كمتغيّرات بيئة في Vercel (لا في الكود).
-4. **الأداء** — فهرسة org_id · تقييم RLS بـ InitPlan · CDN · تحسين Three.js.
-5. **المراقبة** — سجلّات · تنبيهات · advisors من Supabase · تتبّع الأخطاء.
-6. **النسخ والاستمرارية** — نسخ Supabase الاحتياطية · استراتيجية الترحيل (0001→0005) · بيئات منفصلة.
-7. **المسارات** — Vercel (فاتح، الموقع الحيّ) و Lovable (داكن/ذهبي) منفصلان.
-8. **CI/CD** — GitHub → Vercel · مراجعة الترحيلات قبل الدفع.
+## دليل التشغيل (Production Runbook)
+**يومي:** صحة قاعدة البيانات · سجلات الأخطاء · مراقبة API · التحقق من النسخ الاحتياطي.
+**أسبوعي:** فحص أمني · تدقيق أداء · مراجعة التكلفة.
+**شهري:** اختبار التعافي من الكوارث · تدقيق امتثال · تخطيط السعة.
 
-> **التالي:** 11_LAUNCH_PLAN.
+## استراتيجية الجودة (QA)
+- **Unit Tests:** هدف > 90%.
+- **Integration:** API · Database · AI · Marketplace.
+- **End-to-End:** Property Flow · Contract Flow · Maintenance Flow · Marketplace Flow.
+
+## الأمن والامتثال (Security & Compliance)
+**الأمن:** MFA · تشفير · RLS · سجلات تدقيق · التحكم بالجلسات. (رؤوس CSP/HSTS مطبّقة ✅، إصلاح v_arrears مطبّق ✅).
+**الامتثال:**
+- السعودية: **PDPL** (خصوصية) · **ZATCA** (فوترة) · **REGA** (عقاري).
+- الخليج: أنظمة محلية. — عالمي: **GDPR** + متطلبات إقليمية.
+
+## النشر
+GitHub `main` → Vercel (تلقائي). متغيّرات البيئة في Vercel. مفاتيح Supabase العامة آمنة للمتصفح؛ service_role خادمي فقط.

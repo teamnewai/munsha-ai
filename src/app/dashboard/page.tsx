@@ -3,6 +3,7 @@ import Link from "next/link";
 import { fmtNumber, fmtDate } from "@/lib/utils";
 import { fmtFromSAR } from "@/lib/money";
 import { getDashboardData } from "@/lib/data";
+import { SeedDemoButton } from "@/components/dashboard/SeedDemoButton";
 
 export const metadata: Metadata = { title: "مكتب المالك" };
 
@@ -82,6 +83,9 @@ export default async function OwnerCockpit() {
           ? "● متصل ببياناتك الحقيقية من Supabase (mulki-reos)."
           : "وضع تجريبي: سجّل الدخول بحسابك بعد ربط مفاتيح Supabase لعرض بياناتك الحقيقية."}
       </div>
+
+      {/* بداية سريعة — يظهر فقط حين تكون المنشأة فارغة */}
+      <SeedDemoButton />
 
       {/* مؤشّرات الأداء (6) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">

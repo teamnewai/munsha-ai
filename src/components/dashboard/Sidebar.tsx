@@ -56,6 +56,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dashboard/branding", label: "الهوية التجارية", icon: "🎨" },
       { href: "/dashboard/billing", label: "الاشتراك والفوترة", icon: "💳" },
       { href: "/dashboard/audit", label: "سجل التدقيق", icon: "🔒" },
+      { href: "/dashboard/feedback", label: "الملاحظات", icon: "🗒️" },
       { href: "/os", label: "نظام التشغيل", icon: "👑" },
     ],
   },

@@ -38,6 +38,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dashboard/documents", label: "المستندات", icon: "📁" },
       { href: "/dashboard/finance", label: "المالية", icon: "💰" },
       { href: "/dashboard/reports", label: "التقارير", icon: "📑" },
+      { href: "/dashboard/automations", label: "الأتمتة", icon: "⚙️" },
     ],
   },
   {

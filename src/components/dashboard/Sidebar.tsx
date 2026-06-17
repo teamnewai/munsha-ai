@@ -65,20 +65,20 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 shrink-0 border-l border-slate-200 bg-white lg:block">
-      <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-5">
+    <aside className="hidden w-64 shrink-0 border-l border-line bg-card lg:block">
+      <div className="flex h-16 items-center gap-2 border-b border-line px-5">
         <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 font-extrabold text-white">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gold font-extrabold text-golddark">
             مُ
           </span>
-          <span className="text-lg font-extrabold text-brand-900">مُلكي</span>
+          <span className="text-lg font-extrabold text-fg">مُلكي</span>
         </Link>
       </div>
 
       <nav className="h-[calc(100vh-4rem)] overflow-y-auto px-3 py-4">
         {NAV_GROUPS.map((group) => (
           <div key={group.title} className="mb-5">
-            <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wide text-mut">
               {group.title}
             </h3>
             <ul className="space-y-0.5">
@@ -93,8 +93,8 @@ export function Sidebar() {
                       className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                         active
-                          ? "bg-brand-50 font-semibold text-brand-700"
-                          : "text-slate-600 hover:bg-slate-50"
+                          ? "bg-gold/10 font-semibold text-gold"
+                          : "text-mut hover:bg-card2"
                       )}
                     >
                       <span className="text-base">{item.icon}</span>

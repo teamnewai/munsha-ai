@@ -17,16 +17,16 @@ export function ModulePlaceholder({
 }) {
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-brand-50 text-3xl">
+      <div className="rounded-3xl border border-line bg-card p-8 text-center">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gold/10 text-3xl">
           {icon}
         </div>
-        <h1 className="mt-5 text-2xl font-extrabold text-slate-900">{title}</h1>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-500">
+        <h1 className="mt-5 text-2xl font-extrabold text-fg">{title}</h1>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-mut">
           {description}
         </p>
 
-        <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-1.5 text-xs font-bold text-amber-700">
+        <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-gold/15 px-4 py-1.5 text-xs font-bold text-gold">
           🚧 قيد الإنشاء — قادم في المراحل القادمة
         </span>
 
@@ -34,9 +34,9 @@ export function ModulePlaceholder({
           {features.map((f) => (
             <div
               key={f}
-              className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-600"
+              className="flex items-start gap-2 rounded-xl border border-line bg-card2 p-3 text-sm text-mut"
             >
-              <span className="mt-0.5 text-brand-600">◆</span>
+              <span className="mt-0.5 text-gold">◆</span>
               {f}
             </div>
           ))}
@@ -45,7 +45,7 @@ export function ModulePlaceholder({
         <div className="mt-8">
           <Link
             href="/dashboard"
-            className="text-sm font-bold text-brand-700 hover:underline"
+            className="text-sm font-bold text-gold hover:underline"
           >
             ← العودة للوحة التحكم
           </Link>

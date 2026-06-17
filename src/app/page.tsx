@@ -69,9 +69,9 @@ export default function LandingPage() {
           <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-brand-950 sm:text-6xl">
             مكتبك الكامل
             <br />
-            <span className="text-brand-600">بلا جدران، بلا إيجار، بلا حدود</span>
+            <span className="text-gold">بلا جدران، بلا إيجار، بلا حدود</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-mut">
             مُلكي نظام تشغيل أعمالٍ يفصل العمل عن المكان: مكتب افتراضي متكامل، وسوق بيني يجلب
             العملاء، وحوكمة وذكاء اصطناعي يدير أعمالك — منصة واحدة، عربية أولاً.
           </p>
@@ -90,7 +90,7 @@ export default function LandingPage() {
       <section id="features" className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-brand-950 sm:text-4xl">كل ما تحتاجه منصّة واحدة</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
+          <p className="mx-auto mt-3 max-w-2xl text-mut">
             من النواة العقارية (REOS) إلى نظام التشغيل الكامل.
           </p>
         </div>
@@ -98,13 +98,13 @@ export default function LandingPage() {
           {FEATURES.map((f) => (
             <div
               key={f.title}
-              className="rounded-2xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-lg"
+              className="rounded-2xl border border-line bg-card p-6 transition-shadow hover:shadow-lg"
             >
-              <div className="grid h-12 w-12 place-items-center rounded-xl bg-brand-50 text-2xl">
+              <div className="grid h-12 w-12 place-items-center rounded-xl bg-gold/10 text-2xl">
                 {f.icon}
               </div>
-              <h3 className="mt-4 text-lg font-bold text-slate-900">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{f.desc}</p>
+              <h3 className="mt-4 text-lg font-bold text-fg">{f.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-mut">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -117,14 +117,14 @@ export default function LandingPage() {
             <div>
               <span className="text-sm font-bold text-gold-400">MULKI OS</span>
               <h2 className="mt-2 text-3xl font-extrabold sm:text-4xl">مكتبك الافتراضي يعمل 24/7</h2>
-              <p className="mt-4 leading-relaxed text-brand-100">
+              <p className="mt-4 leading-relaxed text-mut">
                 نظام التشغيل يحوّل البرمجيات المجرّدة إلى مكان عمل افتراضي قابل للتنقّل: مكاتب
                 للموظفين، غرفة عمليات، مركز تحكم، وقوة عمل ذكية من وكلاء AI متخصصين.
               </p>
               <ul className="mt-6 space-y-3">
                 {["مكتب افتراضي لكل موظف", "غرفة عمليات بمؤشرات لحظية", "قوة عمل ذكية (نور، المالية، العمليات)", "حوكمة ومصفوفة صلاحيات"].map(
                   (item) => (
-                    <li key={item} className="flex items-center gap-3 text-brand-50">
+                    <li key={item} className="flex items-center gap-3 text-mut">
                       <span className="grid h-6 w-6 place-items-center rounded-full bg-gold-500 text-xs text-brand-950">
                         ✓
                       </span>
@@ -139,7 +139,7 @@ export default function LandingPage() {
                 </ButtonLink>
               </div>
             </div>
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
+            <div className="rounded-3xl border border-white/10 bg-card/5 p-8">
               <div className="grid grid-cols-2 gap-4">
                 {[
                   { k: "الأقسام النشطة", v: "14" },
@@ -149,7 +149,7 @@ export default function LandingPage() {
                 ].map((s) => (
                   <div key={s.k} className="rounded-2xl bg-brand-900/60 p-5 text-center">
                     <div className="text-3xl font-extrabold text-gold-400">{s.v}</div>
-                    <div className="mt-1 text-sm text-brand-100">{s.k}</div>
+                    <div className="mt-1 text-sm text-mut">{s.k}</div>
                   </div>
                 ))}
               </div>
@@ -165,13 +165,13 @@ export default function LandingPage() {
           {FAQS.map((f) => (
             <details
               key={f.q}
-              className="group rounded-2xl border border-slate-200 bg-white p-5 [&_summary]:cursor-pointer"
+              className="group rounded-2xl border border-line bg-card p-5 [&_summary]:cursor-pointer"
             >
-              <summary className="flex items-center justify-between font-bold text-slate-900">
+              <summary className="flex items-center justify-between font-bold text-fg">
                 {f.q}
-                <span className="text-brand-600 transition-transform group-open:rotate-45">+</span>
+                <span className="text-gold transition-transform group-open:rotate-45">+</span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">{f.a}</p>
+              <p className="mt-3 text-sm leading-relaxed text-mut">{f.a}</p>
             </details>
           ))}
         </div>
@@ -179,9 +179,9 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
-        <div className="rounded-3xl bg-gradient-to-l from-brand-700 to-brand-600 px-8 py-14 text-center text-white">
+        <div className="rounded-3xl bg-gradient-to-l from-gold to-gold/80 px-8 py-14 text-center text-golddark">
           <h2 className="text-3xl font-extrabold sm:text-4xl">جاهز تبدأ؟</h2>
-          <p className="mmt-3 mx-auto mt-3 max-w-xl text-brand-100">
+          <p className="mmt-3 mx-auto mt-3 max-w-xl text-golddark/80">
             انضم لمُلكي اليوم واحصل على 6 أشهر مجاناً كعضو مؤسس.
           </p>
           <div className="mt-8">

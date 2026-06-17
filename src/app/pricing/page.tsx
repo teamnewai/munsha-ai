@@ -43,7 +43,7 @@ export default function PricingPage() {
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-brand-950">أسعار بسيطة وشفافة</h1>
-          <p className="mx-auto mt-3 max-w-xl text-slate-600">
+          <p className="mx-auto mt-3 max-w-xl text-mut">
             جميع الباقات تشمل <strong>6 أشهر مجاناً</strong> للأعضاء المؤسسين. الأسعار بالريال
             السعودي شهرياً، تُضاف ضريبة القيمة المضافة 15%.
           </p>
@@ -53,26 +53,26 @@ export default function PricingPage() {
           {TIERS.map((t) => (
             <div
               key={t.key}
-              className={`relative flex flex-col rounded-3xl border bg-white p-6 ${
+              className={`relative flex flex-col rounded-3xl border bg-card p-6 ${
                 t.highlight
                   ? "border-brand-500 shadow-xl ring-2 ring-brand-500"
-                  : "border-slate-200"
+                  : "border-line"
               }`}
             >
               {t.highlight && (
-                <span className="absolute -top-3 right-6 rounded-full bg-brand-600 px-3 py-1 text-xs font-bold text-white">
+                <span className="absolute -top-3 right-6 rounded-full bg-gold px-3 py-1 text-xs font-bold text-golddark">
                   الأكثر شيوعاً
                 </span>
               )}
-              <h3 className="text-lg font-bold text-slate-900">{t.name}</h3>
+              <h3 className="text-lg font-bold text-fg">{t.name}</h3>
               <div className="mt-4 flex items-baseline gap-1">
                 <span className="text-4xl font-extrabold text-brand-950">{t.price}</span>
-                <span className="text-slate-500">ر.س / شهرياً</span>
+                <span className="text-mut">ر.س / شهرياً</span>
               </div>
               <ul className="mt-6 flex-1 space-y-3">
                 {t.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-slate-600">
-                    <span className="mt-0.5 text-brand-600">✓</span>
+                  <li key={f} className="flex items-start gap-2 text-sm text-mut">
+                    <span className="mt-0.5 text-gold">✓</span>
                     {f}
                   </li>
                 ))}
@@ -91,7 +91,7 @@ export default function PricingPage() {
           ))}
         </div>
 
-        <p className="mt-8 text-center text-sm text-slate-400">
+        <p className="mt-8 text-center text-sm text-mut">
           إضافات مدفوعة اختيارية: جولة ثلاثية الأبعاد، مساعد AI، تحليلات، واتساب AI — تُضاف حسب الحاجة.
         </p>
       </section>

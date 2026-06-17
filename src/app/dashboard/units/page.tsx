@@ -25,7 +25,7 @@ export default async function Page() {
         { key: "occ", label: "الإشغال" },
       ]}
       rows={rows.map((u) => ({
-        no: <span className="font-medium text-slate-900">{u.unit_no}</span>,
+        no: <span className="font-medium text-fg">{u.unit_no}</span>,
         type: u.unit_type ? (TYPE_AR[u.unit_type] ?? u.unit_type) : "—",
         area: u.area ?? "—",
         occ:

@@ -22,7 +22,7 @@ export default async function Page() {
         { key: "status", label: "الحالة" },
       ]}
       rows={rows.map((c) => ({
-        rent: <span className="font-bold text-slate-900">{c.annual_rent != null ? fmtFromSAR(c.annual_rent) : "—"}</span>,
+        rent: <span className="font-bold text-fg">{c.annual_rent != null ? fmtFromSAR(c.annual_rent) : "—"}</span>,
         period: c.period,
         start: c.start_date,
         end: c.end_date,

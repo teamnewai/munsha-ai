@@ -21,7 +21,7 @@ export default async function Page() {
         { key: "status", label: "الحالة" },
       ]}
       rows={rows.map((m) => ({
-        name: <span className="font-medium text-slate-900">{m.full_name}</span>,
+        name: <span className="font-medium text-fg">{m.full_name}</span>,
         job: m.job_title,
         section: m.section,
         present: m.present ? <StatusBadge tone="green">متواجد</StatusBadge> : <StatusBadge tone="slate">غائب</StatusBadge>,

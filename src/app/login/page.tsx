@@ -57,7 +57,7 @@ function LoginInner() {
       {/* جانب الهوية */}
       <div className="relative hidden flex-col justify-between bg-brand-950 p-12 text-white lg:flex">
         <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-lg font-extrabold text-brand-700">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-card text-lg font-extrabold text-gold">
             مُ
           </span>
           <span className="text-2xl font-extrabold">مُلكي</span>
@@ -79,28 +79,28 @@ function LoginInner() {
       <div className="flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-sm">
           <Link href="/" className="mb-8 flex items-center gap-2 lg:hidden">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 font-extrabold text-white">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gold font-extrabold text-golddark">
               مُ
             </span>
-            <span className="text-xl font-extrabold text-brand-900">مُلكي</span>
+            <span className="text-xl font-extrabold text-fg">مُلكي</span>
           </Link>
 
-          <h1 className="text-2xl font-extrabold text-slate-900">
+          <h1 className="text-2xl font-extrabold text-fg">
             {signup ? "أنشئ حسابك" : "أهلاً بعودتك"}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-mut">
             {signup ? "ابدأ تجربتك المجانية في دقائق." : "سجّل دخولك لمتابعة عملك."}
           </p>
 
           {!configured && (
-            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
+            <div className="mt-4 rounded-xl border border-gold/30 bg-gold/10 p-3 text-xs text-amber-700">
               وضع تجريبي: لم يتم ربط قاعدة البيانات بعد. اضغط الزر للدخول واستعراض المنصة.
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              <label className="mb-1.5 block text-sm font-medium text-fg">
                 البريد الإلكتروني
               </label>
               <input
@@ -108,34 +108,34 @@ function LoginInner() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required={configured}
-                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                className="w-full rounded-xl border border-line px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
                 placeholder="name@example.com"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">كلمة المرور</label>
+              <label className="mb-1.5 block text-sm font-medium text-fg">كلمة المرور</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required={configured}
-                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                className="w-full rounded-xl border border-line px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
                 placeholder="••••••••"
               />
             </div>
 
-            {msg && <p className="text-sm text-rose-600">{msg}</p>}
+            {msg && <p className="text-sm text-bad">{msg}</p>}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "جارٍ..." : signup ? "إنشاء الحساب" : "تسجيل الدخول"}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-6 text-center text-sm text-mut">
             {signup ? "لديك حساب؟ " : "ليس لديك حساب؟ "}
             <Link
               href={signup ? "/login" : "/login?mode=signup"}
-              className="font-bold text-brand-700 hover:underline"
+              className="font-bold text-gold hover:underline"
             >
               {signup ? "سجّل الدخول" : "أنشئ حساباً"}
             </Link>

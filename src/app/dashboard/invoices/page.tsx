@@ -21,7 +21,7 @@ export default async function Page() {
         { key: "status", label: "الحالة" },
       ]}
       rows={rows.map((inv) => ({
-        amount: <span className="font-bold text-slate-900">{inv.amount != null ? fmtFromSAR(inv.amount) : "—"}</span>,
+        amount: <span className="font-bold text-fg">{inv.amount != null ? fmtFromSAR(inv.amount) : "—"}</span>,
         withVat: inv.amount != null ? fmtFromSAR(withVat(inv.amount)) : "—",
         due: inv.due_date,
         status:

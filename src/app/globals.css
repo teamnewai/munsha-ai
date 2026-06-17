@@ -1,36 +1,61 @@
 @import "tailwindcss";
 
-/* ===== مُلكي — نظام التصميم (Design System) ===== */
+/* ===== مُلكي — نظام ألوان مطابق لمشروع Lovable (داكن/ذهبي + Aurora) ===== */
 @theme {
-  /* الألوان الأساسية — هوية مُلكي */
-  --color-brand-50: #eef6ff;
-  --color-brand-100: #d9eaff;
-  --color-brand-200: #bcd9ff;
-  --color-brand-300: #8ec1ff;
-  --color-brand-400: #599dff;
-  --color-brand-500: #3578f5;
-  --color-brand-600: #1f59e0;
-  --color-brand-700: #1a47b8;
-  --color-brand-800: #1b3e93;
-  --color-brand-900: #1c3874;
-  --color-brand-950: #152347;
-
-  /* ذهبي — للهوية الملكية */
-  --color-gold-400: #e6c463;
-  --color-gold-500: #d4af37;
-  --color-gold-600: #b8941f;
-
-  /* خط عربي */
   --font-sans: "Tajawal", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+  --font-display: "Cairo", "Tajawal", system-ui, sans-serif;
+
+  /* الدلالية (Semantic) — مطابقة لتوكنز Lovable */
+  --color-bg: oklch(0.13 0.03 265);
+  --color-fg: oklch(0.97 0.01 250);
+  --color-card: oklch(0.17 0.03 265);
+  --color-card2: oklch(0.22 0.04 265);
+  --color-line: oklch(1 0 0 / 0.10);
+  --color-mut: oklch(0.68 0.02 255);
+  --color-gold: oklch(0.82 0.13 82);
+  --color-golddark: oklch(0.16 0.03 265);
+  --color-accent: oklch(0.50 0.18 275);
+  --color-ok: oklch(0.72 0.16 160);
+  --color-warn: oklch(0.82 0.15 75);
+  --color-bad: oklch(0.65 0.22 25);
+
+  /* سلسلة الذهبي (لشاشات نظام التشغيل) */
+  --color-gold-400: oklch(0.86 0.13 88);
+  --color-gold-500: oklch(0.82 0.13 82);
+  --color-gold-600: oklch(0.72 0.14 70);
+
+  /* إعادة تعيين سلسلة brand: ذهبي للأفعال، كحلي للأسطح الداكنة */
+  --color-brand-50: oklch(0.22 0.04 265);
+  --color-brand-100: oklch(0.25 0.04 265);
+  --color-brand-200: oklch(0.30 0.05 265);
+  --color-brand-300: oklch(0.55 0.12 275);
+  --color-brand-400: oklch(0.78 0.13 84);
+  --color-brand-500: oklch(0.82 0.13 82);
+  --color-brand-600: oklch(0.82 0.13 82);
+  --color-brand-700: oklch(0.74 0.14 74);
+  --color-brand-800: oklch(0.20 0.03 265);
+  --color-brand-900: oklch(0.15 0.03 265);
+  --color-brand-950: oklch(0.11 0.03 265);
+
+  --radius: 0.75rem;
 }
 
 :root {
-  --background: #f7f9fc;
-  --foreground: #0f172a;
+  --background: oklch(0.13 0.03 265);
+  --foreground: oklch(0.97 0.01 250);
+
+  /* تدرّجات Lovable */
+  --gradient-aurora: radial-gradient(ellipse at top, oklch(0.42 0.14 270 / 0.45), transparent 60%),
+    radial-gradient(ellipse at bottom right, oklch(0.78 0.13 80 / 0.18), transparent 55%);
+  --gradient-gold: linear-gradient(135deg, oklch(0.86 0.13 88) 0%, oklch(0.72 0.14 70) 100%);
+  --gradient-surface: linear-gradient(180deg, oklch(0.17 0.03 265) 0%, oklch(0.13 0.03 265) 100%);
+  --shadow-card: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 24px 60px -30px oklch(0 0 0 / 0.5);
+  --shadow-glow: 0 0 60px 0 oklch(0.78 0.13 80 / 0.18);
 }
 
 * {
   box-sizing: border-box;
+  border-color: var(--color-line);
 }
 
 html {
@@ -40,31 +65,44 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
+  background-image: var(--gradient-aurora);
+  background-attachment: fixed;
+  min-height: 100vh;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* دعم RTL */
-[dir="rtl"] {
-  text-align: right;
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
-/* شريط تمرير أنيق */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
+/* شريط تمرير داكن */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 0.12); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: oklch(1 0 0 / 0.2); }
 
-/* تأثيرات مساعدة */
+/* أدوات مساعدة بهوية Lovable */
 .glass {
-  backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+  background: oklch(0.15 0.03 265 / 0.75);
+}
+.mulki-gold-text {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.mulki-gold-bg {
+  background: var(--gradient-gold);
+  color: var(--color-golddark);
+}
+.mulki-glow { box-shadow: var(--shadow-glow); }
+.mulki-grid-bg {
+  background-image:
+    linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
 }

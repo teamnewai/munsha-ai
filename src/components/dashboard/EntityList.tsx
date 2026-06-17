@@ -27,14 +27,14 @@ export function EntityList({
     <div className="mx-auto max-w-7xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-fg">
             <span>{icon}</span>
             {title}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">{description}</p>
+          <p className="mt-1 text-sm text-mut">{description}</p>
         </div>
         {addLabel && (
-          <button className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-700">
+          <button className="inline-flex items-center gap-2 rounded-xl bg-gold px-4 py-2.5 text-sm font-bold text-golddark hover:bg-gold/90">
             + {addLabel}
           </button>
         )}
@@ -43,8 +43,8 @@ export function EntityList({
       <div
         className={`rounded-xl border p-3 text-xs ${
           isReal
-            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-            : "border-amber-200 bg-amber-50 text-amber-700"
+            ? "border-ok/30 bg-ok/10 text-ok"
+            : "border-gold/30 bg-gold/10 text-gold"
         }`}
       >
         {isReal
@@ -52,16 +52,16 @@ export function EntityList({
           : "وضع تجريبي: سجّل الدخول بعد ربط Supabase لعرض بياناتك الحقيقية."}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="overflow-hidden rounded-2xl border border-line bg-card">
         {rows.length === 0 ? (
-          <div className="p-12 text-center text-sm text-slate-400">
+          <div className="p-12 text-center text-sm text-mut">
             لا توجد سجلات بعد.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-right text-slate-500">
+                <tr className="border-b border-line bg-card2 text-right text-mut">
                   {columns.map((c) => (
                     <th key={c.key} className="px-4 py-3 font-bold">
                       {c.label}
@@ -71,9 +71,9 @@ export function EntityList({
               </thead>
               <tbody>
                 {rows.map((r, i) => (
-                  <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                  <tr key={i} className="border-b border-line last:border-0 hover:bg-card2">
                     {columns.map((c) => (
-                      <td key={c.key} className="px-4 py-3 text-slate-700">
+                      <td key={c.key} className="px-4 py-3 text-fg">
                         {r[c.key] ?? "—"}
                       </td>
                     ))}
@@ -91,11 +91,11 @@ export function EntityList({
 /** شارة حالة ملوّنة */
 export function StatusBadge({ children, tone }: { children: ReactNode; tone: "green" | "amber" | "rose" | "slate" | "brand" }) {
   const map = {
-    green: "bg-emerald-50 text-emerald-700",
-    amber: "bg-amber-50 text-amber-700",
-    rose: "bg-rose-50 text-rose-700",
-    slate: "bg-slate-100 text-slate-600",
-    brand: "bg-brand-50 text-brand-700",
+    green: "bg-ok/15 text-ok",
+    amber: "bg-gold/15 text-gold",
+    rose: "bg-bad/15 text-bad",
+    slate: "bg-card2 text-mut",
+    brand: "bg-gold/10 text-gold",
   };
   return <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${map[tone]}`}>{children}</span>;
 }

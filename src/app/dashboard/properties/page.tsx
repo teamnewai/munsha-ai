@@ -22,7 +22,7 @@ export default async function Page() {
       ]}
       rows={rows.map((p) => ({
         ref: p.ref_code,
-        name: <span className="font-medium text-slate-900">{p.name}</span>,
+        name: <span className="font-medium text-fg">{p.name}</span>,
         city: p.city,
         district: p.district,
         addr: p.national_address,

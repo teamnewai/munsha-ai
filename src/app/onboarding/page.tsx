@@ -61,15 +61,15 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[var(--background)]">
       {/* الترويسة */}
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-line bg-card">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 font-extrabold text-white">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gold font-extrabold text-golddark">
               مُ
             </span>
-            <span className="text-lg font-extrabold text-brand-900">مُلكي</span>
+            <span className="text-lg font-extrabold text-fg">مُلكي</span>
           </Link>
-          <span className="text-sm text-slate-500">فتح المكتب</span>
+          <span className="text-sm text-mut">فتح المكتب</span>
         </div>
       </header>
 
@@ -84,15 +84,15 @@ export default function OnboardingPage() {
             <li key={s.n} className="flex items-center gap-2">
               <div
                 className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ${
-                  step >= s.n ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-500"
+                  step >= s.n ? "bg-gold text-golddark" : "bg-card2 text-mut"
                 }`}
               >
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-xs">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-card/20 text-xs">
                   {s.n}
                 </span>
                 {s.t}
               </div>
-              {i < 2 && <span className="h-px w-6 bg-slate-300" />}
+              {i < 2 && <span className="h-px w-6 bg-card2" />}
             </li>
           ))}
         </ol>
@@ -179,9 +179,9 @@ export default function OnboardingPage() {
                 </select>
               </Field>
               <Field label="وكلاء الذكاء للأدوار غير المموّلة">
-                <label className="flex h-[42px] items-center gap-2 rounded-xl border border-slate-300 px-4">
+                <label className="flex h-[42px] items-center gap-2 rounded-xl border border-line px-4">
                   <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} />
-                  <span className="text-sm text-slate-600">تفعيل (قيد التفعيل)</span>
+                  <span className="text-sm text-mut">تفعيل (قيد التفعيل)</span>
                 </label>
               </Field>
             </div>
@@ -204,32 +204,32 @@ export default function OnboardingPage() {
               <Stat label="الأقسام" value={String(structure.sectionCount)} />
               <Stat label="المناصب" value={String(structure.roleCount)} />
             </div>
-            <p className="mt-3 text-sm text-slate-500">
+            <p className="mt-3 text-sm text-mut">
               {structure.scaleLabel} · النموذج: {structure.model} · رقم الإصدار:{" "}
-              <span className="font-mono font-bold text-brand-700">{structure.version}</span>
+              <span className="font-mono font-bold text-gold">{structure.version}</span>
             </p>
 
             <div className="mt-6 space-y-3">
               {structure.departments.map((d) => (
-                <div key={d.key} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div key={d.key} className="rounded-xl border border-line bg-card p-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-slate-800">
+                    <div className="flex items-center gap-2 font-bold text-fg">
                       <span>{d.icon}</span>
                       {d.name}
                       {d.isCore && (
-                        <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                        <span className="rounded-full bg-gold/10 px-2 py-0.5 text-xs font-medium text-gold">
                           أساسي
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-slate-400">{d.sections.length} أقسام</span>
+                    <span className="text-xs text-mut">{d.sections.length} أقسام</span>
                   </div>
                   {d.sections.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {d.sections.map((s) => (
                         <span
                           key={s.name}
-                          className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600"
+                          className="rounded-full bg-card2 px-2.5 py-0.5 text-xs text-mut"
                         >
                           {s.name}
                         </span>
@@ -255,27 +255,27 @@ export default function OnboardingPage() {
 
 /* ── عناصر مساعدة ── */
 const inputCls =
-  "w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200";
+  "w-full rounded-xl border border-line px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
 
 function Card({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">{children}</div>;
+  return <div className="rounded-3xl border border-line bg-card p-6 sm:p-8">{children}</div>;
 }
 function H({ children }: { children: React.ReactNode }) {
-  return <h1 className="text-xl font-extrabold text-slate-900">{children}</h1>;
+  return <h1 className="text-xl font-extrabold text-fg">{children}</h1>;
 }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-fg">{label}</label>
       {children}
     </div>
   );
 }
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-brand-50 p-3 text-center">
-      <div className="text-xl font-extrabold text-brand-700">{value}</div>
-      <div className="text-xs text-slate-500">{label}</div>
+    <div className="rounded-xl bg-gold/10 p-3 text-center">
+      <div className="text-xl font-extrabold text-gold">{value}</div>
+      <div className="text-xs text-mut">{label}</div>
     </div>
   );
 }
@@ -298,7 +298,7 @@ function Choice({
     <button
       onClick={onClick}
       className={`relative rounded-2xl border p-5 text-right transition-colors ${
-        active ? "border-brand-500 bg-brand-50 ring-2 ring-brand-300" : "border-slate-200 hover:bg-slate-50"
+        active ? "border-brand-500 bg-gold/10 ring-2 ring-brand-300" : "border-line hover:bg-card2"
       }`}
     >
       {badge && (
@@ -307,8 +307,8 @@ function Choice({
         </span>
       )}
       <div className="text-3xl">{icon}</div>
-      <div className="mt-3 font-bold text-slate-900">{title}</div>
-      <p className="mt-1 text-sm leading-relaxed text-slate-600">{desc}</p>
+      <div className="mt-3 font-bold text-fg">{title}</div>
+      <p className="mt-1 text-sm leading-relaxed text-mut">{desc}</p>
     </button>
   );
 }

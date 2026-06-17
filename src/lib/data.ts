@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   OrgDepartment,
   DeptMember,
+  Party,
   Property,
   Unit,
   Contract,
@@ -177,6 +178,28 @@ export async function getTeam(): Promise<ListResult<DeptMember>> {
   if (!ctx) return { isReal: false, rows: DEMO_TEAM };
   const { data } = await ctx.supabase.from("dept_members").select("id, org_id, dept_key, full_name, job_title, present, status, section, avatar_url").eq("org_id", ctx.orgId).limit(200);
   return { isReal: true, rows: (data as DeptMember[]) ?? [] };
+}
+
+const DEMO_TENANTS: Party[] = [
+  { id: "1", org_id: "", party_type: "tenant", full_name: "عبدالله الشهري", national_id: "1•••••234", phone: "05••••1234", created_at: "" },
+  { id: "2", org_id: "", party_type: "tenant", full_name: "منيرة القرني", national_id: "1•••••567", phone: "05••••5678", created_at: "" },
+];
+const DEMO_OWNERS: Party[] = [
+  { id: "1", org_id: "", party_type: "owner", full_name: "شركة العليا العقارية", national_id: "7•••••001", phone: "05••••9000", created_at: "" },
+  { id: "2", org_id: "", party_type: "owner", full_name: "فهد المطيري", national_id: "1•••••890", phone: "05••••3344", created_at: "" },
+];
+
+export async function getParties(type: "owner" | "tenant"): Promise<ListResult<Party>> {
+  const ctx = await resolveOrg();
+  if (!ctx) return { isReal: false, rows: type === "owner" ? DEMO_OWNERS : DEMO_TENANTS };
+  const { data } = await ctx.supabase
+    .from("parties")
+    .select("id, org_id, party_type, national_id, full_name, phone, created_at")
+    .eq("org_id", ctx.orgId)
+    .eq("party_type", type)
+    .order("created_at", { ascending: false })
+    .limit(500);
+  return { isReal: true, rows: (data as Party[]) ?? [] };
 }
 
 const DEMO_MAINTENANCE: MaintenanceRequest[] = [

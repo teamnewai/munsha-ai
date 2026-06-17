@@ -1,15 +1,29 @@
 import type { Metadata } from "next";
-import { ModulePlaceholder } from "@/components/dashboard/ModulePlaceholder";
+import { getParties } from "@/lib/data";
+import { EntityList } from "@/components/dashboard/EntityList";
+import { AddParty } from "@/components/dashboard/AddParty";
 
 export const metadata: Metadata = { title: "المستأجرون" };
 
-export default function Page() {
+export default async function Page() {
+  const { isReal, rows } = await getParties("tenant");
   return (
-    <ModulePlaceholder
+    <EntityList
       icon="🧑"
       title="المستأجرون"
-      description="سجلات المستأجرين وبيانات التواصل والعقود المرتبطة."
-      features={["بيانات المستأجرين", "ربط بالعقود", "بوابة خدمة ذاتية", "تقييم ائتماني"]}
+      description="سجلات المستأجرين وبيانات التواصل."
+      isReal={isReal}
+      action={<AddParty partyType="tenant" />}
+      columns={[
+        { key: "name", label: "الاسم" },
+        { key: "nid", label: "الهوية / السجل" },
+        { key: "phone", label: "الجوال" },
+      ]}
+      rows={rows.map((p) => ({
+        name: <span className="font-medium text-fg">{p.full_name}</span>,
+        nid: p.national_id,
+        phone: p.phone,
+      }))}
     />
   );
 }

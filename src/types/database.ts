@@ -54,6 +54,16 @@ export interface DeptMember {
   avatar_url: string | null;
 }
 
+export interface Party {
+  id: string;
+  org_id: string;
+  party_type: "owner" | "tenant";
+  national_id: string | null;
+  full_name: string | null;
+  phone: string | null;
+  created_at: string | null;
+}
+
 export interface Property {
   id: string;
   org_id: string;

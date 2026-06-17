@@ -253,6 +253,54 @@ export const DEMO_FINANCE: FinanceData = {
   ],
 };
 
+/* ============================ اتحاد الملاك (HOA) ============================ */
+export interface CommunityData {
+  isReal: boolean;
+  communities: { name: string; units: number }[];
+  feesCollected: number;
+  feesOutstanding: number;
+  feesCount: number;
+}
+
+export const DEMO_COMMUNITY: CommunityData = {
+  isReal: false,
+  communities: [
+    { name: "اتحاد ملاك برج العليا", units: 24 },
+    { name: "اتحاد مجمع النخيل", units: 16 },
+  ],
+  feesCollected: 84000,
+  feesOutstanding: 21000,
+  feesCount: 40,
+};
+
+export async function getCommunityData(): Promise<CommunityData> {
+  const ctx = await resolveOrg();
+  if (!ctx) return DEMO_COMMUNITY;
+  const { supabase, orgId } = ctx;
+
+  const [comm, fees] = await Promise.all([
+    supabase.from("communities").select("id, name").eq("org_id", orgId).limit(200),
+    supabase.from("hoa_fees").select("amount, status, community_id").eq("org_id", orgId).limit(2000),
+  ]);
+
+  const feeRows = (fees.data as { amount: number | null; status: string | null; community_id: string | null }[]) ?? [];
+  const collected = sum(feeRows.filter((f) => (f.status ?? "").toLowerCase() === "paid"));
+  const outstanding = sum(feeRows.filter((f) => (f.status ?? "").toLowerCase() !== "paid"));
+
+  const communities = ((comm.data as { id: string; name: string }[]) ?? []).map((c) => ({
+    name: c.name,
+    units: feeRows.filter((f) => f.community_id === c.id).length,
+  }));
+
+  return {
+    isReal: true,
+    communities,
+    feesCollected: collected,
+    feesOutstanding: outstanding,
+    feesCount: feeRows.length,
+  };
+}
+
 export async function getFinance(): Promise<FinanceData> {
   const ctx = await resolveOrg();
   if (!ctx) return DEMO_FINANCE;

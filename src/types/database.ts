@@ -154,3 +154,21 @@ export interface LedgerEntry {
   vat_amount: number | null;
   occurred_on: string | null;
 }
+
+export interface Community {
+  id: string;
+  org_id: string;
+  property_id: string | null;
+  name: string;
+  created_at: string;
+}
+
+export interface HoaFee {
+  id: string;
+  org_id: string;
+  community_id: string | null;
+  unit_id: string | null;
+  amount: number | null;
+  due_date: string | null;
+  status: string | null;
+}

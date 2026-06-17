@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getMaintenance } from "@/lib/data";
 import { EntityList, StatusBadge } from "@/components/dashboard/EntityList";
+import { AddMaintenance } from "@/components/dashboard/AddMaintenance";
 import { fmtFromSAR } from "@/lib/money";
 
 export const metadata: Metadata = { title: "الصيانة" };
@@ -13,7 +14,7 @@ export default async function Page() {
       title="الصيانة"
       description="طلبات الصيانة مع التكلفة التقديرية ومستوى الموافقة (تلقائي ≤500 · مدير ≤2000 · مالك >2000)."
       isReal={isReal}
-      addLabel="طلب صيانة"
+      action={<AddMaintenance />}
       columns={[
         { key: "title", label: "الطلب" },
         { key: "cost", label: "التكلفة التقديرية" },

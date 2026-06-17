@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ACTIVITY_CATALOG, CITIES_BY_COUNTRY } from "@/lib/activities";
 import { generateStructure, type GeneratedStructure } from "@/lib/orgGenerator";
 import { Button } from "@/components/ui/Button";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const COUNTRIES: { code: string; name: string }[] = [
   { code: "SA", name: "السعودية" },
@@ -14,6 +15,16 @@ const COUNTRIES: { code: string; name: string }[] = [
   { code: "BH", name: "البحرين" },
   { code: "QA", name: "قطر" },
   { code: "OM", name: "عُمان" },
+];
+
+const CLIENT_TYPES: { v: string; l: string }[] = [
+  { v: "company", l: "شركة" },
+  { v: "office", l: "مكتب" },
+  { v: "owner", l: "مالك" },
+  { v: "provider", l: "مزوّد خدمة" },
+  { v: "marketer", l: "مسوّق" },
+  { v: "community", l: "اتحاد ملاك" },
+  { v: "serviced", l: "شقق مخدومة" },
 ];
 
 export default function OnboardingPage() {
@@ -28,9 +39,11 @@ export default function OnboardingPage() {
   const [employees, setEmployees] = useState(20);
   const [country, setCountry] = useState("SA");
   const [city, setCity] = useState(CITIES_BY_COUNTRY["SA"][0]);
+  const [clientType, setClientType] = useState("company");
   const [enableAI, setEnableAI] = useState(true);
   // الخطوة 3
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const structure: GeneratedStructure | null = useMemo(
     () => (step >= 3 ? generateStructure(activity, employees) : null),
@@ -40,12 +53,32 @@ export default function OnboardingPage() {
   const cities = CITIES_BY_COUNTRY[country] ?? [];
 
   async function finish() {
+    setErr(null);
     setSaving(true);
-    // ملاحظة أمان: لا نكتب إلى قاعدة البيانات الحقيقية من هذا المعالج حالياً
-    // لتفادي إنشاء منشآت تجريبية في الإنتاج. الإنشاء الحقيقي يتم لاحقاً عبر مسارٍ
-    // مخصّص مطابق للمخطّط الفعلي (organizations: client_type, country, city...).
-    // المعاينة تُحفظ محلياً فقط (sessionStorage).
-    // حفظ النتيجة محلياً لعرضها في صفحة الهيكل (مفيد في الوضع التجريبي)
+
+    // إنشاء منشأة حقيقية عبر دالة onboard_org (SECURITY DEFINER) — تنشئ المنشأة + العضوية.
+    if (isSupabaseConfigured()) {
+      const supabase = createClient()!;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase.rpc("onboard_org", {
+          p_name: name.trim(),
+          p_client_type: clientType,
+          p_country: country,
+          p_region: null,
+          p_city: city || null,
+        });
+        if (error) {
+          setSaving(false);
+          setErr("تعذّر إنشاء المنشأة: " + error.message);
+          return;
+        }
+      }
+    }
+
+    // حفظ نتيجة المولّد محلياً لعرضها في صفحة الهيكل
     try {
       sessionStorage.setItem(
         "mulki_structure",
@@ -140,6 +173,15 @@ export default function OnboardingPage() {
                   {ACTIVITY_CATALOG.map((a) => (
                     <option key={a.key} value={a.key}>
                       {a.icon} {a.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="نوع المنشأة">
+                <select value={clientType} onChange={(e) => setClientType(e.target.value)} className={inputCls}>
+                  {CLIENT_TYPES.map((c) => (
+                    <option key={c.v} value={c.v}>
+                      {c.l}
                     </option>
                   ))}
                 </select>
@@ -239,6 +281,8 @@ export default function OnboardingPage() {
                 </div>
               ))}
             </div>
+
+            {err && <p className="mt-4 text-sm text-bad">{err}</p>}
 
             <Nav
               onBack={() => setStep(2)}

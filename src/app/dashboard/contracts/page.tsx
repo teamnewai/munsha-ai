@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getContracts } from "@/lib/data";
 import { EntityList, StatusBadge } from "@/components/dashboard/EntityList";
+import { AddContract } from "@/components/dashboard/AddContract";
 import { fmtFromSAR } from "@/lib/money";
 
 export const metadata: Metadata = { title: "العقود" };
@@ -13,7 +14,7 @@ export default async function Page() {
       title="العقود"
       description="عقود الإيجار مع الإيجار السنوي وتواريخ البداية والنهاية."
       isReal={isReal}
-      addLabel="عقد جديد"
+      action={<AddContract />}
       columns={[
         { key: "rent", label: "الإيجار السنوي" },
         { key: "period", label: "الفترة" },

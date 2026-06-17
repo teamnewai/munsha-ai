@@ -41,6 +41,7 @@
 | 13 | [ECOSYSTEM_STRATEGY](./13_ECOSYSTEM_STRATEGY/README.md) | اقتصاد المنصّة · API · المطوّرون · المتاجر · الشركاء · النظام البيئي | 🔵 رؤية بعيدة المدى (بعد آلاف العملاء) |
 | 14 | [AUTONOMOUS_ENTERPRISE](./14_AUTONOMOUS_ENTERPRISE/README.md) | التشغيل الذاتي · Decision/Predictive · Digital Twin · رؤى 2035/2040 | 🔵 رؤية أفقٍ بعيد (بوصلة اتجاه) |
 | 15 | [GLOBAL_DIGITAL_ECONOMY](./15_GLOBAL_DIGITAL_ECONOMY/README.md) | الهوية/الثقة العالمية · التجارة عبر الحدود · أثر الشبكة · رؤية 2050 | 🔵 رؤية أفقٍ بعيد جداً (نجمة الشمال) |
+| 16 | [DIGITAL_NATION](./16_DIGITAL_NATION/README.md) | الطبقة الحكومية · الهوية الوطنية · السحابة السيادية · رؤية 2060 | 🔵 رؤية وطنية بعيدة جداً (بنية عامة) |
 
 ---
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTeam } from "@/lib/data";
 import { EntityList, StatusBadge } from "@/components/dashboard/EntityList";
+import { AddTeamMember } from "@/components/dashboard/AddTeamMember";
 
 export const metadata: Metadata = { title: "الفريق" };
 
@@ -12,7 +13,7 @@ export default async function Page() {
       title="الفريق"
       description="أعضاء الفريق وأقسامهم ومناصبهم وحالاتهم."
       isReal={isReal}
-      addLabel="دعوة عضو"
+      action={<AddTeamMember />}
       columns={[
         { key: "name", label: "الاسم" },
         { key: "job", label: "المنصب" },

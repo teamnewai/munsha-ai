@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { checkLimit } from "@/lib/planClient";
 
 // مُلكي — إضافة عقار حقيقي (CRUD — أول عملية كتابة)
 // تكتب في قاعدة البيانات الحقيقية ضمن منشأة المستخدم (RLS تضمن العزل).
@@ -50,6 +51,13 @@ export function AddProperty() {
     if (!m?.org_id) {
       setSaving(false);
       setErr("لا توجد منشأة مرتبطة بحسابك.");
+      return;
+    }
+    // فرض حدّ الباقة (المرحلة 13)
+    const limitMsg = await checkLimit(m.org_id, "properties");
+    if (limitMsg) {
+      setSaving(false);
+      setErr(limitMsg);
       return;
     }
     const { error } = await supabase.from("properties").insert({

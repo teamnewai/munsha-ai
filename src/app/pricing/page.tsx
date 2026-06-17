@@ -2,39 +2,18 @@ import type { Metadata } from "next";
 import { PublicNav } from "@/components/marketing/PublicNav";
 import { PublicFooter } from "@/components/marketing/PublicFooter";
 import { ButtonLink } from "@/components/ui/Button";
+import { PLANS, fmtLimit } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "الأسعار" };
 
-const TIERS = [
-  {
-    key: "growth",
-    name: "النمو",
-    price: 50,
-    highlight: false,
-    features: ["إدارة العقارات والوحدات", "العقود والفواتير", "طلبات الصيانة", "حتى 12 وحدة"],
-  },
-  {
-    key: "professional",
-    name: "الاحترافية",
-    price: 150,
-    highlight: true,
-    features: ["كل مزايا النمو", "السكرتيرة الذكية «نور»", "التقارير الذكية", "اتحاد الملاك (HOA)"],
-  },
-  {
-    key: "business",
-    name: "الأعمال",
-    price: 300,
-    highlight: false,
-    features: ["كل مزايا الاحترافية", "تحليلات متقدمة", "نظام التشغيل MULKI OS", "إدارة الفريق والصلاحيات"],
-  },
-  {
-    key: "enterprise",
-    name: "المؤسسات",
-    price: 500,
-    highlight: false,
-    features: ["كل مزايا الأعمال", "علامة تجارية خاصة (White-label)", "دعم ذو أولوية", "تعدد الشركات"],
-  },
-];
+const TIERS = PLANS.map((p) => ({
+  key: p.key,
+  name: p.name,
+  price: p.price,
+  highlight: Boolean(p.highlight),
+  limits: p.limits,
+  features: p.features,
+}));
 
 export default function PricingPage() {
   return (
@@ -49,7 +28,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-4">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
           {TIERS.map((t) => (
             <div
               key={t.key}
@@ -66,8 +45,19 @@ export default function PricingPage() {
               )}
               <h3 className="text-lg font-bold text-fg">{t.name}</h3>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-brand-950">{t.price}</span>
-                <span className="text-mut">ر.س / شهرياً</span>
+                {t.price === null ? (
+                  <span className="text-3xl font-extrabold text-brand-950">مخصّص</span>
+                ) : t.price === 0 ? (
+                  <span className="text-3xl font-extrabold text-brand-950">مجاناً</span>
+                ) : (
+                  <>
+                    <span className="text-4xl font-extrabold text-brand-950">{t.price}</span>
+                    <span className="text-mut">ر.س / شهرياً</span>
+                  </>
+                )}
+              </div>
+              <div className="mt-1 text-xs text-mut">
+                👤 {fmtLimit(t.limits.users)} مستخدم · 🏢 {fmtLimit(t.limits.properties)} عقار
               </div>
               <ul className="mt-6 flex-1 space-y-3">
                 {t.features.map((f) => (

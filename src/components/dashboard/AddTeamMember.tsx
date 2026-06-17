@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { checkLimit } from "@/lib/planClient";
 
 // مُلكي إدراك — إضافة عضو فريق حقيقي (CRUD)
 // تكتب في dept_members ضمن منشأة المستخدم (RLS تضمن العزل).
@@ -97,6 +98,13 @@ export function AddTeamMember() {
     if (!m?.org_id) {
       setSaving(false);
       setErr("لا توجد منشأة مرتبطة بحسابك.");
+      return;
+    }
+    // فرض حدّ الباقة (المرحلة 13)
+    const limitMsg = await checkLimit(m.org_id, "users");
+    if (limitMsg) {
+      setSaving(false);
+      setErr(limitMsg);
       return;
     }
     const { error } = await supabase.from("dept_members").insert({

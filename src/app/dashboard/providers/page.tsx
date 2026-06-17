@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getProviders } from "@/lib/data";
 import { EntityList, StatusBadge } from "@/components/dashboard/EntityList";
+import { maskPhone } from "@/lib/security";
 
 export const metadata: Metadata = { title: "مزودو الخدمات" };
 
@@ -22,7 +23,7 @@ export default async function Page() {
       rows={rows.map((p) => ({
         name: <span className="font-medium text-fg">{p.name}</span>,
         category: p.category,
-        phone: p.phone,
+        phone: maskPhone(p.phone),
         score: p.composite_score != null
           ? <StatusBadge tone={p.composite_score >= 4 ? "green" : p.composite_score >= 3 ? "amber" : "rose"}>★ {Number(p.composite_score).toFixed(1)}</StatusBadge>
           : "—",

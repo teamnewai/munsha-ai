@@ -4,13 +4,15 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { safeRedirect } from "@/lib/security";
 import { Button } from "@/components/ui/Button";
 
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
   const signup = params.get("mode") === "signup";
-  const redirect = params.get("redirect") || "/dashboard";
+  // أمان: منع إعادة التوجيه المفتوح — مسارات داخلية فقط
+  const redirect = safeRedirect(params.get("redirect"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignOutButton } from "@/components/dashboard/SignOutButton";
 
 export function Topbar() {
   return (
@@ -29,6 +30,7 @@ export function Topbar() {
           </div>
           <span className="text-sm font-medium text-fg">حسابي</span>
         </div>
+        <SignOutButton />
       </div>
     </header>
   );

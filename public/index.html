@@ -158,6 +158,49 @@ nav{background:rgba(11,17,32,0.97);border-bottom:1px solid rgba(255,255,255,0.07
 
 /* FOOTER */
 footer{border-top:1px solid rgba(255,255,255,0.05);padding:28px 24px;text-align:center;color:#1e293b;font-size:12px}
+
+/* SALARY */
+.salary-table{width:100%;border-collapse:collapse;font-size:12px}
+.salary-table th{background:rgba(52,211,153,0.1);padding:9px 11px;text-align:right;color:#34d399;font-weight:700;border:1px solid rgba(255,255,255,0.06)}
+.salary-table td{padding:9px 11px;border:1px solid rgba(255,255,255,0.05);color:#94a3b8;vertical-align:top}
+.salary-range{font-weight:700;color:#34d399}
+.salary-total{background:rgba(59,130,246,0.06);border-top:2px solid rgba(59,130,246,0.2);font-weight:800;color:#60a5fa}
+
+/* FEASIBILITY */
+.feasibility-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.feasibility-stat{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;text-align:center}
+.feasibility-stat-val{font-size:1.4rem;font-weight:900;color:#3b82f6;margin-bottom:4px}
+.feasibility-stat-lbl{font-size:11px;color:#475569}
+.cost-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px}
+.cost-row:last-child{border:none}
+.cost-name{color:#94a3b8}
+.cost-val{color:#60a5fa;font-weight:700}
+.revenue-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:9px;margin-bottom:8px;font-size:12px}
+.risk-item{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:8px;padding:10px 13px;color:#fca5a5;font-size:13px;margin-bottom:7px}
+.rec-item{background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.15);border-radius:8px;padding:10px 13px;color:#34d399;font-size:13px;margin-bottom:7px}
+
+/* PDF EXPORT */
+.btn-pdf{background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;border-radius:9px;padding:8px 16px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;display:flex;align-items:center;gap:5px}
+.btn-pdf:hover{opacity:0.9}
+
+@media print{
+  body{background:#fff!important;color:#000!important;direction:rtl}
+  nav,#pgLoad,#pgDash,#pgLand,.result-nav,.tabs,.btn-pdf,.btn-nav-ghost,.btn-blue,#saveBtn,#authModal{display:none!important}
+  #pgResult{display:block!important}
+  .result-content{max-width:100%;padding:0}
+  .result-card{background:#fff!important;border:1px solid #ddd!important;border-radius:8px;page-break-inside:avoid;margin-bottom:12px}
+  .result-card h3{color:#000!important}
+  .org-node{background:#f0f4ff!important;border:1px solid #3b82f6!important}
+  .org-title{color:#1d4ed8!important}
+  .dept-card{background:#f8f9fa!important;border:1px solid #ddd!important}
+  .matrix-table th{background:#f0f4ff!important;color:#1d4ed8!important}
+  .salary-table th{background:#f0fdf4!important;color:#166534!important}
+  .print-header{display:block!important;text-align:center;padding:20px 0;border-bottom:2px solid #3b82f6;margin-bottom:20px}
+  .print-header h1{font-size:1.5rem;color:#1d4ed8;font-family:'Cairo',sans-serif}
+  .print-header p{color:#475569;font-size:12px}
+  .hidden{display:none!important}
+}
+.print-header{display:none}
 </style>
 </head>
 <body>
@@ -589,9 +632,14 @@ footer{border-top:1px solid rgba(255,255,255,0.05);padding:28px 24px;text-align:
 
 <!-- ═══ RESULT ═══ -->
 <div id="pgResult" class="hidden">
+  <div class="print-header" id="printHeader">
+    <h1>منشأتك AI — تقرير المنشأة</h1>
+    <p id="printSubtitle"></p>
+  </div>
   <div class="result-nav">
     <div class="nav-logo">منشأتك <span>AI</span></div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-pdf" onclick="exportPDF()">⬇️ تصدير PDF</button>
       <button class="btn-blue" onclick="openDash()" id="saveBtn" style="display:none">💾 منشآتي</button>
       <button class="btn-nav-ghost" onclick="showPage('pgLand')">← تقرير جديد</button>
     </div>
@@ -898,8 +946,8 @@ async function doGenerate() {
 
   showPage('pgLoad');
 
-  const prompt = `أنت خبير في التصميم التنظيمي والموارد البشرية في منطقة الخليج العربي.
-بناء على المعطيات التالية أنشئ هيكلاً تنظيمياً متكاملاً:
+  const prompt = `أنت خبير في التصميم التنظيمي والموارد البشرية ودراسات الجدوى في منطقة الخليج العربي.
+بناء على المعطيات التالية أنشئ تقريراً متكاملاً:
 - النشاط الرئيسي: ${activity}
 - النشاط الفرعي: ${sub || 'غير محدد'}
 - الموقع: ${location}
@@ -907,16 +955,27 @@ async function doGenerate() {
 - إجمالي الموظفين: ${totalEmp || 'غير محدد'} (إداريون: ${admin||0}، تشغيليون: ${ops||0})
 - مرحلة المشروع: ${selectedStage}
 
-أجب فقط بـ JSON صالح بهذا الهيكل بالضبط (بدون markdown):
+أجب فقط بـ JSON صالح بهذا الهيكل بالضبط (بدون markdown أو backticks):
 {
-  "summary": {"companyName": "اسم مقترح", "sector": "${activity}", "location": "${location}", "stage": "${selectedStage}", "totalEmployees": ${totalEmp||0}},
-  "orgChart": [{"level": 1, "title": "المدير العام", "reports": 3, "description": "الإشراف العام"}],
-  "departments": [{"name": "اسم القسم", "manager": "مسمى المدير", "headcount": 5, "roles": ["دور1","دور2"], "responsibilities": "مسؤوليات القسم"}],
-  "jobDescriptions": [{"title": "المسمى الوظيفي", "department": "القسم", "level": "أول/ثانٍ/ثالث", "duties": ["مهمة1","مهمة2"], "qualifications": "المؤهلات المطلوبة"}],
+  "summary": {"companyName": "اسم مقترح واقعي", "sector": "${activity}", "location": "${location}", "stage": "${selectedStage}", "totalEmployees": ${totalEmp||0}, "entityType": "${entity||'شركة'}"},
+  "orgChart": [{"level": 1, "title": "المدير العام", "reports": 3, "description": "الإشراف الكامل على المنشأة"}],
+  "departments": [{"name": "اسم القسم", "manager": "مسمى المدير", "headcount": 5, "roles": ["دور1","دور2","دور3"], "responsibilities": "وصف تفصيلي لمسؤوليات القسم"}],
+  "jobDescriptions": [{"title": "المسمى الوظيفي", "department": "القسم", "level": "تنفيذي/إشرافي/إداري", "duties": ["مهمة1","مهمة2","مهمة3"], "qualifications": "المؤهلات والخبرات المطلوبة"}],
+  "salaryEstimations": [{"title": "المسمى الوظيفي", "department": "القسم", "level": "تنفيذي/إشرافي/إداري", "minSalary": 5000, "maxSalary": 10000, "benefits": ["بدل سكن", "بدل نقل"], "saudiizationTarget": "30%"}],
   "authorityMatrix": [{"role": "المدير العام", "approve": true, "recommend": false, "execute": false, "review": true}],
-  "policies": [{"title": "عنوان السياسة", "category": "HR/تشغيل/مالية", "content": "نص السياسة"}],
-  "kpis": [{"department": "القسم", "indicator": "اسم المؤشر", "target": "الهدف", "frequency": "شهري/ربعي"}],
-  "governance": {"boardStructure": "وصف مجلس الإدارة", "committees": ["لجنة1","لجنة2"], "auditPolicy": "سياسة التدقيق", "riskFramework": "إطار إدارة المخاطر"}
+  "policies": [{"title": "عنوان السياسة", "category": "HR/تشغيل/مالية", "content": "نص السياسة التفصيلي"}],
+  "kpis": [{"department": "القسم", "indicator": "اسم المؤشر", "target": "الهدف المقيس", "frequency": "شهري/ربعي/سنوي"}],
+  "governance": {"boardStructure": "وصف هيكل مجلس الإدارة", "committees": ["لجنة التدقيق","لجنة المخاطر"], "auditPolicy": "سياسة التدقيق الداخلي", "riskFramework": "إطار إدارة المخاطر"},
+  "feasibilityStudy": {
+    "capitalRequired": 500000,
+    "setupCosts": [{"item": "بند التكلفة", "amount": 100000}],
+    "monthlyOperatingCosts": [{"item": "بند التكلفة الشهرية", "amount": 50000}],
+    "revenueProjections": [{"year": "السنة الأولى", "revenue": 600000, "profit": 60000}, {"year": "السنة الثانية", "revenue": 900000, "profit": 150000}, {"year": "السنة الثالثة", "revenue": 1200000, "profit": 280000}],
+    "breakEvenMonths": 18,
+    "roi3Year": "45%",
+    "risks": ["خطر تشغيلي 1", "خطر تنافسي 2"],
+    "recommendations": ["توصية استراتيجية 1", "توصية تشغيلية 2"]
+  }
 }`;
 
   try {
@@ -948,10 +1007,12 @@ const TABS = [
   {id:'orgChart',label:'🏛️ الهيكل'},
   {id:'departments',label:'🏢 الأقسام'},
   {id:'jobDescriptions',label:'👤 الوظائف'},
+  {id:'salaryEstimations',label:'💰 الرواتب'},
   {id:'authorityMatrix',label:'🔐 الصلاحيات'},
   {id:'policies',label:'📋 السياسات'},
   {id:'kpis',label:'📈 KPI'},
-  {id:'governance',label:'⚖️ الحوكمة'}
+  {id:'governance',label:'⚖️ الحوكمة'},
+  {id:'feasibilityStudy',label:'📑 الجدوى'}
 ];
 
 let activeTab = 'summary';
@@ -961,6 +1022,10 @@ function renderResult(data) {
   tabsRow.innerHTML = TABS.map(t =>
     `<button class="tab ${t.id===activeTab?'active':''}" onclick="switchTab('${t.id}',this)">${t.label}</button>`
   ).join('');
+  const sub = document.getElementById('printSubtitle');
+  if (sub && data.summary) {
+    sub.textContent = `${data.summary.companyName||''} · ${data.summary.location||''} · ${data.summary.stage||''}`;
+  }
   renderTab(data, activeTab);
 }
 
@@ -1059,9 +1124,114 @@ function renderTab(data, tab) {
     const g = data.governance || {};
     c.innerHTML = `
       <div class="result-card"><h3>هيكل الحوكمة</h3><div class="policy-item">${g.boardStructure||''}</div></div>
-      <div class="result-card"><h3>اللجان</h3>${(g.committees||[]).map(c=>`<div class="policy-item">• ${c}</div>`).join('')}</div>
+      <div class="result-card"><h3>اللجان</h3>${(g.committees||[]).map(cm=>`<div class="policy-item">• ${cm}</div>`).join('')}</div>
       <div class="result-card"><h3>سياسة التدقيق</h3><div class="policy-item">${g.auditPolicy||''}</div></div>
       <div class="result-card"><h3>إدارة المخاطر</h3><div class="policy-item">${g.riskFramework||''}</div></div>`;
+  }
+
+  else if (tab === 'salaryEstimations') {
+    const salaries = data.salaryEstimations || [];
+    const totalMin = salaries.reduce((s,x)=>s+(x.minSalary||0),0);
+    const totalMax = salaries.reduce((s,x)=>s+(x.maxSalary||0),0);
+    const fmt = n => n ? n.toLocaleString('ar-SA') : '—';
+    c.innerHTML = `
+      <div class="result-card">
+        <h3>تقديرات الرواتب الشهرية</h3>
+        <div style="overflow-x:auto">
+        <table class="salary-table">
+          <thead><tr><th>المسمى الوظيفي</th><th>القسم</th><th>المستوى</th><th>الحد الأدنى (ر.س)</th><th>الحد الأعلى (ر.س)</th><th>المزايا</th><th>نسبة السعودة</th></tr></thead>
+          <tbody>
+          ${salaries.map(s=>`<tr>
+            <td style="color:#e2e8f0;font-weight:700">${s.title||''}</td>
+            <td>${s.department||''}</td>
+            <td><span style="background:rgba(59,130,246,0.1);border-radius:5px;padding:2px 8px;font-size:11px;color:#60a5fa">${s.level||''}</span></td>
+            <td class="salary-range">${fmt(s.minSalary)}</td>
+            <td class="salary-range" style="color:#60a5fa">${fmt(s.maxSalary)}</td>
+            <td style="font-size:11px">${(s.benefits||[]).join(' · ')}</td>
+            <td style="color:#34d399;font-weight:700">${s.saudiizationTarget||'—'}</td>
+          </tr>`).join('')}
+          <tr class="salary-total">
+            <td colspan="3">إجمالي الرواتب الشهري</td>
+            <td>${fmt(totalMin)} ر.س</td>
+            <td>${fmt(totalMax)} ر.س</td>
+            <td colspan="2"></td>
+          </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="result-card">
+        <h3>ملاحظات الرواتب</h3>
+        <div class="policy-item">• الأرقام تقديرية بناءً على متوسطات سوق العمل في ${data.summary?.location||'المنطقة'}<br>
+        • تشمل المزايا الإضافية: التأمين الصحي، مكافأة نهاية الخدمة، إجازة سنوية<br>
+        • يُراعى في الرواتب نسب السعودة وفقاً لنظام نطاقات<br>
+        • إجمالي تكلفة الرواتب السنوية: ${fmt(totalMin*12)} — ${fmt(totalMax*12)} ر.س</div>
+      </div>`;
+  }
+
+  else if (tab === 'feasibilityStudy') {
+    const f = data.feasibilityStudy || {};
+    const fmt = n => n ? Number(n).toLocaleString('ar-SA') : '—';
+    const setupTotal = (f.setupCosts||[]).reduce((s,x)=>s+(x.amount||0),0);
+    const opTotal = (f.monthlyOperatingCosts||[]).reduce((s,x)=>s+(x.amount||0),0);
+    c.innerHTML = `
+      <div class="feasibility-grid">
+        <div class="feasibility-stat">
+          <div class="feasibility-stat-val">${fmt(f.capitalRequired)}</div>
+          <div class="feasibility-stat-lbl">رأس المال المطلوب (ر.س)</div>
+        </div>
+        <div class="feasibility-stat">
+          <div class="feasibility-stat-val">${fmt(opTotal)}</div>
+          <div class="feasibility-stat-lbl">التكاليف الشهرية (ر.س)</div>
+        </div>
+        <div class="feasibility-stat">
+          <div class="feasibility-stat-val" style="color:#34d399">${f.breakEvenMonths||'—'}</div>
+          <div class="feasibility-stat-lbl">شهراً للتعادل</div>
+        </div>
+        <div class="feasibility-stat">
+          <div class="feasibility-stat-val" style="color:#f59e0b">${f.roi3Year||'—'}</div>
+          <div class="feasibility-stat-lbl">عائد الاستثمار (3 سنوات)</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="result-card" style="margin:0">
+          <h3>تكاليف التأسيس</h3>
+          ${(f.setupCosts||[]).map(x=>`<div class="cost-row"><span class="cost-name">${x.item}</span><span class="cost-val">${fmt(x.amount)} ر.س</span></div>`).join('')}
+          <div class="cost-row" style="border-top:1px solid rgba(255,255,255,0.1);margin-top:6px;font-weight:800"><span style="color:#e2e8f0">الإجمالي</span><span style="color:#3b82f6;font-weight:900">${fmt(setupTotal)} ر.س</span></div>
+        </div>
+        <div class="result-card" style="margin:0">
+          <h3>التكاليف التشغيلية الشهرية</h3>
+          ${(f.monthlyOperatingCosts||[]).map(x=>`<div class="cost-row"><span class="cost-name">${x.item}</span><span class="cost-val">${fmt(x.amount)} ر.س</span></div>`).join('')}
+          <div class="cost-row" style="border-top:1px solid rgba(255,255,255,0.1);margin-top:6px;font-weight:800"><span style="color:#e2e8f0">الإجمالي</span><span style="color:#3b82f6;font-weight:900">${fmt(opTotal)} ر.س</span></div>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <h3>توقعات الإيرادات والأرباح</h3>
+        <div style="display:grid;grid-template-columns:2fr 2fr 2fr;gap:4px;margin-bottom:8px">
+          <div style="font-size:11px;color:#60a5fa;font-weight:700;padding:8px">السنة</div>
+          <div style="font-size:11px;color:#60a5fa;font-weight:700;padding:8px">الإيرادات (ر.س)</div>
+          <div style="font-size:11px;color:#34d399;font-weight:700;padding:8px">الربح الصافي (ر.س)</div>
+        </div>
+        ${(f.revenueProjections||[]).map(r=>`
+          <div class="revenue-row">
+            <div style="font-weight:700;color:#e2e8f0">${r.year}</div>
+            <div style="color:#60a5fa;font-weight:700">${fmt(r.revenue)}</div>
+            <div style="color:#34d399;font-weight:700">${fmt(r.profit)}</div>
+          </div>`).join('')}
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="result-card" style="margin:0">
+          <h3>🔴 المخاطر المتوقعة</h3>
+          ${(f.risks||[]).map(r=>`<div class="risk-item">⚠️ ${r}</div>`).join('')}
+        </div>
+        <div class="result-card" style="margin:0">
+          <h3>🟢 التوصيات الاستراتيجية</h3>
+          ${(f.recommendations||[]).map(r=>`<div class="rec-item">✅ ${r}</div>`).join('')}
+        </div>
+      </div>`;
   }
 }
 
@@ -1247,6 +1417,92 @@ async function saveCompany(data, fd) {
       body: JSON.stringify({name, data, formData: fd})
     });
   } catch(e) { console.error('Save error:', e); }
+}
+
+// ══════════════════════════════════════════
+//  PDF EXPORT
+// ══════════════════════════════════════════
+function exportPDF() {
+  if (!lastResult) return;
+  const d = lastResult;
+  const fd = lastFormData || {};
+  const fmt = n => n ? Number(n).toLocaleString('ar-SA') : '—';
+
+  const sections = [];
+  const s = d.summary || {};
+  sections.push(`<div class="section"><h2>ملخص المنشأة</h2>
+    <table><tr><td>اسم المنشأة:</td><td><b>${s.companyName||''}</b></td><td>القطاع:</td><td>${s.sector||''}</td></tr>
+    <tr><td>الموقع:</td><td>${s.location||''}</td><td>المرحلة:</td><td>${s.stage||''}</td></tr>
+    <tr><td>إجمالي الموظفين:</td><td>${s.totalEmployees||0}</td><td>نوع الكيان:</td><td>${s.entityType||''}</td></tr></table></div>`);
+
+  if (d.orgChart?.length) sections.push(`<div class="section"><h2>الهيكل التنظيمي</h2>${d.orgChart.map(n=>`<div class="org-row" style="padding-right:${(n.level-1)*20}px"><b>المستوى ${n.level}:</b> ${n.title} — ${n.description}</div>`).join('')}</div>`);
+
+  if (d.departments?.length) sections.push(`<div class="section"><h2>الأقسام والإدارات</h2>${d.departments.map(dep=>`<div class="dept"><b>${dep.name}</b> | المدير: ${dep.manager} | ${dep.headcount} موظف<br><small>${(dep.roles||[]).join(' · ')}</small><br>${dep.responsibilities}</div>`).join('')}</div>`);
+
+  if (d.jobDescriptions?.length) sections.push(`<div class="section"><h2>الأوصاف الوظيفية</h2>${d.jobDescriptions.map(j=>`<div class="dept"><b>${j.title}</b> — ${j.department} (${j.level})<br>المهام: ${(j.duties||[]).join('، ')}<br>المؤهلات: ${j.qualifications}</div>`).join('')}</div>`);
+
+  if (d.salaryEstimations?.length) {
+    const tMin = d.salaryEstimations.reduce((a,x)=>a+(x.minSalary||0),0);
+    const tMax = d.salaryEstimations.reduce((a,x)=>a+(x.maxSalary||0),0);
+    sections.push(`<div class="section"><h2>تقديرات الرواتب</h2><table><thead><tr><th>المسمى</th><th>القسم</th><th>الأدنى (ر.س)</th><th>الأعلى (ر.س)</th><th>المزايا</th></tr></thead><tbody>
+    ${d.salaryEstimations.map(sl=>`<tr><td>${sl.title}</td><td>${sl.department}</td><td>${fmt(sl.minSalary)}</td><td>${fmt(sl.maxSalary)}</td><td>${(sl.benefits||[]).join('، ')}</td></tr>`).join('')}
+    <tr style="font-weight:bold;background:#f0f4ff"><td colspan="2">الإجمالي الشهري</td><td>${fmt(tMin)}</td><td>${fmt(tMax)}</td><td></td></tr></tbody></table></div>`);
+  }
+
+  if (d.feasibilityStudy) {
+    const f = d.feasibilityStudy;
+    const setupTotal = (f.setupCosts||[]).reduce((a,x)=>a+(x.amount||0),0);
+    const opTotal = (f.monthlyOperatingCosts||[]).reduce((a,x)=>a+(x.amount||0),0);
+    sections.push(`<div class="section"><h2>دراسة الجدوى الاقتصادية</h2>
+      <table><tr><td>رأس المال المطلوب:</td><td><b>${fmt(f.capitalRequired)} ر.س</b></td><td>شهور التعادل:</td><td><b>${f.breakEvenMonths}</b></td></tr>
+      <tr><td>التكاليف الشهرية:</td><td><b>${fmt(opTotal)} ر.س</b></td><td>عائد الاستثمار (3 سنوات):</td><td><b>${f.roi3Year}</b></td></tr></table>
+      <h3>تكاليف التأسيس</h3><table><thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead><tbody>
+      ${(f.setupCosts||[]).map(x=>`<tr><td>${x.item}</td><td>${fmt(x.amount)}</td></tr>`).join('')}
+      <tr style="font-weight:bold"><td>الإجمالي</td><td>${fmt(setupTotal)}</td></tr></tbody></table>
+      <h3>التكاليف التشغيلية الشهرية</h3><table><thead><tr><th>البند</th><th>المبلغ (ر.س)</th></tr></thead><tbody>
+      ${(f.monthlyOperatingCosts||[]).map(x=>`<tr><td>${x.item}</td><td>${fmt(x.amount)}</td></tr>`).join('')}
+      <tr style="font-weight:bold"><td>الإجمالي</td><td>${fmt(opTotal)}</td></tr></tbody></table>
+      <h3>توقعات الإيرادات</h3><table><thead><tr><th>السنة</th><th>الإيرادات (ر.س)</th><th>الربح (ر.س)</th></tr></thead><tbody>
+      ${(f.revenueProjections||[]).map(r=>`<tr><td>${r.year}</td><td>${fmt(r.revenue)}</td><td>${fmt(r.profit)}</td></tr>`).join('')}</tbody></table>
+      <h3>المخاطر</h3>${(f.risks||[]).map(r=>`<div>• ${r}</div>`).join('')}
+      <h3>التوصيات</h3>${(f.recommendations||[]).map(r=>`<div>✓ ${r}</div>`).join('')}</div>`);
+  }
+
+  const html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+  <title>تقرير منشأتك AI — ${s.companyName||'المنشأة'}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Cairo',sans-serif;direction:rtl;color:#1a1a2e;background:#fff;font-size:12px;line-height:1.6}
+    .header{text-align:center;padding:20px;border-bottom:3px solid #1d4ed8;margin-bottom:20px}
+    .header h1{font-size:1.6rem;color:#1d4ed8;font-weight:900}
+    .header p{color:#475569;font-size:11px;margin-top:4px}
+    .section{margin-bottom:20px;page-break-inside:avoid}
+    .section h2{font-size:1rem;font-weight:800;color:#1d4ed8;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:10px}
+    .section h3{font-size:0.85rem;font-weight:700;color:#475569;margin:10px 0 6px}
+    table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:11px}
+    th{background:#eff6ff;padding:7px 9px;text-align:right;color:#1d4ed8;font-weight:700;border:1px solid #bfdbfe}
+    td{padding:7px 9px;border:1px solid #e2e8f0;vertical-align:top}
+    .dept{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;margin-bottom:7px}
+    .dept b{color:#1d4ed8}
+    .org-row{padding:5px 0;border-bottom:1px solid #f1f5f9}
+    @media print{body{font-size:11px}.section{page-break-inside:avoid}button{display:none}}
+  </style></head><body>
+  <div class="header">
+    <h1>منشأتك AI — تقرير تنظيمي متكامل</h1>
+    <p>${s.companyName||''} · ${s.location||''} · ${s.stage||''} · تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-SA')}</p>
+  </div>
+  ${sections.join('')}
+  <div style="text-align:center;margin-top:30px;color:#94a3b8;font-size:10px;border-top:1px solid #e2e8f0;padding-top:12px">
+    تم إنشاء هذا التقرير بواسطة منشأتك AI · جميع الأرقام تقديرية للأغراض التخطيطية
+  </div>
+  <script>window.onload=function(){setTimeout(function(){window.print()},600)}<\/script>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { alert('يرجى السماح للنوافذ المنبثقة لتصدير PDF'); return; }
+  w.document.write(html);
+  w.document.close();
 }
 
 // ══════════════════════════════════════════

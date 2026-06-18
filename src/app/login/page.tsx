@@ -21,6 +21,17 @@ function LoginInner() {
 
   const configured = isSupabaseConfigured();
 
+  // رسائل ودّية لأخطاء روابط التفعيل/المصادقة + تأكيد إعادة التعيين
+  const errParam = params.get("error");
+  const banner =
+    errParam === "confirm"
+      ? "تعذّر تأكيد البريد عبر الرابط (قد يكون منتهياً). سجّل الدخول مباشرة أو اطلب رابطاً جديداً."
+      : errParam === "auth"
+      ? "تعذّرت معالجة الرابط (قد يكون منتهياً أو مُستخدماً). حاول تسجيل الدخول."
+      : params.get("reset") === "1"
+      ? "تم تحديث كلمة المرور بنجاح ✓ — سجّل الدخول بكلمتك الجديدة."
+      : null;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMsg(null);
@@ -39,19 +50,29 @@ function LoginInner() {
     }
 
     const { error } = signup
-      ? await supabase.auth.signUp({ email, password })
+      ? await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}` },
+        })
       : await supabase.auth.signInWithPassword({ email, password });
 
-    setLoading(false);
     if (error) {
-      setMsg(error.message);
+      setLoading(false);
+      // ترجمة أكثر الأخطاء شيوعاً للعربية
+      const m = error.message.toLowerCase();
+      if (m.includes("invalid login")) setMsg("البريد أو كلمة المرور غير صحيحة.");
+      else if (m.includes("email not confirmed")) setMsg("لم يُؤكَّد بريدك بعد. تحقّق من بريدك أو اطلب رابطاً جديداً.");
+      else setMsg(error.message);
       return;
     }
     if (signup) {
+      setLoading(false);
       setMsg("تم إنشاء الحساب! تحقق من بريدك لتأكيد التسجيل.");
       return;
     }
-    router.push(redirect);
+    // إعادة تحميل كاملة لضمان التقاط الخادم للجلسة (يمنع حلقة العودة للدخول)
+    window.location.assign(redirect);
   }
 
   return (
@@ -95,8 +116,14 @@ function LoginInner() {
           </p>
 
           {!configured && (
-            <div className="mt-4 rounded-xl border border-gold/30 bg-gold/10 p-3 text-xs text-amber-700">
+            <div className="mt-4 rounded-xl border border-gold/30 bg-gold/10 p-3 text-xs text-gold">
               وضع تجريبي: لم يتم ربط قاعدة البيانات بعد. اضغط الزر للدخول واستعراض المنصة.
+            </div>
+          )}
+
+          {banner && (
+            <div className={`mt-4 rounded-xl border p-3 text-xs ${params.get("reset") === "1" ? "border-ok/30 bg-ok/10 text-ok" : "border-gold/30 bg-gold/10 text-gold"}`}>
+              {banner}
             </div>
           )}
 
@@ -115,7 +142,14 @@ function LoginInner() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-fg">كلمة المرور</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-sm font-medium text-fg">كلمة المرور</label>
+                {!signup && (
+                  <Link href="/forgot" className="text-xs font-bold text-gold hover:underline">
+                    نسيت كلمة المرور؟
+                  </Link>
+                )}
+              </div>
               <input
                 type="password"
                 value={password}

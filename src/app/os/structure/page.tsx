@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { generateStructure, type GeneratedStructure } from "@/lib/orgGenerator";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 interface Saved {
   name: string;
@@ -10,29 +11,101 @@ interface Saved {
   city: string;
   activity: string;
   structure: GeneratedStructure;
+  docNo?: string | null;
+  empCount?: number;
+  source?: "db" | "session" | "demo";
 }
 
 export default function StructurePage() {
   const [data, setData] = useState<Saved | null>(null);
 
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem("mulki_structure");
-      if (raw) {
-        setData(JSON.parse(raw));
-        return;
+    let cancelled = false;
+
+    async function load() {
+      // 1) المصدر الأساسي: المنشأة المثبّتة في القاعدة
+      if (isSupabaseConfigured()) {
+        try {
+          const supabase = createClient()!;
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (user) {
+            const { data: m } = await supabase
+              .from("memberships")
+              .select("org_id")
+              .eq("user_id", user.id)
+              .limit(1)
+              .maybeSingle();
+            if (m?.org_id) {
+              const [{ data: doc }, { count }] = await Promise.all([
+                supabase
+                  .from("org_structure_docs")
+                  .select("input, doc_no")
+                  .eq("org_id", m.org_id)
+                  .order("created_at", { ascending: false })
+                  .limit(1)
+                  .maybeSingle(),
+                supabase
+                  .from("dept_members")
+                  .select("id", { count: "exact", head: true })
+                  .eq("org_id", m.org_id),
+              ]);
+              const input = (doc?.input ?? {}) as {
+                name?: string;
+                country?: string;
+                city?: string;
+                activity?: string;
+                employees?: number;
+              };
+              if (input.activity) {
+                if (cancelled) return;
+                setData({
+                  name: input.name ?? "منشأتي",
+                  country: input.country ?? "SA",
+                  city: input.city ?? "",
+                  activity: input.activity,
+                  structure: generateStructure(input.activity, input.employees ?? 20),
+                  docNo: doc?.doc_no ?? null,
+                  empCount: count ?? 0,
+                  source: "db",
+                });
+                return;
+              }
+            }
+          }
+        } catch {
+          /* تجاهل والانتقال للمصدر التالي */
+        }
       }
-    } catch {
-      /* تجاهل */
+
+      // 2) احتياطي: نتيجة المعالج في الجلسة
+      try {
+        const raw = sessionStorage.getItem("mulki_structure");
+        if (raw && !cancelled) {
+          setData({ ...JSON.parse(raw), source: "session" });
+          return;
+        }
+      } catch {
+        /* تجاهل */
+      }
+
+      // 3) عيّنة افتراضية إن لم يُفتح مكتبٌ بعد
+      if (!cancelled)
+        setData({
+          name: "منشأة تجريبية",
+          country: "SA",
+          city: "الرياض",
+          activity: "realestate",
+          structure: generateStructure("realestate", 20),
+          source: "demo",
+        });
     }
-    // عيّنة افتراضية إن لم يُفتح مكتبٌ بعد
-    setData({
-      name: "منشأة تجريبية",
-      country: "SA",
-      city: "الرياض",
-      activity: "realestate",
-      structure: generateStructure("realestate", 20),
-    });
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -60,16 +133,33 @@ export default function StructurePage() {
         ) : (
           <>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <h1 className="text-2xl font-extrabold">{data.name}</h1>
+              <div className="flex items-center justify-between gap-3">
+                <h1 className="text-2xl font-extrabold">{data.name}</h1>
+                {data.source === "db" && (
+                  <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-bold text-emerald-300">
+                    ✓ منشأة مثبّتة
+                  </span>
+                )}
+                {data.source === "demo" && (
+                  <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-bold text-slate-300">
+                    عيّنة تجريبية
+                  </span>
+                )}
+              </div>
               <p className="mt-1 text-sm text-slate-300">
-                {data.city}، {data.country} · رقم الإصدار:{" "}
-                <span className="font-mono font-bold text-gold-400">{data.structure.version}</span>
+                {data.city}
+                {data.city && data.country ? "، " : ""}
+                {data.country} · رقم الوثيقة:{" "}
+                <span className="font-mono font-bold text-gold-400">
+                  {data.docNo ?? data.structure.version}
+                </span>
               </p>
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
                 <Stat label="فئة الحجم" value={data.structure.scale} />
                 <Stat label="الإدارات" value={String(data.structure.deptCount)} />
                 <Stat label="الأقسام" value={String(data.structure.sectionCount)} />
                 <Stat label="المناصب" value={String(data.structure.roleCount)} />
+                <Stat label="الموظفون" value={String(data.empCount ?? 0)} />
               </div>
               <p className="mt-3 text-sm text-slate-400">النموذج: {data.structure.model}</p>
             </div>

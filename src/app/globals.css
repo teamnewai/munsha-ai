@@ -19,6 +19,17 @@
   --color-warn: oklch(0.82 0.15 75);
   --color-bad: oklch(0.65 0.22 25);
 
+  /* أسماء توكنز shadcn (لاستنساخ صفحات Lovable حرفياً) */
+  --color-background: oklch(0.13 0.03 265);
+  --color-foreground: oklch(0.97 0.01 250);
+  --color-primary: oklch(0.82 0.13 82);
+  --color-primary-foreground: oklch(0.16 0.03 265);
+  --color-muted-foreground: oklch(0.68 0.02 255);
+  --color-border: oklch(1 0 0 / 0.08);
+  --color-secondary: oklch(0.22 0.04 265);
+  --color-popover: oklch(0.16 0.03 265);
+  --color-ring: oklch(0.82 0.13 82 / 0.6);
+
   /* سلسلة الذهبي (لشاشات نظام التشغيل) */
   --color-gold-400: oklch(0.86 0.13 88);
   --color-gold-500: oklch(0.82 0.13 82);
@@ -51,7 +62,26 @@
   --gradient-surface: linear-gradient(180deg, oklch(0.17 0.03 265) 0%, oklch(0.13 0.03 265) 100%);
   --shadow-card: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 24px 60px -30px oklch(0 0 0 / 0.5);
   --shadow-glow: 0 0 60px 0 oklch(0.78 0.13 80 / 0.18);
+  --gold-foreground: oklch(0.16 0.03 265);
 }
+
+/* بطاقة وحقول إدخال مطابقة لمشروع Lovable */
+.mulki-card {
+  background: var(--gradient-surface);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: var(--shadow-card);
+}
+.mulki-input {
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-card2);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.875rem;
+  color: var(--color-fg);
+}
+.mulki-input:focus { outline: none; border-color: var(--color-gold); }
 
 * {
   box-sizing: border-box;

@@ -187,7 +187,13 @@ function LoginInner() {
               {emailMode === "password" && (
                 <form onSubmit={emailPassword} className="mt-4 space-y-4">
                   <Field label="البريد الإلكتروني"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required={configured} className={inputCls} placeholder="name@example.com" /></Field>
-                  <Field label="كلمة المرور"><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required={configured} className={inputCls} placeholder="••••••••" /></Field>
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label className="block text-sm font-medium text-fg">كلمة المرور</label>
+                      <Link href="/forgot" className="text-xs font-bold text-gold hover:underline">نسيت كلمة المرور؟</Link>
+                    </div>
+                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required={configured} className={inputCls} placeholder="••••••••" />
+                  </div>
                   {msg && <p className="text-sm text-bad">{msg}</p>}
                   <Button type="submit" className="w-full" disabled={loading}>{loading ? "جارٍ..." : "دخول / إنشاء حساب"}</Button>
                 </form>

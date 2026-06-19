@@ -66,7 +66,7 @@ export default function LandingPage() {
           <span className="inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-gold-400/10 px-4 py-1.5 text-sm font-medium text-gold-600">
             👑 6 أشهر مجاناً للأعضاء المؤسسين
           </span>
-          <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-brand-950 sm:text-6xl">
+          <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight text-fg sm:text-6xl">
             مكتبك الكامل
             <br />
             <span className="text-gold">بلا جدران، بلا إيجار، بلا حدود</span>
@@ -89,7 +89,7 @@ export default function LandingPage() {
       {/* Features */}
       <section id="features" className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-brand-950 sm:text-4xl">كل ما تحتاجه منصّة واحدة</h2>
+          <h2 className="text-3xl font-extrabold text-fg sm:text-4xl">كل ما تحتاجه منصّة واحدة</h2>
           <p className="mx-auto mt-3 max-w-2xl text-mut">
             من النواة العقارية (REOS) إلى نظام التشغيل الكامل.
           </p>
@@ -160,7 +160,7 @@ export default function LandingPage() {
 
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
-        <h2 className="text-center text-3xl font-extrabold text-brand-950 sm:text-4xl">الأسئلة الشائعة</h2>
+        <h2 className="text-center text-3xl font-extrabold text-fg sm:text-4xl">الأسئلة الشائعة</h2>
         <div className="mt-10 space-y-4">
           {FAQS.map((f) => (
             <details

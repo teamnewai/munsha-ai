@@ -30,7 +30,7 @@ export default function BetaPage() {
         <span className="inline-flex items-center gap-2 rounded-full bg-gold/15 px-4 py-1.5 text-xs font-bold text-gold">
           ⭐ برنامج العملاء المؤسِّسين — مقاعد محدودة
         </span>
-        <h1 className="mt-5 text-4xl font-extrabold leading-tight text-brand-950 sm:text-5xl">
+        <h1 className="mt-5 text-4xl font-extrabold leading-tight text-fg sm:text-5xl">
           كن أحد أوّل <span className="text-gold">10 عملاء</span> لمُلكي إدراك
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-mut">
@@ -60,7 +60,7 @@ export default function BetaPage() {
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <h2 className="text-center text-2xl font-extrabold text-brand-950">ابدأ في 3 خطوات</h2>
+        <h2 className="text-center text-2xl font-extrabold text-fg">ابدأ في 3 خطوات</h2>
         <div className="mt-8 grid gap-5 sm:grid-cols-3">
           {STEPS.map((s) => (
             <div key={s.n} className="rounded-2xl border border-line bg-card p-6 text-center">

@@ -21,7 +21,7 @@ export default function PricingPage() {
       <PublicNav />
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-brand-950">أسعار بسيطة وشفافة</h1>
+          <h1 className="text-4xl font-extrabold text-fg">أسعار بسيطة وشفافة</h1>
           <p className="mx-auto mt-3 max-w-xl text-mut">
             جميع الباقات تشمل <strong>6 أشهر مجاناً</strong> للأعضاء المؤسسين. الأسعار بالريال
             السعودي شهرياً، تُضاف ضريبة القيمة المضافة 15%.
@@ -46,12 +46,12 @@ export default function PricingPage() {
               <h3 className="text-lg font-bold text-fg">{t.name}</h3>
               <div className="mt-4 flex items-baseline gap-1">
                 {t.price === null ? (
-                  <span className="text-3xl font-extrabold text-brand-950">مخصّص</span>
+                  <span className="text-3xl font-extrabold text-fg">مخصّص</span>
                 ) : t.price === 0 ? (
-                  <span className="text-3xl font-extrabold text-brand-950">مجاناً</span>
+                  <span className="text-3xl font-extrabold text-fg">مجاناً</span>
                 ) : (
                   <>
-                    <span className="text-4xl font-extrabold text-brand-950">{t.price}</span>
+                    <span className="text-4xl font-extrabold text-fg">{t.price}</span>
                     <span className="text-mut">ر.س / شهرياً</span>
                   </>
                 )}

@@ -289,7 +289,7 @@ export default function OnboardingPage() {
               <Field label="نوع المنشأة">
                 <select value={clientType} onChange={(e) => setClientType(e.target.value)} className={inputCls}>
                   {CLIENT_TYPES.map((c) => (
-                    <option key={c.v} value={c.v}>
+                    <option key={c.v} value={c.v} className={optCls}>
                       {c.l}
                     </option>
                   ))}
@@ -314,7 +314,7 @@ export default function OnboardingPage() {
                   className={inputCls}
                 >
                   {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>
+                    <option key={c.code} value={c.code} className={optCls}>
                       {c.name}
                     </option>
                   ))}
@@ -323,7 +323,7 @@ export default function OnboardingPage() {
               <Field label="المدينة">
                 <select value={city} onChange={(e) => setCity(e.target.value)} className={inputCls}>
                   {cities.map((c) => (
-                    <option key={c} value={c}>
+                    <option key={c} value={c} className={optCls}>
                       {c}
                     </option>
                   ))}
@@ -429,9 +429,9 @@ export default function OnboardingPage() {
                       value={emp.dept_key}
                       onChange={(e) => updateEmp(i, { dept_key: e.target.value })}
                     >
-                      <option value="">— الإدارة —</option>
+                      <option value="" className={optCls}>— الإدارة —</option>
                       {deptOptions.map((d) => (
-                        <option key={d.key} value={d.key}>
+                        <option key={d.key} value={d.key} className={optCls}>
                           {d.name}
                         </option>
                       ))}
@@ -480,35 +480,63 @@ export default function OnboardingPage() {
               <span className="font-mono font-bold text-gold">{structure.version}</span>
             </p>
 
-            <div className="mt-6 space-y-3">
-              {structure.departments.map((d) => (
-                <div key={d.key} className="rounded-xl border border-line bg-card p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-fg">
-                      <span>{d.icon}</span>
-                      {d.name}
-                      {d.isCore && (
-                        <span className="rounded-full bg-gold/10 px-2 py-0.5 text-xs font-medium text-gold">
-                          أساسي
+            {/* معاينة هرمية واضحة قبل الاعتماد — المنشأة ← الإدارات ← الأقسام/المناصب */}
+            <div className="mt-6 overflow-x-auto">
+              {/* العقدة الجذر */}
+              <div className="mx-auto w-fit rounded-2xl border-2 border-gold bg-gold/10 px-6 py-3 text-center shadow-sm">
+                <div className="text-2xl">🏢</div>
+                <div className="font-extrabold text-fg">{name || "منشأتك"}</div>
+                <div className="text-[11px] text-mut">
+                  {structure.deptCount} إدارة · {structure.sectionCount} قسم · {structure.roleCount} منصب
+                </div>
+              </div>
+
+              {/* فروع الإدارات */}
+              <div className="relative mt-4 mr-5 space-y-3 border-r-2 border-gold/30 pr-5">
+                {structure.departments.map((d) => (
+                  <div key={d.key} className="relative">
+                    <span className="absolute -right-5 top-6 h-0.5 w-5 bg-gold/30" />
+                    <div className="rounded-xl border border-line bg-card2/40 p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 font-bold text-fg">
+                          <span>{d.icon}</span>
+                          {d.name}
+                          {d.isCore && (
+                            <span className="rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-medium text-gold">
+                              أساسي
+                            </span>
+                          )}
                         </span>
+                        <span className="text-[11px] text-mut">{d.roles.length} منصب · {d.sections.length} قسم</span>
+                      </div>
+
+                      {/* الأقسام الفرعية (تفرّع) */}
+                      {d.sections.length > 0 && (
+                        <div className="mt-2 mr-3 space-y-1 border-r border-line pr-3">
+                          {d.sections.map((s) => (
+                            <div key={s.name} className="relative flex items-center gap-1.5 text-xs text-mut">
+                              <span className="absolute -right-3 top-1/2 h-px w-3 bg-line" />
+                              <span className="text-gold">▸</span>
+                              {s.name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* المناصب */}
+                      {d.roles.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {d.roles.map((r) => (
+                            <span key={r} className="rounded-full bg-card2 px-2.5 py-0.5 text-[11px] text-fg">
+                              👤 {r}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
-                    <span className="text-xs text-mut">{d.sections.length} أقسام</span>
                   </div>
-                  {d.sections.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {d.sections.map((s) => (
-                        <span
-                          key={s.name}
-                          className="rounded-full bg-card2 px-2.5 py-0.5 text-xs text-mut"
-                        >
-                          {s.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* بوابة اعتماد المالك — إلزامية قبل أي بناء فعلي */}
@@ -546,6 +574,8 @@ export default function OnboardingPage() {
 /* ── عناصر مساعدة ── */
 const inputCls =
   "w-full rounded-xl border border-line px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
+// لون خيارات القوائم المنسدلة (إصلاح: كانت غير مقروءة — أبيض على أبيض)
+const optCls = "bg-white text-slate-900";
 
 function Card({ children }: { children: React.ReactNode }) {
   return <div className="rounded-3xl border border-line bg-card p-6 sm:p-8">{children}</div>;

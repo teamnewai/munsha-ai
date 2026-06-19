@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ACTIVITY_CATALOG, CITIES_BY_COUNTRY } from "@/lib/activities";
+import { CITIES_BY_COUNTRY } from "@/lib/activities";
+import { ISIC4_SECTIONS, isicSubByCode } from "@/lib/isic4";
 import { generateStructure, type GeneratedStructure } from "@/lib/orgGenerator";
 import { Button } from "@/components/ui/Button";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -80,7 +81,20 @@ export default function OnboardingPage() {
   const [method, setMethod] = useState<"mulki" | "monshaati">("monshaati");
   // الخطوة 2
   const [name, setName] = useState("");
-  const [activity, setActivity] = useState(ACTIVITY_CATALOG[0].key);
+  // الأنشطة (ISIC4): رئيسي/فرعي + إمكانية إضافة أكثر من نشاط
+  const defaultSection = ISIC4_SECTIONS.find((s) => s.code === "L") ?? ISIC4_SECTIONS[0];
+  const [activities, setActivities] = useState<{ section: string; sub: string }[]>([
+    { section: defaultSection.code, sub: defaultSection.subs[0].code },
+  ]);
+  const primaryBase = isicSubByCode(activities[0]?.sub)?.sub.base ?? "services";
+  const extraBases = activities.slice(1)
+    .map((a) => isicSubByCode(a.sub)?.sub.base)
+    .filter((b): b is string => Boolean(b));
+  const activity = primaryBase; // توافقاً مع التوليد والحفظ
+  const activitiesDetail = activities.map((a) => {
+    const r = isicSubByCode(a.sub);
+    return { section: a.section, code: a.sub, name: r?.sub.name ?? null, base: r?.sub.base ?? null };
+  });
   const [employees, setEmployees] = useState(20);
   const [country, setCountry] = useState("SA");
   const [city, setCity] = useState(CITIES_BY_COUNTRY["SA"][0]);
@@ -97,9 +111,26 @@ export default function OnboardingPage() {
   const [empNote, setEmpNote] = useState<string | null>(null);
 
   const structure: GeneratedStructure | null = useMemo(
-    () => (step >= 3 ? generateStructure(activity, employees) : null),
-    [step, activity, employees]
+    () => (step >= 3 ? generateStructure(primaryBase, employees, extraBases) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [step, primaryBase, employees, JSON.stringify(extraBases)]
   );
+
+  // محرّرات الأنشطة
+  function setActivityRow(i: number, patch: Partial<{ section: string; sub: string }>) {
+    setActivities((rows) => rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  }
+  function changeSection(i: number, sectionCode: string) {
+    const sec = ISIC4_SECTIONS.find((s) => s.code === sectionCode);
+    setActivityRow(i, { section: sectionCode, sub: sec?.subs[0].code ?? "" });
+  }
+  function addActivity() {
+    const s = ISIC4_SECTIONS[0];
+    setActivities((rows) => [...rows, { section: s.code, sub: s.subs[0].code }]);
+  }
+  function removeActivity(i: number) {
+    setActivities((rows) => (rows.length > 1 ? rows.filter((_, idx) => idx !== i) : rows));
+  }
 
   const cities = CITIES_BY_COUNTRY[country] ?? [];
 
@@ -171,7 +202,7 @@ export default function OnboardingPage() {
         // org_structure_docs + approvals + org_departments/org_sections/org_roles
         if (structure) {
           const { data: gen, error: genErr } = await supabase.rpc("generate_org", {
-            p_input: { name, activity, employees, country, city, clientType },
+            p_input: { name, activity, activities: activitiesDetail, employees, country, city, clientType },
             p_structure: structure,
             p_source: method === "mulki" ? "local" : "ai",
             p_employees: empList.filter((e) => e.full_name.trim()),
@@ -277,15 +308,44 @@ export default function OnboardingPage() {
                   className={inputCls}
                 />
               </Field>
-              <Field label="النشاط (ISIC4)">
-                <select value={activity} onChange={(e) => setActivity(e.target.value)} className={inputCls}>
-                  {ACTIVITY_CATALOG.map((a) => (
-                    <option key={a.key} value={a.key}>
-                      {a.icon} {a.name}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-fg">الأنشطة (ISIC4) — رئيسي وفرعي</label>
+                <div className="space-y-2">
+                  {activities.map((row, i) => {
+                    const sec = ISIC4_SECTIONS.find((s) => s.code === row.section) ?? ISIC4_SECTIONS[0];
+                    return (
+                      <div key={i} className="grid gap-2 rounded-xl border border-line bg-card2/30 p-2 sm:grid-cols-[1fr_1fr_auto]">
+                        {/* النشاط الرئيسي (القطاع) */}
+                        <select value={row.section} onChange={(e) => changeSection(i, e.target.value)} className={inputCls}>
+                          {ISIC4_SECTIONS.map((s) => (
+                            <option key={s.code} value={s.code} className={optCls}>
+                              {s.icon} {s.code} — {s.name}
+                            </option>
+                          ))}
+                        </select>
+                        {/* النشاط الفرعي */}
+                        <select value={row.sub} onChange={(e) => setActivityRow(i, { sub: e.target.value })} className={inputCls}>
+                          {sec.subs.map((sub) => (
+                            <option key={sub.code} value={sub.code} className={optCls}>
+                              {sub.code} — {sub.name}
+                            </option>
+                          ))}
+                        </select>
+                        {/* حذف الصف */}
+                        {activities.length > 1 ? (
+                          <button type="button" onClick={() => removeActivity(i)} title="حذف النشاط"
+                            className="rounded-xl border border-line px-3 text-bad hover:bg-bad/10">✕</button>
+                        ) : <span />}
+                        {i === 0 && <span className="text-[11px] text-mut sm:col-span-3">النشاط الأول هو الرئيسي ويقود توليد الهيكل؛ الأنشطة الإضافية تضيف إداراتها المقترحة.</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+                <button type="button" onClick={addActivity}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/5 px-3 py-1.5 text-xs font-bold text-gold hover:bg-gold/10">
+                  ＋ إضافة نشاط آخر
+                </button>
+              </div>
               <Field label="نوع المنشأة">
                 <select value={clientType} onChange={(e) => setClientType(e.target.value)} className={inputCls}>
                   {CLIENT_TYPES.map((c) => (

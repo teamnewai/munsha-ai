@@ -81,13 +81,18 @@ function buildVersion(): string {
   return `BP-${yy}${mm}${dd}-${rand}`;
 }
 
-export function generateStructure(activityKey: string, employees: number): GeneratedStructure {
+export function generateStructure(
+  activityKey: string,
+  employees: number,
+  extraActivityKeys: string[] = []
+): GeneratedStructure {
   const scaleRow = scaleFor(employees);
   const activity = activityByKey(activityKey);
 
-  // الأقسام الأساسية + أقسام النشاط + الدعم حسب الحجم
+  // الأقسام الأساسية + أقسام النشاط الرئيسي + أنشطة إضافية + الدعم حسب الحجم
   const keys = new Set<DeptKey>(CORE_DEPTS);
   activity?.suggestedDepts.forEach((k) => keys.add(k));
+  extraActivityKeys.forEach((ek) => activityByKey(ek)?.suggestedDepts.forEach((k) => keys.add(k)));
   if (scaleRow.scale === "medium" || scaleRow.scale === "large") {
     keys.add("legal");
     keys.add("marketing");

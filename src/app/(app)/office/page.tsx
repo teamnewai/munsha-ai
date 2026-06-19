@@ -14,6 +14,8 @@ import {
   FileSpreadsheet, Presentation, Mail as MailIcon,
 } from "lucide-react";
 import { OfficeAppsProvider, useOfficeApps, type OfficeAppId } from "@/components/os-app/office-apps";
+import { NOTIFICATIONS, INBOX, MY_DAILY_TASKS } from "@/lib/os-data";
+import { toast } from "@/lib/toast";
 
 export default function OfficePage() {
   return (
@@ -25,6 +27,10 @@ export default function OfficePage() {
             <FilesCabinet />
             <FormsList />
             <OfficeTools />
+            <button onClick={() => toast.info("تم فتح نموذج الإبلاغ عن مشكلة")}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl mulki-gold-bg px-4 py-3 text-sm font-bold hover:opacity-90">
+              ⚠ أبلغ عن مشكلة
+            </button>
           </aside>
           <main className="col-span-12 lg:col-span-6 space-y-4 order-2">
             <ReturnedTransactions />
@@ -46,8 +52,8 @@ export default function OfficePage() {
 
 function HeaderBar() {
   const items: { to: string; Icon: LucideIcon; label: string; badge?: number }[] = [
-    { to: "/notifications", Icon: Bell, label: "الإشعارات", badge: 3 },
-    { to: "/office", Icon: Mail, label: "البريد" },
+    { to: "/notifications", Icon: Bell, label: "الإشعارات", badge: NOTIFICATIONS.unread },
+    { to: "/workflows", Icon: Mail, label: "البريد" },
     { to: "/meetings", Icon: Calendar, label: "التقويم" },
     { to: "/knowledge", Icon: Search, label: "البحث" },
   ];
@@ -97,10 +103,10 @@ function SectionCard({ title, accent, addTo, children }: { title: string; accent
 
 function DailyTasks() {
   const items = [
-    { Icon: Info, label: "المعلومات غير المنجزة", value: 12, tone: "text-primary bg-primary/15" },
-    { Icon: User, label: "الإحالات من المدير", value: 8, tone: "text-accent bg-accent/15" },
-    { Icon: Users, label: "الإحالات من الأقسام الأخرى", value: 15, tone: "text-blue-400 bg-blue-500/15" },
-    { Icon: Phone, label: "معاملات الهاتف", value: 6, tone: "text-emerald-400 bg-emerald-500/15" },
+    { Icon: Info, label: "المعلومات غير المنجزة", value: MY_DAILY_TASKS.unfinished, tone: "text-primary bg-primary/15" },
+    { Icon: User, label: "الإحالات من المدير", value: MY_DAILY_TASKS.fromManager, tone: "text-accent bg-accent/15" },
+    { Icon: Users, label: "الإحالات من الأقسام الأخرى", value: MY_DAILY_TASKS.fromDepartments, tone: "text-blue-400 bg-blue-500/15" },
+    { Icon: Phone, label: "معاملات الهاتف", value: MY_DAILY_TASKS.phone, tone: "text-emerald-400 bg-emerald-500/15" },
   ];
   return (
     <SectionCard title="المهام اليومية" addTo="/workflows">
@@ -287,9 +293,9 @@ function MediumIconRow() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
       <MediumTile app="notes" label="الملاحظات" Icon={StickyNote} tint="amber" />
-      <MediumTile app="email" label="البريد الإلكتروني" Icon={MailIcon} tint="rose" badge={5} sub="5 رسائل جديدة" />
+      <MediumTile app="email" label="البريد الإلكتروني" Icon={MailIcon} tint="rose" badge={INBOX.newEmails} sub={`${INBOX.newEmails} رسائل جديدة`} />
       <MediumTile app="chat" label="المحادثات الداخلية" Icon={MessageSquare} tint="blue" sub="متصل" />
-      <MediumTile app="calls" label="سجل المكالمات" Icon={PhoneCall} tint="emerald" sub="12 مكالمة اليوم" />
+      <MediumTile app="calls" label="سجل المكالمات" Icon={PhoneCall} tint="emerald" sub={`${INBOX.callsToday} مكالمة اليوم`} />
       <MediumTile to="/reports" label="المهام الخاصة بي" Icon={BarChart3} tint="primary" />
     </div>
   );

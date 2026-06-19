@@ -7,6 +7,13 @@ export const metadata: Metadata = { title: "نظام التشغيل — MULKI OS
 
 const GATES = [
   {
+    href: "/os/dashboards",
+    title: "لوحات التحكم الهرمية",
+    desc: "مالك · تنفيذي · إدارات · موظفون · وكلاء AI",
+    icon: "📊",
+    grad: "from-gold-500/20 to-amber-700/10",
+  },
+  {
     href: "/os/desk",
     title: "المكتب الافتراضي",
     desc: "مكتب الموظف وأدواته اليومية",

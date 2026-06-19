@@ -48,6 +48,21 @@
   --color-brand-900: oklch(0.15 0.03 265);
   --color-brand-950: oklch(0.11 0.03 265);
 
+  /* توكنز إضافية لاستنساخ صفحات Lovable حرفياً */
+  --color-card-foreground: oklch(0.97 0.01 250);
+  --color-secondary-foreground: oklch(0.97 0.01 250);
+  --color-accent-foreground: oklch(0.97 0.01 250);
+  --color-muted: oklch(0.22 0.04 265);
+  --color-destructive: oklch(0.65 0.22 25);
+  --color-destructive-foreground: oklch(0.97 0.01 250);
+
+  /* الشريط الجانبي */
+  --color-sidebar: oklch(0.15 0.03 265);
+  --color-sidebar-foreground: oklch(0.97 0.01 250);
+  --color-sidebar-border: oklch(1 0 0 / 0.08);
+  --color-sidebar-accent: oklch(0.24 0.04 265);
+  --color-sidebar-accent-foreground: oklch(0.86 0.13 88);
+
   --radius: 0.75rem;
 }
 

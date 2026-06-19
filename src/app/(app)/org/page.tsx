@@ -598,7 +598,7 @@ function GenerateFullButton({ hasData, prominent }: { hasData: boolean; prominen
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       <Button
         onClick={() => setOpen(true)}
         className={prominent ? "mulki-gold-bg gap-2" : "gap-2"}
@@ -606,6 +606,7 @@ function GenerateFullButton({ hasData, prominent }: { hasData: boolean; prominen
       >
         <Sparkles className="size-4" /> {hasData ? "توليد إضافي" : "توليد المنشأة الكاملة"}
       </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><Sparkles className="size-5 text-primary" /> توليد المنشأة الكاملة</DialogTitle>
@@ -645,7 +646,8 @@ function GenerateFullButton({ hasData, prominent }: { hasData: boolean; prominen
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
 

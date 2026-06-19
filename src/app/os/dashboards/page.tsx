@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { AiChat } from "@/components/os/AiChat";
 
 type Dept = { dept_key: string; name: string; icon: string | null; operation_type: string | null; perf: number | null };
 type Member = { full_name: string; dept_key: string; job_title: string | null; present: boolean; status: string };
@@ -79,6 +80,24 @@ export default function DashboardsPage() {
                 <Kpi icon="🟢" value={members.length ? `${Math.round((present / members.length) * 100)}%` : "—"} label="الحضور" />
               </div>
             </Level>
+
+            {/* مساعد المالك الذكي */}
+            <div className="mt-4">
+              <AiChat
+                endpoint="/api/ai/owner"
+                title="🧠 مساعد المالك الذكي — تحليل وتوصيات"
+                placeholder="اسأل عن أداء منشأتك أو اطلب توصية…"
+                emptyHint="مثال: ما أهم 3 مخاطر في منشأتي؟ · كيف أحسّن الحضور؟ · أي إدارة تحتاج دعماً؟"
+                accent="gold"
+                payload={{
+                  orgName: orgName ?? "منشأتي",
+                  summary:
+                    `الإدارات (${depts.length}): ${depts.map((d) => `${d.name}${d.operation_type ? ` [${OP_LABEL[d.operation_type] ?? d.operation_type}]` : ""}`).join("، ")}\n` +
+                    `الموظفون: ${members.length} (حاضرون ${present})\n` +
+                    `وكلاء AI: ${agents.length} (نشطون ${activeAgents})`,
+                }}
+              />
+            </div>
 
             {/* 2) اللوحة التنفيذية */}
             <Level badge="٢" title="اللوحة التنفيذية" desc="مؤشرات الأداء والمتابعة">

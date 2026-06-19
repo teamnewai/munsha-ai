@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { VisitorPortal } from "@/components/marketing/VisitorPortal";
 
 // مُلكي إدراك — الصفحة الرئيسية (مستنسخة من منصة MULKI OS مع ربط الخدمات بصفحات المنصة)
 
@@ -193,6 +194,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* بوابة الزائر الذكية — أُضيفت تحت الهيرو */}
+      <VisitorPortal />
 
       {/* لماذا مُلكي */}
       <section id="features" className="mx-auto max-w-7xl px-6 py-20">

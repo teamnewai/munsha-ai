@@ -48,7 +48,7 @@ export function OfficeAppsProvider({ children }: { children: React.ReactNode }) 
           {active === "leave" && <LeaveApp />}
           {active === "vehicles" && <SimpleListApp items={["لا توجد طلبات مركبات مفتوحة", "للحجز، استخدم مركز طلبات الخدمات"]} />}
           {active === "office-suite" && <OfficeSuiteApp />}
-          {active === "guest-chair" && <SimpleListApp items={["كرسي الضيف متاح للاجتماعات الفردية", "للحجز، أنشئ موعداً جديداً"]} />}
+          {active === "guest-chair" && <GuestChairApp />}
           {(active === "printer" || active === "scanner" || active === "camera" || active === "flash" || active === "merge") && (
             <ComingSoonApp id={active} />
           )}
@@ -193,6 +193,22 @@ function VoiceMemoApp() {
       </div>
       {!recording ? <Button onClick={start} className="w-full">بدء التسجيل</Button> : <Button variant="destructive" onClick={stop} className="w-full">إيقاف</Button>}
       {url && <audio src={url} controls className="w-full mt-3" />}
+    </div>
+  );
+}
+
+function GuestChairApp() {
+  return (
+    <div className="space-y-3 text-center">
+      <div className="rounded-lg border p-6">
+        <div className="text-sm font-medium">كرسي الضيف — بوابة استقبال الزوّار</div>
+        <p className="text-xs text-muted-foreground mt-2">
+          استقبل زوّارك عبر بوابة الزائر الذكية: توجيه تلقائي حسب الهيكل التنظيمي، تواصل فوري، وتحقق ذكي من المواعيد.
+        </p>
+      </div>
+      <a href="/#visitor" className="inline-flex w-full items-center justify-center gap-1 rounded-lg mulki-gold-bg px-4 py-2.5 text-sm font-medium hover:opacity-90">
+        افتح بوابة الزائر الذكية
+      </a>
     </div>
   );
 }

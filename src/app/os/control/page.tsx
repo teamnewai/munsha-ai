@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
-// مركز التحكم — مرجع: Blueprint §2.11 (5 تبويبات، للمالك/المدير فقط)
+// مركز التحكم — مرجع: Blueprint §2.11 (للمالك/المدير فقط)
 const TABS = [
+  { key: "perms", label: "سحب صلاحية", icon: "🔑" },
   { key: "services", label: "سحب الخدمات", icon: "🔌" },
   { key: "grants", label: "منح المنصّات", icon: "🎫" },
   { key: "staff", label: "إدارة الموظفين", icon: "👥" },
@@ -28,7 +30,7 @@ const DELETES = [
 ];
 
 export default function ControlCenter() {
-  const [tab, setTab] = useState<TabKey>("services");
+  const [tab, setTab] = useState<TabKey>("perms");
 
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-slate-100">
@@ -64,6 +66,8 @@ export default function ControlCenter() {
         </div>
 
         <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
+          {tab === "perms" && <PermissionsControl />}
+
           {tab === "services" && (
             <Section title="سحب / إيقاف / تعديل الخدمة" desc="تحكّم بحالة خدمة أعضاء الأقسام.">
               <div className="space-y-2">
@@ -139,6 +143,202 @@ export default function ControlCenter() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── تبويب «سحب صلاحية» — مربوط بـ permission_suspensions + dept_permissions_ref ── */
+const PERM_CATALOG: { key: string; label: string }[] = [
+  { key: "view", label: "الاطّلاع" },
+  { key: "create", label: "الإضافة" },
+  { key: "edit", label: "التعديل" },
+  { key: "delete", label: "الحذف" },
+  { key: "approve", label: "الاعتماد" },
+  { key: "finance", label: "العمليات المالية" },
+  { key: "reports", label: "التقارير" },
+  { key: "manage_members", label: "إدارة الموظفين" },
+];
+const permLabel = (action: string) =>
+  action === "all" ? "جميع الصلاحيات" : PERM_CATALOG.find((p) => p.key === action)?.label ?? action;
+
+type Member = { id: string; full_name: string; dept_key: string | null; job_title: string | null };
+type Suspension = { id: string; target: string | null; action: string; reason: string | null; created_at: string };
+
+function PermissionsControl() {
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [suspensions, setSuspensions] = useState<Suspension[]>([]);
+  const [memberId, setMemberId] = useState("");
+  const [action, setAction] = useState("view");
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const configured = isSupabaseConfigured();
+
+  const load = useCallback(async () => {
+    if (!configured) {
+      setLoading(false);
+      return;
+    }
+    const supabase = createClient()!;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    const { data: m } = await supabase
+      .from("memberships")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (!m?.org_id) {
+      setLoading(false);
+      return;
+    }
+    setOrgId(m.org_id);
+    const [{ data: mem }, { data: sus }] = await Promise.all([
+      supabase
+        .from("dept_members")
+        .select("id, full_name, dept_key, job_title")
+        .eq("org_id", m.org_id)
+        .order("full_name"),
+      supabase
+        .from("permission_suspensions")
+        .select("id, target, action, reason, created_at")
+        .eq("org_id", m.org_id)
+        .order("created_at", { ascending: false }),
+    ]);
+    setMembers(mem ?? []);
+    setSuspensions(sus ?? []);
+    if (mem && mem.length > 0) setMemberId((cur) => cur || mem[0].id);
+    setLoading(false);
+  }, [configured]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function suspend() {
+    setMsg(null);
+    if (!orgId || !memberId) {
+      setMsg("اختر موظفاً أولاً.");
+      return;
+    }
+    setBusy(true);
+    const supabase = createClient()!;
+    const { error } = await supabase.from("permission_suspensions").insert({
+      org_id: orgId,
+      scope: "member",
+      target: memberId,
+      action, // صلاحية محددة أو 'all'
+      reason: reason.trim() || null,
+    });
+    setBusy(false);
+    if (error) {
+      setMsg("تعذّر السحب: " + error.message);
+      return;
+    }
+    setReason("");
+    setMsg("✅ تم سحب الصلاحية.");
+    load();
+  }
+
+  async function restore(id: string) {
+    const supabase = createClient()!;
+    const { error } = await supabase.from("permission_suspensions").delete().eq("id", id);
+    if (!error) setSuspensions((s) => s.filter((x) => x.id !== id));
+  }
+
+  const nameOf = (target: string | null) =>
+    members.find((m) => m.id === target)?.full_name ?? "موظف";
+
+  if (loading) return <Section title="سحب صلاحية محددة" desc="جارٍ التحميل..."><div /></Section>;
+
+  if (!configured || (!orgId && members.length === 0))
+    return (
+      <Section title="سحب صلاحية محددة" desc="سجّل الدخول وافتح مكتبك أولاً لإدارة صلاحيات الموظفين.">
+        <p className="text-sm text-slate-400">لا توجد بيانات موظفين بعد.</p>
+      </Section>
+    );
+
+  return (
+    <Section
+      title="سحب صلاحية محددة"
+      desc="اسحب صلاحية واحدة بعينها (وليس كل الصلاحيات) من موظف، مع إمكانية الإرجاع."
+    >
+      {/* نموذج السحب */}
+      <div className="grid gap-3 sm:grid-cols-12">
+        <select
+          value={memberId}
+          onChange={(e) => setMemberId(e.target.value)}
+          className="rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm sm:col-span-4"
+        >
+          {members.map((m) => (
+            <option key={m.id} value={m.id} className="bg-[#0a0f1e]">
+              {m.full_name}
+              {m.job_title ? ` — ${m.job_title}` : ""}
+            </option>
+          ))}
+        </select>
+        <select
+          value={action}
+          onChange={(e) => setAction(e.target.value)}
+          className="rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm sm:col-span-3"
+        >
+          {PERM_CATALOG.map((p) => (
+            <option key={p.key} value={p.key} className="bg-[#0a0f1e]">
+              {p.label}
+            </option>
+          ))}
+          <option value="all" className="bg-[#0a0f1e]">
+            جميع الصلاحيات
+          </option>
+        </select>
+        <input
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="السبب (اختياري)"
+          className="rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm sm:col-span-3"
+        />
+        <button
+          onClick={suspend}
+          disabled={busy}
+          className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-60 sm:col-span-2"
+        >
+          {busy ? "..." : "سحب الصلاحية"}
+        </button>
+      </div>
+      {msg && <p className="mt-3 text-sm text-slate-200">{msg}</p>}
+
+      {/* الصلاحيات المسحوبة حالياً */}
+      <div className="mt-6">
+        <div className="mb-2 text-sm font-bold text-slate-300">الصلاحيات المسحوبة ({suspensions.length})</div>
+        {suspensions.length === 0 ? (
+          <p className="text-sm text-slate-500">لا توجد صلاحيات مسحوبة.</p>
+        ) : (
+          <div className="space-y-2">
+            {suspensions.map((s) => (
+              <Rowline
+                key={s.id}
+                title={nameOf(s.target)}
+                sub={`${permLabel(s.action)}${s.reason ? ` · ${s.reason}` : ""}`}
+              >
+                <Badge tone={s.action === "all" ? "rose" : "slate"}>{permLabel(s.action)}</Badge>
+                <button
+                  onClick={() => restore(s.id)}
+                  className="rounded-lg bg-emerald-600/90 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-600"
+                >
+                  إرجاع
+                </button>
+              </Rowline>
+            ))}
+          </div>
+        )}
+      </div>
+    </Section>
   );
 }
 

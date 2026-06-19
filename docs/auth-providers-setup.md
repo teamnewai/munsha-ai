@@ -8,8 +8,8 @@
 
 ## 0) إعداد عام (مطلوب لكل الطرق) — Site URL
 Supabase → **Authentication → URL Configuration**
-- **Site URL:** `https://munsha-ai.vercel.app` (أو دومينك الفعلي)
-- **Redirect URLs** (Add): `https://munsha-ai.vercel.app/**` و `http://localhost:3000/**`
+- **Site URL:** `https://mulkios.vercel.app` (أو دومينك الفعلي)
+- **Redirect URLs** (Add): `https://mulkios.vercel.app/**` و `http://localhost:3000/**`
 
 ---
 

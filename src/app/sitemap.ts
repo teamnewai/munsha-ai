@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL || "https://mulki.sa";
+const BASE = process.env.NEXT_PUBLIC_APP_URL || "https://mulkios.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

@@ -17,8 +17,8 @@
 1. **Authentication** → **Sign In / Providers** → **Email**.
 2. فعّل **«Confirm email»** (Enable email confirmations).
 3. تأكّد أن **Site URL** و**Redirect URLs** تشير إلى موقعك على Vercel:
-   - Site URL: `https://munsha-ai.vercel.app`
-   - Redirect: `https://munsha-ai.vercel.app/auth/callback`
+   - Site URL: `https://mulkios.vercel.app`
+   - Redirect: `https://mulkios.vercel.app/auth/callback`
 
 ### ج) النسخ الاحتياطية
 - **Database** → **Backups**: تأكّد أن النسخ اليومية مفعّلة (متاحة على الخطط المدفوعة). إن كنت على الخطة المجانية، فكّر بالترقية قبل دخول بيانات عملاء حقيقية.
@@ -37,7 +37,7 @@
 
 ## 3) جاهز فعلاً ✅ (أنجزته)
 
-- ✅ المنصة منشورة وتعمل: https://munsha-ai.vercel.app
+- ✅ المنصة منشورة وتعمل: https://mulkios.vercel.app
 - ✅ تسجيل دخول + إنشاء منشأة + دورة عمل كاملة (عقار→عقد→فاتورة→دفعة)
 - ✅ المساعد الذكي «ذو النورين» (يحتاج مفتاح OpenAI صالحاً — مُضاف)
 - ✅ مراقبة الأخطاء التلقائية (Crash Monitoring) + عارض في «سجل التدقيق»

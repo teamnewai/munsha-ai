@@ -75,6 +75,23 @@ function LoginInner() {
     window.location.assign(redirect);
   }
 
+  // تسجيل الدخول عبر البريد (رابط سحري — بلا كلمة مرور)
+  async function handleMagicLink() {
+    setMsg(null);
+    if (!email.trim()) { setMsg("اكتب بريدك الإلكتروني أولاً."); return; }
+    if (!configured) { setMsg("الوضع التجريبي: غير متاح الآن."); return; }
+    setLoading(true);
+    const supabase = createClient();
+    if (!supabase) { setLoading(false); return; }
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}` },
+    });
+    setLoading(false);
+    if (error) { setMsg(error.message); return; }
+    setMsg("📧 أرسلنا رابط دخول إلى بريدك — افتحه لتسجيل الدخول بلا كلمة مرور.");
+  }
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* جانب الهوية */}
@@ -166,6 +183,27 @@ function LoginInner() {
               {loading ? "جارٍ..." : signup ? "إنشاء الحساب" : "تسجيل الدخول"}
             </Button>
           </form>
+
+          {/* فاصل */}
+          <div className="my-5 flex items-center gap-3 text-xs text-mut">
+            <span className="h-px flex-1 bg-line" />
+            أو
+            <span className="h-px flex-1 bg-line" />
+          </div>
+
+          {/* تسجيل الدخول عبر البريد (رابط سحري بلا كلمة مرور) */}
+          <button
+            type="button"
+            onClick={handleMagicLink}
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-card2 px-4 py-2.5 text-sm font-bold text-fg hover:bg-card2/70 disabled:opacity-50"
+          >
+            <span className="text-base">✉️</span>
+            تسجيل الدخول عبر البريد (رابط بلا كلمة مرور)
+          </button>
+          <p className="mt-2 text-center text-[11px] text-mut">
+            نرسل لك رابط دخول إلى بريدك — اضغطه وتدخل مباشرة دون كلمة مرور.
+          </p>
 
           <p className="mt-6 text-center text-sm text-mut">
             {signup ? "لديك حساب؟ " : "ليس لديك حساب؟ "}

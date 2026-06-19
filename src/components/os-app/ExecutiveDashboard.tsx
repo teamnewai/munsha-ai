@@ -15,7 +15,9 @@ import {
 const DEPT_ICON: Record<string, LucideIcon> = {
   finance: Wallet, hr: Users, sales: BarChart3, ops: SettingsIcon,
   marketing: Megaphone, legal: Briefcase, realestate: Building2, it: Monitor,
+  management: Building2, maintenance: SettingsIcon,
 };
+const iconFor = (key: string): LucideIcon => DEPT_ICON[key] ?? Building2;
 
 function Sparkline({ color, down = false }: { color: string; down?: boolean }) {
   const up = "M0 30 L15 22 L30 26 L45 14 L60 18 L75 8 L90 12 L105 4";
@@ -205,7 +207,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
             <div className="w-px h-4 bg-border" />
             <div className="grid grid-cols-4 md:grid-cols-8 gap-3 w-full">
               {DEPARTMENTS.map((r) => {
-                const Icon = DEPT_ICON[r.key];
+                const Icon = iconFor(r.key);
                 return (
                   <Link key={r.key} href="/org" className="flex flex-col items-center gap-1.5 group">
                     <div className="size-10 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform"
@@ -226,7 +228,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
         <h3 className="font-display text-sm uppercase tracking-[0.22em] text-muted-foreground mb-3">الإدارات</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {DEPARTMENTS.map((d) => {
-            const Icon = DEPT_ICON[d.key];
+            const Icon = iconFor(d.key);
             return (
               <Card key={d.key} className="mulki-card p-4 relative overflow-hidden">
                 <div className="absolute -top-8 -end-8 size-24 rounded-full blur-2xl opacity-30" style={{ backgroundColor: d.color }} />

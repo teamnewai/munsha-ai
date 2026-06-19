@@ -91,23 +91,16 @@ export function FeedbackWidget() {
   async function submit() {
     setMsg(null);
     if (!note.trim()) { setMsg("اكتب وصف المشكلة."); return; }
-    if (!isSupabaseConfigured()) { setMsg("الوضع التجريبي: سجّل الدخول لإرسال الملاحظة."); return; }
+    if (!isSupabaseConfigured()) { setMsg("الوضع التجريبي غير متاح حالياً."); return; }
     setSaving(true);
     const supabase = createClient()!;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setSaving(false); setMsg("سجّل الدخول لإرسال الملاحظة."); return; }
-    const { data: m } = await supabase.from("memberships").select("org_id").eq("user_id", user.id).limit(1).maybeSingle();
-    const { error } = await supabase.from("page_feedback").insert({
-      org_id: m?.org_id ?? null,
-      user_id: user.id,
+    // يصل المطوّر بدون تسجيل دخول (جدول public_notes)
+    const { error } = await supabase.from("public_notes").insert({
       page_path: window.location.pathname,
       page_title: document.title,
-      note: note.trim(),
-      status: "open",
-      priority,
-      section: target?.section ?? currentSection(),
-      element_label: target?.label || null,
-      element_selector: target?.selector || null,
+      note: `[${priority}] ${note.trim()}`,
+      action: "مشكلة: " + (target?.section ?? currentSection()) + (target?.label ? " · " + target.label : ""),
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
     });
     setSaving(false);
     if (error) { setMsg("تعذّر الإرسال: " + error.message); return; }

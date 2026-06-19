@@ -56,26 +56,26 @@ export function PageInspector() {
   const [tip, setTip] = useState<{ x: number; y: number; label: string; mission: string; href: string | null; kind: string } | null>(null);
   const [tipMsg, setTipMsg] = useState<string | null>(null);
 
-  // حفظ ملاحظة عامة (تُستخدم لخانة الملاحظات وأزرار الإجراءات السريعة)
-  async function logNote(text: string, section: string): Promise<boolean> {
+  // حفظ ملاحظة عامة — تصل المطوّر مباشرة بدون تسجيل دخول (جدول public_notes)
+  async function logNote(text: string, action: string): Promise<boolean> {
     try {
       if (isSupabaseConfigured()) {
         const supabase = createClient()!;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: m } = await supabase.from("memberships").select("org_id").eq("user_id", user.id).limit(1).maybeSingle();
-          const { error } = await supabase.from("page_feedback").insert({
-            org_id: m?.org_id ?? null, user_id: user.id, page_path: pathname, page_title: document.title,
-            note: text, status: "open", priority: "normal", section,
-          });
-          if (!error) return true;
-        }
+        const { error } = await supabase.from("public_notes").insert({
+          page_path: pathname,
+          page_title: typeof document !== "undefined" ? document.title : null,
+          note: text,
+          action,
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
+        });
+        if (!error) return true;
       }
+      // احتياطي محلي عند تعذّر الاتصال
       const key = "mulki_notes";
       const prev = JSON.parse(localStorage.getItem(key) || "[]");
       prev.unshift({ page: pathname, note: text, at: new Date().toISOString() });
       localStorage.setItem(key, JSON.stringify(prev.slice(0, 200)));
-      return false; // حُفظ محلياً
+      return false;
     } catch { return false; }
   }
 
@@ -83,8 +83,8 @@ export function PageInspector() {
   async function flag(action: string) {
     if (!tip) return;
     const text = `[${action}] العنصر «${tip.label}» — الوظيفة: ${tip.mission}${tip.href ? " — الوجهة: " + tip.href : ""}`;
-    const saved = await logNote(text, "إجراء على عنصر: " + action);
-    setTipMsg(saved ? `✅ سُجّل «${action}» في الملاحظات.` : `📝 سُجّل «${action}» محلياً (سجّل الدخول للحفظ في حسابك).`);
+    const saved = await logNote(text, action);
+    setTipMsg(saved ? `✅ وصل «${action}» للمطوّر — سيُنفَّذ.` : `📝 سُجّل «${action}» محلياً (سيُرسَل عند عودة الاتصال).`);
   }
 
   useEffect(() => {
@@ -122,37 +122,10 @@ export function PageInspector() {
     setNoteMsg(null);
     if (!note.trim()) { setNoteMsg("اكتب ملاحظتك أولاً."); return; }
     setSaving(true);
-    // محاولة الحفظ في قاعدة البيانات (إن سجّل الدخول)، وإلا حفظ محلي
-    try {
-      if (isSupabaseConfigured()) {
-        const supabase = createClient()!;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: m } = await supabase.from("memberships").select("org_id").eq("user_id", user.id).limit(1).maybeSingle();
-          const { error } = await supabase.from("page_feedback").insert({
-            org_id: m?.org_id ?? null,
-            user_id: user.id,
-            page_path: pathname,
-            page_title: document.title,
-            note: note.trim(),
-            status: "open",
-            priority: "normal",
-            section: "ملاحظة عامة",
-          });
-          if (!error) { setNote(""); setSaving(false); setNoteMsg("✅ حُفظت ملاحظتك في «الملاحظات»."); return; }
-        }
-      }
-      // احتياطي: حفظ محلي على الجهاز
-      const key = "mulki_notes";
-      const prev = JSON.parse(localStorage.getItem(key) || "[]");
-      prev.unshift({ page: pathname, note: note.trim(), at: new Date().toISOString() });
-      localStorage.setItem(key, JSON.stringify(prev.slice(0, 200)));
-      setNote("");
-      setNoteMsg("📝 حُفظت محلياً (سجّل الدخول لحفظها في حسابك).");
-    } catch {
-      setNoteMsg("تعذّر الحفظ.");
-    }
+    const ok = await logNote(note.trim(), "ملاحظة عامة");
     setSaving(false);
+    setNote("");
+    setNoteMsg(ok ? "✅ وصلت ملاحظتك — سيراجعها المطوّر وينفّذها." : "📝 حُفظت محلياً (سنرسلها عند عودة الاتصال).");
   }
 
   const scan = useCallback(() => {

@@ -1,3 +1,5 @@
+import { callClaude } from "@/lib/ai";
+
 export const runtime = "nodejs";
 
 // مُلكي — توليد الهيكل التنظيمي بالذكاء الاصطناعي (Claude أولاً، مع ارتداد للمولّد المحلي)
@@ -11,15 +13,11 @@ const SCALES = [
 ];
 
 export async function POST(req: Request) {
-  const key = process.env.ANTHROPIC_API_KEY;
   let body: { activity?: string; activityName?: string; employees?: number; name?: string } = {};
   try { body = await req.json(); } catch { /* تجاهل */ }
 
   const employees = Math.max(1, Number(body.employees) || 20);
   const scaleRow = SCALES.find((s) => employees <= s.max)!;
-
-  // غير مُفعّل → العميل يستخدم التوليد المحلي
-  if (!key) return Response.json({ ok: false, configured: false });
 
   const sys = `أنت خبير في التصميم التنظيمي والحوكمة (أطر ISO وCOBIT وPMI وMintzberg وRACI).
 مهمتك: توليد هيكل تنظيمي مثالي لمنشأة عربية بناءً على نشاطها وعدد موظفيها.
@@ -33,25 +31,9 @@ export async function POST(req: Request) {
 ولّد الهيكل الأمثل المناسب لهذا الحجم والنشاط.`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2000,
-        system: sys,
-        messages: [{ role: "user", content: user }],
-      }),
-    });
-    if (!res.ok) {
-      return Response.json({ ok: false, configured: true, error: (await res.text()).slice(0, 300) });
-    }
-    const data = await res.json();
-    const text: string = data?.content?.[0]?.text ?? "";
+    const c = await callClaude(sys, [{ role: "user", content: user }], { maxTokens: 2000 });
+    if (!c.ok) return Response.json({ ok: false, configured: c.configured, error: c.error });
+    const text: string = c.text;
     const jsonStr = text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
     const parsed = JSON.parse(jsonStr) as { departments?: unknown[] };
     const departments = Array.isArray(parsed.departments) ? parsed.departments : [];

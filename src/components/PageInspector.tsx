@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 // مُلكي إدراك — «خريطة الصفحة»: مربّع عائم يرافقك في كل صفحة،
 // يفحص كل الأزرار والروابط ويعرض: النص · الوجهة (الرابط) · المهمة.
@@ -43,6 +44,48 @@ export function PageInspector() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
+
+  // خانة كتابة الملاحظات
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [noteMsg, setNoteMsg] = useState<string | null>(null);
+
+  async function saveNote() {
+    setNoteMsg(null);
+    if (!note.trim()) { setNoteMsg("اكتب ملاحظتك أولاً."); return; }
+    setSaving(true);
+    // محاولة الحفظ في قاعدة البيانات (إن سجّل الدخول)، وإلا حفظ محلي
+    try {
+      if (isSupabaseConfigured()) {
+        const supabase = createClient()!;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: m } = await supabase.from("memberships").select("org_id").eq("user_id", user.id).limit(1).maybeSingle();
+          const { error } = await supabase.from("page_feedback").insert({
+            org_id: m?.org_id ?? null,
+            user_id: user.id,
+            page_path: pathname,
+            page_title: document.title,
+            note: note.trim(),
+            status: "open",
+            priority: "normal",
+            section: "ملاحظة عامة",
+          });
+          if (!error) { setNote(""); setSaving(false); setNoteMsg("✅ حُفظت ملاحظتك في «الملاحظات»."); return; }
+        }
+      }
+      // احتياطي: حفظ محلي على الجهاز
+      const key = "mulki_notes";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      prev.unshift({ page: pathname, note: note.trim(), at: new Date().toISOString() });
+      localStorage.setItem(key, JSON.stringify(prev.slice(0, 200)));
+      setNote("");
+      setNoteMsg("📝 حُفظت محلياً (سجّل الدخول لحفظها في حسابك).");
+    } catch {
+      setNoteMsg("تعذّر الحفظ.");
+    }
+    setSaving(false);
+  }
 
   const scan = useCallback(() => {
     const nodes = Array.from(
@@ -112,6 +155,25 @@ export function PageInspector() {
           </div>
 
           <div className="overflow-y-auto p-3 text-sm">
+            {/* خانة كتابة الملاحظات */}
+            <div className="mb-3 rounded-xl border border-gold/30 bg-gold/5 p-2.5">
+              <label className="mb-1 block text-xs font-bold text-gold">📝 اكتب ملاحظتك على هذه الصفحة</label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={2}
+                placeholder="مثال: زر «إرسال الطلب» لا يحفظ، أو أريد تكبير الخط هنا…"
+                className="w-full rounded-lg border border-line bg-card2 px-2.5 py-2 text-sm text-fg placeholder:text-mut/60 focus:border-gold focus:outline-none"
+              />
+              {noteMsg && <p className="mt-1 text-[11px] font-bold text-gold">{noteMsg}</p>}
+              <div className="mt-1.5 flex justify-end">
+                <button onClick={saveNote} disabled={saving}
+                  className="rounded-lg bg-gold px-4 py-1.5 text-xs font-bold text-golddark hover:bg-gold/90 disabled:opacity-50">
+                  {saving ? "جارٍ الحفظ…" : "حفظ الملاحظة"}
+                </button>
+              </div>
+            </div>
+
             <div className="mb-2 flex gap-2 text-[11px] text-mut">
               <span className="rounded-full bg-card2 px-2 py-0.5">🔗 روابط: {links.length}</span>
               <span className="rounded-full bg-card2 px-2 py-0.5">🔘 أزرار: {buttons.length}</span>

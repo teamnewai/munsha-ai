@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -55,6 +55,32 @@ export function PageInspector() {
   const [explain, setExplain] = useState(false);
   const [tip, setTip] = useState<{ x: number; y: number; label: string; mission: string; href: string | null; kind: string } | null>(null);
   const [tipMsg, setTipMsg] = useState<string | null>(null);
+  const [tipNote, setTipNote] = useState(""); // نص المشكلة المرتبط بالعنصر المختار
+  const selectedRef = useRef<HTMLElement | null>(null); // العنصر المميّز حالياً (تمييز ثابت)
+
+  // تمييز ثابت للعنصر المختار حتى تُغلق البطاقة
+  function selectEl(el: HTMLElement) {
+    if (selectedRef.current && selectedRef.current !== el) {
+      selectedRef.current.style.outline = "";
+      selectedRef.current.style.outlineOffset = "";
+    }
+    selectedRef.current = el;
+    el.style.outline = "3px solid var(--color-gold)";
+    el.style.outlineOffset = "2px";
+  }
+  function clearSel() {
+    if (selectedRef.current) {
+      selectedRef.current.style.outline = "";
+      selectedRef.current.style.outlineOffset = "";
+      selectedRef.current = null;
+    }
+  }
+  function closeTip() {
+    clearSel();
+    setTip(null);
+    setTipNote("");
+    setTipMsg(null);
+  }
 
   // حفظ ملاحظة عامة — تصل المطوّر مباشرة بدون تسجيل دخول (جدول public_notes)
   async function logNote(text: string, action: string): Promise<boolean> {
@@ -87,6 +113,16 @@ export function PageInspector() {
     setTipMsg(saved ? `✅ وصل «${action}» للمطوّر — سيُنفَّذ.` : `📝 سُجّل «${action}» محلياً (سيُرسَل عند عودة الاتصال).`);
   }
 
+  // إرسال مشكلة مكتوبة مرتبطة بالعنصر المختار
+  async function submitTipNote() {
+    if (!tip) return;
+    if (!tipNote.trim()) { setTipMsg("اكتب المشكلة أولاً."); return; }
+    const text = `[مشكلة] العنصر «${tip.label}»${tip.href ? " (" + tip.href + ")" : ""}: ${tipNote.trim()}`;
+    const saved = await logNote(text, "مشكلة على عنصر");
+    setTipNote("");
+    setTipMsg(saved ? "✅ وصلت المشكلة للمطوّر — سيراجعها." : "📝 سُجّلت محلياً (تُرسَل عند عودة الاتصال).");
+  }
+
   useEffect(() => {
     if (!explain) return;
     function onClick(e: MouseEvent) {
@@ -100,6 +136,8 @@ export function PageInspector() {
       const href = isLink ? el.getAttribute("href") : null;
       const label = (el.getAttribute("aria-label") || el.textContent || el.getAttribute("title") || "—").replace(/\s+/g, " ").trim().slice(0, 60) || "(بلا نص)";
       setTipMsg(null);
+      setTipNote("");
+      selectEl(el); // تمييز ثابت يبقى أثناء كتابة المشكلة
       setTip({
         x: Math.min(e.clientX, window.innerWidth - 20),
         y: e.clientY,
@@ -115,7 +153,9 @@ export function PageInspector() {
     return () => {
       document.removeEventListener("click", onClick, true);
       document.body.style.cursor = prevCursor;
+      clearSel();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [explain]);
 
   async function saveNote() {
@@ -172,8 +212,8 @@ export function PageInspector() {
       {/* شريط «وضع الشرح» */}
       {explain && (
         <div className="fixed inset-x-0 top-0 z-[10002] flex items-center justify-center gap-3 bg-gold py-2 text-sm font-bold text-golddark">
-          🛈 وضع الشرح مُفعّل — اضغط أي زر لمعرفة وظيفته (لن يُنفَّذ)
-          <button onClick={() => { setExplain(false); setTip(null); }} className="rounded bg-black/20 px-2 py-0.5 text-xs">إيقاف</button>
+          🛈 وضع الشرح مُفعّل — اضغط أي زر لتحديده وكتابة مشكلته (لن يُنفَّذ)
+          <button onClick={() => { setExplain(false); closeTip(); }} className="rounded bg-black/20 px-2 py-0.5 text-xs">إيقاف</button>
         </div>
       )}
 
@@ -186,13 +226,28 @@ export function PageInspector() {
         >
           <div className="flex items-start justify-between gap-2">
             <span className="font-extrabold text-fg">{tip.kind === "link" ? "🔗" : "🔘"} {tip.label}</span>
-            <button onClick={() => setTip(null)} className="text-xs text-mut hover:text-fg">✕</button>
+            <button onClick={closeTip} className="text-xs text-mut hover:text-fg">✕</button>
           </div>
           <div className="mt-2 rounded-lg bg-card2 p-2 text-xs text-fg">
             <div>🎯 <span className="text-mut">الوظيفة:</span> {tip.mission}</div>
             {tip.href && <div className="mt-1 truncate font-mono text-gold">↪ {tip.href}</div>}
             {!tip.href && <div className="mt-1 text-mut">إجراء داخل الصفحة (لا ينقلك لصفحة أخرى)</div>}
           </div>
+
+          {/* كتابة المشكلة على هذا العنصر — التحديد يبقى ثابتاً أثناء الكتابة */}
+          <textarea
+            value={tipNote}
+            onChange={(e) => setTipNote(e.target.value)}
+            rows={2}
+            placeholder="اكتب المشكلة على هذا الزر… (مثال: لا يحفظ / النص غير واضح)"
+            className="mt-2 w-full rounded-lg border border-line bg-card2 px-2 py-1.5 text-xs text-fg placeholder:text-mut/60 focus:border-gold focus:outline-none"
+          />
+          <button
+            onClick={submitTipNote}
+            className="mt-1.5 w-full rounded-lg mulki-gold-bg px-3 py-1.5 text-center text-xs font-bold"
+          >
+            إرسال المشكلة للمطوّر
+          </button>
           {tip.href && (
             <a href={tip.href} className="mt-2 block rounded-lg mulki-gold-bg px-3 py-1.5 text-center text-xs font-bold">
               تنفيذ الانتقال فعلاً ←

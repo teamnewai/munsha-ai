@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { SmartSecretary } from "@/components/os/SmartSecretary";
 
 // مكتب الموظف «مكتب محمد» — مرجع: وثيقة «الشجرة» §323-327
@@ -35,23 +36,27 @@ const RETURNED = [
 ];
 
 export default function DeskPage() {
+  const [toast, setToast] = useState<string | null>(null);
+  function openTool(label: string) {
+    setToast(`🔧 «${label}» قيد التفعيل — قريباً.`);
+    setTimeout(() => setToast(null), 2200);
+  }
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-slate-100">
       {/* شريط السياق */}
       <header className="border-b border-white/10 bg-white/5">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/os" className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gold-500 font-extrabold text-brand-950">
-              🪑
-            </span>
-            <div className="text-sm">
-              <div className="font-extrabold">مكتب محمد</div>
-              <div className="text-xs text-slate-400">المالية · المحاسبة · محاسب أول</div>
-            </div>
-          </Link>
-          <div className="text-xs text-slate-400">
-            {new Intl.DateTimeFormat("ar-SA", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}
+          <div className="flex items-center gap-3">
+            <Link href="/os" className="grid h-9 w-9 place-items-center rounded-xl border border-white/15 text-slate-200 hover:bg-white/10" title="رجوع لنظام التشغيل">→</Link>
+            <Link href="/os" className="flex items-center gap-3">
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-gold-500 font-extrabold text-brand-950">🪑</span>
+              <div className="text-sm">
+                <div className="font-extrabold">مكتب محمد</div>
+                <div className="text-xs text-slate-400">المالية · المحاسبة · محاسب أول</div>
+              </div>
+            </Link>
           </div>
+          <Link href="/dashboard" className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10">🏠 لوحة التحكم</Link>
         </div>
       </header>
 
@@ -80,6 +85,7 @@ export default function DeskPage() {
               ) : (
                 <button
                   key={tool.label}
+                  onClick={() => openTool(tool.label)}
                   className="group flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-center transition-transform hover:-translate-y-0.5 hover:bg-white/10"
                 >
                   <span className="text-2xl">{tool.icon}</span>
@@ -151,6 +157,12 @@ export default function DeskPage() {
           </Panel>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-gold-500 px-4 py-2.5 text-sm font-bold text-brand-950 shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

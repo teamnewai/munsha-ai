@@ -138,17 +138,31 @@ export default function LandingPage() {
             <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-xl">
               مكتبك الافتراضي الكامل — إدارات وموظفون ووكلاء ذكاء وحوكمة، تديرها من أي مكان. للمكتب الطبيعي والافتراضي معاً، عبر البناء والتكامل مع أدواتك المفضّلة.
             </p>
-            <div className="mt-8 flex flex-wrap gap-2.5">
-              {heroActions.map((a) => (
+            <div className="mt-8 space-y-2.5">
+              {/* أنشئ مكتبك — زر رئيسي طويل */}
+              {heroActions.filter((a) => a.primary).map((a) => (
                 <Link
                   key={a.label}
                   href={a.to}
-                  className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold ${a.primary ? "mulki-gold-bg hover:opacity-90" : "bg-card2 text-fg hover:bg-card2/70"}`}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl mulki-gold-bg px-5 py-3.5 text-base font-extrabold hover:opacity-90"
                 >
-                  <span>{a.emoji}</span>
+                  <span className="text-lg">{a.emoji}</span>
                   {a.label}
                 </Link>
               ))}
+              {/* باقي الخدمات — متجاورة تحته */}
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                {heroActions.filter((a) => !a.primary).map((a) => (
+                  <Link
+                    key={a.label}
+                    href={a.to}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-card2 px-3 py-2.5 text-sm font-bold text-fg hover:bg-card2/70"
+                  >
+                    <span>{a.emoji}</span>
+                    {a.label}
+                  </Link>
+                ))}
+              </div>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">٦ أشهر مجانية لكل الخدمات خلال فترة الإطلاق.</p>
           </div>

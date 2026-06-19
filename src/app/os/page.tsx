@@ -1,15 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DEPARTMENTS } from "@/lib/deptMeta";
+import { OsLive } from "@/components/os/OsLive";
 
 export const metadata: Metadata = { title: "نظام التشغيل — MULKI OS" };
-
-const KPIS = [
-  { label: "الأقسام النشطة", value: "14", icon: "🏛️" },
-  { label: "المهام اليوم", value: "23", icon: "✅" },
-  { label: "طلبات معلّقة", value: "6", icon: "📥" },
-  { label: "حضور الفريق", value: "92%", icon: "👥" },
-];
 
 const GATES = [
   {
@@ -66,19 +60,8 @@ export default function OsPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {/* KPIs */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {KPIS.map((k) => (
-            <div
-              key={k.label}
-              className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur"
-            >
-              <div className="text-2xl">{k.icon}</div>
-              <div className="mt-3 text-3xl font-extrabold text-gold-400">{k.value}</div>
-              <div className="mt-1 text-sm text-slate-400">{k.label}</div>
-            </div>
-          ))}
-        </div>
+        {/* المكاتب الافتراضية والمؤشرات الحقيقية (مولّدة من هيكل منشأتك) */}
+        <OsLive />
 
         {/* البوابات الثلاث */}
         <h2 className="mt-10 mb-4 text-lg font-bold">البوابات</h2>

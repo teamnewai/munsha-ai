@@ -18,6 +18,7 @@ function LoginInner() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false); // بعد التسجيل: انتظار تأكيد البريد
 
   const configured = isSupabaseConfigured();
 
@@ -68,11 +69,29 @@ function LoginInner() {
     }
     if (signup) {
       setLoading(false);
-      setMsg("تم إنشاء الحساب! تحقق من بريدك لتأكيد التسجيل.");
+      setAwaitingConfirm(true);
+      setMsg("تم إنشاء الحساب! أرسلنا رابط تأكيد إلى بريدك — افتحه من نفس الجهاز/المتصفح.");
       return;
     }
     // إعادة تحميل كاملة لضمان التقاط الخادم للجلسة (يمنع حلقة العودة للدخول)
     window.location.assign(redirect);
+  }
+
+  // إعادة إرسال رابط تأكيد التسجيل (للروابط المنتهية/المفقودة)
+  async function handleResend() {
+    setMsg(null);
+    if (!email.trim()) { setMsg("اكتب بريدك الإلكتروني أولاً."); return; }
+    if (!configured) { setMsg("الوضع التجريبي: غير متاح الآن."); return; }
+    setLoading(true);
+    const supabase = createClient();
+    if (!supabase) { setLoading(false); return; }
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}` },
+    });
+    setLoading(false);
+    setMsg(error ? error.message : "📧 أعدنا إرسال رابط التأكيد إلى بريدك.");
   }
 
   // تسجيل الدخول عبر البريد (رابط سحري — بلا كلمة مرور)
@@ -177,12 +196,24 @@ function LoginInner() {
               />
             </div>
 
-            {msg && <p className="text-sm text-bad">{msg}</p>}
+            {msg && <p className={`text-sm ${msg.startsWith("📧") || msg.startsWith("تم") ? "text-ok" : "text-bad"}`}>{msg}</p>}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "جارٍ..." : signup ? "إنشاء الحساب" : "تسجيل الدخول"}
             </Button>
           </form>
+
+          {/* إعادة إرسال رابط التأكيد — يظهر بعد التسجيل أو عند فشل الرابط */}
+          {(awaitingConfirm || errParam === "confirm") && (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={loading}
+              className="mt-3 w-full rounded-xl border border-gold/40 bg-gold/5 px-4 py-2.5 text-sm font-bold text-gold hover:bg-gold/10 disabled:opacity-50"
+            >
+              🔄 إعادة إرسال رابط التأكيد
+            </button>
+          )}
 
           {/* فاصل */}
           <div className="my-5 flex items-center gap-3 text-xs text-mut">

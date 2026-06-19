@@ -186,6 +186,9 @@ export default function DeptOfficePage({ params }: { params: Promise<{ key: stri
               </div>
             )}
 
+            {/* محادثة وكيل القسم */}
+            {agent && <AgentChat deptKey={dept.dept_key} deptName={dept.name} agentName={agent.name} />}
+
             {/* الموظفون + إضافة */}
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
               <div className="mb-4 flex items-center justify-between">
@@ -252,4 +255,67 @@ function Chip({ children }: { children: React.ReactNode }) {
 }
 function Empty({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-slate-500">{children}</p>;
+}
+
+// محادثة حيّة مع وكيل القسم
+function AgentChat({ deptKey, deptName, agentName }: { deptKey: string; deptName: string; agentName: string }) {
+  const [msgs, setMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    const text = input.trim();
+    if (!text || busy) return;
+    const next = [...msgs, { role: "user" as const, content: text }];
+    setMsgs(next);
+    setInput("");
+    setBusy(true);
+    try {
+      const res = await fetch("/api/ai/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deptKey, deptName, agentName, messages: next }),
+      });
+      const data = await res.json();
+      setMsgs((m) => [...m, { role: "assistant", content: data?.reply || "تعذّر الرد." }]);
+    } catch {
+      setMsgs((m) => [...m, { role: "assistant", content: "تعذّر الاتصال بالوكيل." }]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-2xl border border-emerald-500/20 bg-white/5 p-5">
+      <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-300">💬 محادثة {agentName}</h3>
+      <div className="max-h-72 space-y-2 overflow-y-auto">
+        {msgs.length === 0 && (
+          <p className="text-sm text-slate-500">اسأل وكيل القسم عن المهام أو الإجراءات أو السياسات…</p>
+        )}
+        {msgs.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-start" : "justify-end"}`}>
+            <div className={`max-w-[85%] whitespace-pre-wrap rounded-xl px-3 py-2 text-sm ${
+              m.role === "user" ? "bg-white/10 text-slate-100" : "bg-emerald-500/15 text-emerald-100"
+            }`}>
+              {m.role === "assistant" && <span className="mb-0.5 block text-[10px] text-emerald-300">🤖 {agentName}</span>}
+              {m.content}
+            </div>
+          </div>
+        ))}
+        {busy && <p className="text-end text-xs text-emerald-300">يكتب…</p>}
+      </div>
+      <form onSubmit={send} className="mt-3 flex gap-2">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="اكتب رسالتك للوكيل…"
+          className="flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none"
+        />
+        <button type="submit" disabled={busy} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50">
+          إرسال
+        </button>
+      </form>
+    </div>
+  );
 }

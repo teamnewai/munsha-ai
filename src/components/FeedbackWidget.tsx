@@ -41,6 +41,26 @@ export function FeedbackWidget() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const hoverBox = useRef<HTMLDivElement | null>(null);
+  const selectedRef = useRef<HTMLElement | null>(null); // العنصر المحدّد — يبقى مظلَّلاً أثناء الكتابة
+
+  function applyOutline(el: HTMLElement) {
+    clearOutline();
+    selectedRef.current = el;
+    el.style.outline = "3px solid #caa53d";
+    el.style.outlineOffset = "2px";
+  }
+  function clearOutline() {
+    if (selectedRef.current) {
+      selectedRef.current.style.outline = "";
+      selectedRef.current.style.outlineOffset = "";
+      selectedRef.current = null;
+    }
+  }
+
+  // إزالة التظليل عند إغلاق الأداة أو بعد الإرسال
+  useEffect(() => {
+    if (mode === "off" || mode === "sent") clearOutline();
+  }, [mode]);
 
   // فتح النموذج مباشرة مع التقاط القسم الحالي تلقائياً
   function openForm() {
@@ -69,6 +89,7 @@ export function FeedbackWidget() {
       if (!el || el.dataset.fbw) return;
       e.preventDefault();
       e.stopPropagation();
+      applyOutline(el); // تظليل ثابت يبقى أثناء كتابة المشكلة
       setTarget({
         label: (el.getAttribute("aria-label") || el.textContent || el.tagName).trim().slice(0, 80),
         selector: buildSelector(el),
@@ -140,11 +161,13 @@ export function FeedbackWidget() {
         </button>
       )}
 
-      {/* نموذج كتابة المشكلة */}
+      {/* نموذج كتابة المشكلة — لوحة جانبية لا تغطّي الصفحة ليبقى العنصر المحدّد ظاهراً */}
       {mode === "form" && (
-        <div data-fbw="1" className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4" onClick={() => !saving && setMode("off")}>
-          <div data-fbw="1" className="w-full max-w-md rounded-2xl border border-line bg-card p-6 text-fg" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-extrabold">الإبلاغ عن مشكلة أو اقتراح</h2>
+        <div data-fbw="1" className="fixed bottom-5 left-5 z-[10000] max-h-[85vh] w-[92vw] max-w-md overflow-y-auto rounded-2xl border border-line bg-card p-6 text-fg shadow-2xl ring-1 ring-gold/30">
+            <div className="flex items-start justify-between">
+              <h2 className="text-lg font-extrabold">الإبلاغ عن مشكلة أو اقتراح</h2>
+              <button data-fbw="1" onClick={() => setMode("off")} className="rounded-lg px-2 py-0.5 text-sm text-mut hover:bg-card2">✕</button>
+            </div>
             <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-line bg-card2 p-2 text-xs text-mut">
               <span className="truncate">📍 القسم: <b className="text-fg">{target?.section || currentSection()}</b>{target?.label ? ` · ${target.label}` : ""}</span>
               <button data-fbw="1" onClick={() => setMode("pick")} className="shrink-0 rounded bg-gold/15 px-2 py-1 font-bold text-gold hover:bg-gold/25">
@@ -174,7 +197,6 @@ export function FeedbackWidget() {
                 {saving ? "جارٍ الإرسال…" : "إرسال"}
               </button>
             </div>
-          </div>
         </div>
       )}
 

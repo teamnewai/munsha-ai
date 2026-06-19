@@ -67,13 +67,26 @@ function LoginInner() {
     if (!email.trim() || password.length < 6) { setMsg("اكتب بريدك وكلمة مرور من 6 أحرف على الأقل."); return; }
     setLoading(true);
     const supabase = createClient()!;
+    // 1) محاولة الدخول إن كان الحساب موجوداً
     const signIn = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (!signIn.error) return routeAfterAuth();
-    const signUp = await supabase.auth.signUp({ email: email.trim(), password });
-    if (signUp.error) return fail(signUp.error);
-    if (signUp.data.session) return routeAfterAuth();
+
+    // 2) غير موجود → إنشاء حساب مؤكَّد فوراً (يتجاوز تأكيد البريد)
+    const { data, error } = await supabase.rpc("instant_signup", { p_email: email.trim(), p_password: password });
+    const res = data as { ok?: boolean; reason?: string } | null;
+    if (error) { setLoading(false); setMsg(error.message); return; }
+    if (res?.ok) {
+      const again = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (!again.error) return routeAfterAuth();
+      setLoading(false);
+      setMsg(again.error.message);
+      return;
+    }
     setLoading(false);
-    setMsg("تم إنشاء الحساب، لكن «تأكيد البريد» مفعّل في Supabase. عطّله: Authentication → Providers → Email → Confirm email.");
+    if (res?.reason === "exists")
+      setMsg("هذا الحساب موجود — كلمة المرور غير صحيحة. استخدم «نسيت كلمة المرور؟» للاستعادة برمز.");
+    else if (res?.reason === "weak") setMsg("كلمة المرور 6 أحرف على الأقل.");
+    else setMsg("تعذّر إنشاء الحساب. تأكّد من صحة البريد.");
   }
 
   // ── رمز عبر البريد ──

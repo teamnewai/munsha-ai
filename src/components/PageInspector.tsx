@@ -50,6 +50,40 @@ export function PageInspector() {
   const [saving, setSaving] = useState(false);
   const [noteMsg, setNoteMsg] = useState<string | null>(null);
 
+  // وضع الشرح: اضغط أي زر لمعرفة وظيفته (دون تنفيذه)
+  const [explain, setExplain] = useState(false);
+  const [tip, setTip] = useState<{ x: number; y: number; label: string; mission: string; href: string | null; kind: string } | null>(null);
+
+  useEffect(() => {
+    if (!explain) return;
+    function onClick(e: MouseEvent) {
+      const raw = e.target as HTMLElement;
+      if (!raw || raw.closest("[data-pginspect]")) return; // لا نعترض لوحتنا
+      const el = raw.closest("a[href], button") as HTMLElement | null;
+      if (!el) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const isLink = el.tagName.toLowerCase() === "a";
+      const href = isLink ? el.getAttribute("href") : null;
+      const label = (el.getAttribute("aria-label") || el.textContent || el.getAttribute("title") || "—").replace(/\s+/g, " ").trim().slice(0, 60) || "(بلا نص)";
+      setTip({
+        x: Math.min(e.clientX, window.innerWidth - 20),
+        y: e.clientY,
+        label,
+        mission: inferMission(label, href, isLink ? "link" : "button"),
+        href,
+        kind: isLink ? "link" : "button",
+      });
+    }
+    document.addEventListener("click", onClick, true);
+    const prevCursor = document.body.style.cursor;
+    document.body.style.cursor = "help";
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      document.body.style.cursor = prevCursor;
+    };
+  }, [explain]);
+
   async function saveNote() {
     setNoteMsg(null);
     if (!note.trim()) { setNoteMsg("اكتب ملاحظتك أولاً."); return; }
@@ -128,8 +162,40 @@ export function PageInspector() {
 
   return (
     <div data-pginspect="1">
+      {/* شريط «وضع الشرح» */}
+      {explain && (
+        <div className="fixed inset-x-0 top-0 z-[10002] flex items-center justify-center gap-3 bg-gold py-2 text-sm font-bold text-golddark">
+          🛈 وضع الشرح مُفعّل — اضغط أي زر لمعرفة وظيفته (لن يُنفَّذ)
+          <button onClick={() => { setExplain(false); setTip(null); }} className="rounded bg-black/20 px-2 py-0.5 text-xs">إيقاف</button>
+        </div>
+      )}
+
+      {/* بطاقة الشرح المنبثقة */}
+      {tip && (
+        <div
+          className="fixed z-[10003] w-64 -translate-x-1/2 rounded-xl border border-gold/40 bg-card p-3 text-sm shadow-2xl"
+          style={{ top: Math.min(tip.y + 12, window.innerHeight - 160), left: tip.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <span className="font-extrabold text-fg">{tip.kind === "link" ? "🔗" : "🔘"} {tip.label}</span>
+            <button onClick={() => setTip(null)} className="text-xs text-mut hover:text-fg">✕</button>
+          </div>
+          <div className="mt-2 rounded-lg bg-card2 p-2 text-xs text-fg">
+            <div>🎯 <span className="text-mut">الوظيفة:</span> {tip.mission}</div>
+            {tip.href && <div className="mt-1 truncate font-mono text-gold">↪ {tip.href}</div>}
+            {!tip.href && <div className="mt-1 text-mut">إجراء داخل الصفحة (لا ينقلك لصفحة أخرى)</div>}
+          </div>
+          {tip.href && (
+            <a href={tip.href} className="mt-2 block rounded-lg mulki-gold-bg px-3 py-1.5 text-center text-xs font-bold">
+              تنفيذ الانتقال فعلاً ←
+            </a>
+          )}
+        </div>
+      )}
+
       {/* الزر العائم */}
-      {!open && (
+      {!open && !explain && (
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -155,6 +221,14 @@ export function PageInspector() {
           </div>
 
           <div className="overflow-y-auto p-3 text-sm">
+            {/* وضع الشرح */}
+            <button
+              onClick={() => { setExplain((v) => !v); setTip(null); if (!explain) setOpen(false); }}
+              className={`mb-3 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold ${explain ? "bg-bad/15 text-bad" : "mulki-gold-bg"}`}
+            >
+              {explain ? "⏹ إيقاف وضع الشرح" : "🛈 وضع الشرح — اضغط أي زر لمعرفة وظيفته"}
+            </button>
+
             {/* خانة كتابة الملاحظات */}
             <div className="mb-3 rounded-xl border border-gold/30 bg-gold/5 p-2.5">
               <label className="mb-1 block text-xs font-bold text-gold">📝 اكتب ملاحظتك على هذه الصفحة</label>

@@ -158,6 +158,12 @@ export function PageInspector() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [explain]);
 
+  // إرسال ملاحظة مرتبطة بعنصر محدّد من القائمة (كل زر تحته ملاحظته)
+  async function flagItem(item: Item, text: string): Promise<boolean> {
+    const body = `العنصر «${item.label}»${item.href ? " (" + item.href + ")" : ""}: ${text.trim()}`;
+    return logNote(body, "ملاحظة على عنصر");
+  }
+
   async function saveNote() {
     setNoteMsg(null);
     if (!note.trim()) { setNoteMsg("اكتب ملاحظتك أولاً."); return; }
@@ -326,10 +332,10 @@ export function PageInspector() {
             </div>
 
             {links.length > 0 && (
-              <Section title="الروابط" items={links} onPick={highlight} />
+              <Section title="الروابط" items={links} onPick={highlight} onFlag={flagItem} />
             )}
             {buttons.length > 0 && (
-              <Section title="الأزرار" items={buttons} onPick={highlight} />
+              <Section title="الأزرار" items={buttons} onPick={highlight} onFlag={flagItem} />
             )}
             {items.length === 0 && <p className="p-6 text-center text-mut">لا عناصر تفاعلية في هذه الصفحة.</p>}
           </div>
@@ -339,26 +345,79 @@ export function PageInspector() {
   );
 }
 
-function Section({ title, items, onPick }: { title: string; items: Item[]; onPick: (el: HTMLElement) => void }) {
+function Section({
+  title, items, onPick, onFlag,
+}: {
+  title: string;
+  items: Item[];
+  onPick: (el: HTMLElement) => void;
+  onFlag: (item: Item, text: string) => Promise<boolean>;
+}) {
   return (
     <div className="mb-3">
       <h3 className="mb-1.5 text-xs font-bold text-mut">{title} ({items.length})</h3>
       <div className="space-y-1.5">
         {items.map((it, i) => (
-          <button
-            key={i}
-            onClick={() => onPick(it.el)}
-            className="block w-full rounded-xl border border-line bg-card2 p-2.5 text-right hover:border-gold/50"
-            title="اضغط لتمييز العنصر في الصفحة"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="truncate font-bold text-fg">{it.kind === "link" ? "🔗" : "🔘"} {it.label}</span>
-            </div>
-            <div className="mt-1 text-[11px] text-mut">🎯 {it.mission}</div>
-            {it.href && <div className="mt-0.5 truncate font-mono text-[11px] text-gold">{it.href}</div>}
-          </button>
+          <ItemRow key={i} item={it} onPick={onPick} onFlag={onFlag} />
         ))}
       </div>
+    </div>
+  );
+}
+
+// صفّ عنصر واحد — كل زر تحته حقل ملاحظته مباشرة
+function ItemRow({
+  item, onPick, onFlag,
+}: {
+  item: Item;
+  onPick: (el: HTMLElement) => void;
+  onFlag: (item: Item, text: string) => Promise<boolean>;
+}) {
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  async function send() {
+    if (!note.trim()) { setMsg("اكتب الملاحظة أولاً."); return; }
+    setSaving(true);
+    const ok = await onFlag(item, note);
+    setSaving(false);
+    setNote("");
+    setMsg(ok ? "✅ وصلت للمطوّر — ستُنفَّذ." : "📝 حُفظت محلياً (تُرسَل عند عودة الاتصال).");
+  }
+
+  return (
+    <div className="rounded-xl border border-line bg-card2 p-2.5">
+      <button
+        type="button"
+        onClick={() => onPick(item.el)}
+        className="block w-full text-right"
+        title="اضغط لتمييز العنصر في الصفحة"
+      >
+        <span className="truncate font-bold text-fg">{item.kind === "link" ? "🔗" : "🔘"} {item.label}</span>
+        <div className="mt-1 text-[11px] text-mut">🎯 {item.mission}</div>
+        {item.href && <div className="mt-0.5 truncate font-mono text-[11px] text-gold">{item.href}</div>}
+      </button>
+
+      {/* حقل ملاحظة هذا الزر */}
+      <div className="mt-2 flex items-end gap-1.5">
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={1}
+          placeholder="اكتب ملاحظتك على هذا الزر…"
+          className="min-h-[34px] flex-1 rounded-lg border border-line bg-card px-2 py-1.5 text-xs text-fg placeholder:text-mut/60 focus:border-gold focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={send}
+          disabled={saving}
+          className="shrink-0 rounded-lg bg-gold px-2.5 py-1.5 text-xs font-bold text-golddark hover:bg-gold/90 disabled:opacity-50"
+        >
+          {saving ? "…" : "إرسال"}
+        </button>
+      </div>
+      {msg && <p className="mt-1 text-[11px] font-bold text-gold">{msg}</p>}
     </div>
   );
 }

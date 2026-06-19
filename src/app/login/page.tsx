@@ -70,8 +70,6 @@ function LoginInner() {
     // 1) محاولة الدخول إن كان الحساب موجوداً
     const signIn = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (!signIn.error) return routeAfterAuth();
-    // تشخيص مؤقت: أظهر الخطأ الخام لمعرفة السبب الدقيق
-    console.error("signIn error:", signIn.error);
 
     // 2) غير موجود → إنشاء حساب مؤكَّد فوراً (يتجاوز تأكيد البريد)
     const { data, error } = await supabase.rpc("instant_signup", { p_email: email.trim(), p_password: password });
@@ -86,7 +84,7 @@ function LoginInner() {
     }
     setLoading(false);
     if (res?.reason === "exists")
-      setMsg(`هذا الحساب موجود — كلمة المرور غير صحيحة. (تفصيل: ${signIn.error?.message ?? "?"}) استخدم «نسيت كلمة المرور؟».`);
+      setMsg("هذا الحساب موجود — كلمة المرور غير صحيحة. استخدم «نسيت كلمة المرور؟» للاستعادة برمز.");
     else if (res?.reason === "weak") setMsg("كلمة المرور 6 أحرف على الأقل.");
     else setMsg("تعذّر إنشاء الحساب. تأكّد من صحة البريد.");
   }
@@ -176,10 +174,6 @@ function LoginInner() {
 
           <h1 className="text-2xl font-extrabold text-fg">الدخول / التسجيل</h1>
           <p className="mt-1 text-sm text-mut">اختر طريقة الدخول المناسبة لك.</p>
-          {/* تشخيص مؤقت: مشروع القاعدة المتصل + حالة الربط */}
-          <p className="mt-1 text-[10px] text-mut/70" dir="ltr">
-            db: {(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "—").replace("https://", "").split(".")[0]} · configured: {String(configured)}
-          </p>
 
           {/* مبدّل الطرق */}
           <div className="mt-5 grid grid-cols-3 gap-2 rounded-xl bg-card2 p-1">

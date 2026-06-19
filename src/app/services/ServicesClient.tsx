@@ -1,24 +1,55 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CATEGORIES, CATEGORY_LABEL, providersByCategory, type Provider } from "@/lib/providers";
+import { CATEGORIES, providersByCategory, PROVIDERS, type Provider } from "@/lib/providers";
 
 // توجيه ذكي: يختار الزائر الخدمة → تظهر المنشآت المزوّدة المطابقة → يُرسل الطلب فيُوجَّه للمنشأة.
 
 export function ServicesClient() {
   const params = useSearchParams();
   const initial = params.get("category") || "financial";
+  const pName = params.get("p");
   const [cat, setCat] = useState<string>(CATEGORIES.some((c) => c.key === initial) ? initial : "financial");
   const [routedTo, setRoutedTo] = useState<Provider | null>(null);
+  const [myCats, setMyCats] = useState<string[]>([]);
+  const [myOrg, setMyOrg] = useState<string>("");
 
-  const providers = useMemo(() => providersByCategory(cat), [cat]);
+  // تحميل خدمات منشأتك المعروضة (الوضع التجريبي — تخزين محلي)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("mulki:my-services");
+      if (raw) {
+        const v = JSON.parse(raw);
+        setMyCats(Array.isArray(v.categories) ? v.categories : []);
+        setMyOrg(typeof v.orgName === "string" ? v.orgName : "");
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // توجيه مباشر لمنشأة محددة عبر ?p=
+  useEffect(() => {
+    if (!pName) return;
+    const found = PROVIDERS.find((p) => p.name === pName);
+    if (found) { setCat(found.category); setRoutedTo(found); }
+  }, [pName]);
+
   const current = CATEGORIES.find((c) => c.key === cat)!;
+  const providers = useMemo(() => {
+    const base = providersByCategory(cat);
+    if (myCats.includes(cat)) {
+      const mine: Provider = {
+        name: `${myOrg || "منشأتك"} (منشأتك)`, category: cat, city: "منشأتك",
+        specialty: "خدمة معروضة من منشأتك", rating: 5, jobs: 0, verified: true,
+      };
+      return [mine, ...base];
+    }
+    return base;
+  }, [cat, myCats, myOrg]);
 
   return (
     <div className="min-h-screen" dir="rtl">
-      {/* ترويسة بسيطة */}
       <header className="sticky top-0 z-30 backdrop-blur bg-background/70 border-b border-border">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2.5">
@@ -28,7 +59,10 @@ export function ServicesClient() {
               <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">سوق الخدمات</div>
             </div>
           </Link>
-          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">← الرئيسية</Link>
+          <div className="flex items-center gap-3">
+            <Link href="/my-services" className="text-sm text-primary hover:underline">اعرض خدماتك</Link>
+            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">← الرئيسية</Link>
+          </div>
         </div>
       </header>
 
@@ -39,7 +73,6 @@ export function ServicesClient() {
           <p className="text-muted-foreground mt-3">اختر نوع الخدمة، وتظهر لك المنشآت المزوّدة المعتمدة، ويُوجَّه طلبك فوراً.</p>
         </div>
 
-        {/* تصنيفات الخدمات */}
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {CATEGORIES.map((c) => (
             <button key={c.key} onClick={() => { setCat(c.key); setRoutedTo(null); }}
@@ -92,8 +125,7 @@ function ProviderCard({ provider, onRoute }: { provider: Provider; onRoute: () =
         <span className="text-amber-400">★ {provider.rating}</span>
         <span>{provider.jobs} خدمة</span>
       </div>
-      <button onClick={onRoute}
-        className="mt-4 w-full rounded-xl mulki-gold-bg px-4 py-2.5 text-sm font-bold hover:opacity-90">
+      <button onClick={onRoute} className="mt-4 w-full rounded-xl mulki-gold-bg px-4 py-2.5 text-sm font-bold hover:opacity-90">
         وجّه طلبي لهذه المنشأة
       </button>
     </div>

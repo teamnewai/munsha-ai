@@ -26,6 +26,7 @@ const nav: NavItem[] = [
   { to: "/meetings", label: "الاجتماعات", icon: Calendar },
   { to: "/knowledge", label: "العقل المعرفي", icon: Brain },
   { to: "/marketplace", label: "سوق الخدمات", icon: Store },
+  { to: "/my-services", label: "خدماتي", icon: Store, accent: true },
   { to: "/network", label: "شبكة الأعمال", icon: Network },
   { to: "/conferences", label: "المؤتمرات", icon: Presentation },
   { to: "/companies", label: "الشركات", icon: Crown },

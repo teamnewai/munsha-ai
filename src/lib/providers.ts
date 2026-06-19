@@ -15,6 +15,7 @@ export const CATEGORIES: Category[] = [
   { key: "maintenance", label: "صيانة", emoji: "🔧", desc: "صيانة · ترميم · تكييف" },
   { key: "cleaning", label: "نظافة", emoji: "🧹", desc: "تنظيف · تعقيم" },
   { key: "contractor", label: "مقاولات", emoji: "👷", desc: "بناء · تشطيب" },
+  { key: "financing", label: "بنوك وتمويل", emoji: "🏦", desc: "تمويل · حسابات · ضمانات" },
 ];
 
 export const CATEGORY_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.label]));
@@ -63,6 +64,15 @@ export const PROVIDERS: Provider[] = [
   // مقاولات
   { name: "البنيان للمقاولات", category: "contractor", city: "الرياض", specialty: "بناء وتشطيب", rating: 4.7, jobs: 176, verified: true },
   { name: "إعمار الديار", category: "contractor", city: "جدة", specialty: "تشطيبات فاخرة", rating: 4.5, jobs: 98, verified: true },
+  // بنوك وتمويل
+  { name: "البنك الأهلي", category: "financing", city: "الرياض", specialty: "حسابات وتمويل المنشآت", rating: 4.6, jobs: 980, verified: true },
+  { name: "مصرف الراجحي", category: "financing", city: "الرياض", specialty: "تمويل ومصرفية الشركات", rating: 4.7, jobs: 1120, verified: true },
+  { name: "بنك الرياض", category: "financing", city: "الرياض", specialty: "تمويل تجاري", rating: 4.5, jobs: 640, verified: true },
+  { name: "البنك السعودي الأول", category: "financing", city: "جدة", specialty: "حلول مصرفية للشركات", rating: 4.4, jobs: 410, verified: true },
+  { name: "صندوق التنمية العقارية", category: "financing", city: "الرياض", specialty: "تمويل عقاري", rating: 4.3, jobs: 305, verified: true },
+  { name: "بنك التنمية الاجتماعية", category: "financing", city: "الرياض", specialty: "تمويل اجتماعي وأسري", rating: 4.2, jobs: 288, verified: true },
+  { name: "كفالة — تمويل المنشآت", category: "financing", city: "الرياض", specialty: "ضمان تمويل المنشآت الصغيرة", rating: 4.5, jobs: 222, verified: true },
+  { name: "منشآت — الهيئة العامة", category: "financing", city: "الرياض", specialty: "دعم المنشآت الصغيرة والمتوسطة", rating: 4.4, jobs: 176, verified: true },
 ];
 
 export function providersByCategory(key: string): Provider[] {

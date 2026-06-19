@@ -379,7 +379,7 @@ export default function LandingPage() {
               <div className="size-9 rounded-md bg-primary/15 text-primary flex items-center justify-center mb-3">🏦</div>
               <div className="font-semibold text-sm text-fg">{b.name}</div>
               <div className="text-[11px] text-muted-foreground mt-1">{b.type}</div>
-              <Link href="/dashboard/providers" className="text-xs text-primary mt-3 inline-flex items-center gap-1">تواصل ←</Link>
+              <Link href={`/services?category=financing&p=${encodeURIComponent(b.name)}`} className="text-xs text-primary mt-3 inline-flex items-center gap-1">تواصل ←</Link>
             </div>
           ))}
         </div>

@@ -2,113 +2,123 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { safeRedirect } from "@/lib/security";
 import { Button } from "@/components/ui/Button";
 
 function LoginInner() {
-  const router = useRouter();
   const params = useSearchParams();
-  const signup = params.get("mode") === "signup";
   // أمان: منع إعادة التوجيه المفتوح — مسارات داخلية فقط
   const redirect = safeRedirect(params.get("redirect"));
 
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [phase, setPhase] = useState<"email" | "code">("email");
+  const [usePassword, setUsePassword] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const [awaitingConfirm, setAwaitingConfirm] = useState(false); // بعد التسجيل: انتظار تأكيد البريد
+  const [ok, setOk] = useState<string | null>(null);
 
   const configured = isSupabaseConfigured();
 
-  // رسائل ودّية لأخطاء روابط التفعيل/المصادقة + تأكيد إعادة التعيين
-  const errParam = params.get("error");
-  const banner =
-    errParam === "confirm"
-      ? "تعذّر تأكيد البريد عبر الرابط (قد يكون منتهياً). سجّل الدخول مباشرة أو اطلب رابطاً جديداً."
-      : errParam === "auth"
-      ? "تعذّرت معالجة الرابط (قد يكون منتهياً أو مُستخدماً). حاول تسجيل الدخول."
-      : params.get("reset") === "1"
-      ? "تم تحديث كلمة المرور بنجاح ✓ — سجّل الدخول بكلمتك الجديدة."
-      : null;
+  // وجهة ما بعد الدخول: منشأة قائمة → اللوحة؛ لا منشأة → فتح المكتب
+  async function routeAfterAuth() {
+    const supabase = createClient();
+    if (!supabase) return window.location.assign(redirect);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { count } = await supabase
+        .from("memberships")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      return window.location.assign(count && count > 0 ? redirect : "/onboarding");
+    }
+    window.location.assign(redirect);
+  }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  // إرسال رمز التحقق إلى البريد (بلا روابط)
+  async function sendCode(e?: React.FormEvent) {
+    e?.preventDefault();
     setMsg(null);
-
-    // وضع تجريبي: قبل ربط Supabase، التسجيل الجديد يذهب لفتح المكتب، والدخول للوحة.
-    if (!configured) {
-      router.push(signup ? "/onboarding" : redirect);
+    setOk(null);
+    if (!email.trim()) {
+      setMsg("اكتب بريدك الإلكتروني أولاً.");
       return;
     }
-
+    if (!configured) {
+      window.location.assign("/onboarding");
+      return;
+    }
     setLoading(true);
     const supabase = createClient();
     if (!supabase) {
       setLoading(false);
       return;
     }
-
-    const { error } = signup
-      ? await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}` },
-        })
-      : await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      setLoading(false);
-      // ترجمة أكثر الأخطاء شيوعاً للعربية
-      const m = error.message.toLowerCase();
-      if (m.includes("invalid login")) setMsg("البريد أو كلمة المرور غير صحيحة.");
-      else if (m.includes("email not confirmed")) setMsg("لم يُؤكَّد بريدك بعد. تحقّق من بريدك أو اطلب رابطاً جديداً.");
-      else setMsg(error.message);
-      return;
-    }
-    if (signup) {
-      setLoading(false);
-      setAwaitingConfirm(true);
-      setMsg("تم إنشاء الحساب! أرسلنا رابط تأكيد إلى بريدك — افتحه من نفس الجهاز/المتصفح.");
-      return;
-    }
-    // إعادة تحميل كاملة لضمان التقاط الخادم للجلسة (يمنع حلقة العودة للدخول)
-    window.location.assign(redirect);
-  }
-
-  // إعادة إرسال رابط تأكيد التسجيل (للروابط المنتهية/المفقودة)
-  async function handleResend() {
-    setMsg(null);
-    if (!email.trim()) { setMsg("اكتب بريدك الإلكتروني أولاً."); return; }
-    if (!configured) { setMsg("الوضع التجريبي: غير متاح الآن."); return; }
-    setLoading(true);
-    const supabase = createClient();
-    if (!supabase) { setLoading(false); return; }
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}` },
-    });
-    setLoading(false);
-    setMsg(error ? error.message : "📧 أعدنا إرسال رابط التأكيد إلى بريدك.");
-  }
-
-  // تسجيل الدخول عبر البريد (رابط سحري — بلا كلمة مرور)
-  async function handleMagicLink() {
-    setMsg(null);
-    if (!email.trim()) { setMsg("اكتب بريدك الإلكتروني أولاً."); return; }
-    if (!configured) { setMsg("الوضع التجريبي: غير متاح الآن."); return; }
-    setLoading(true);
-    const supabase = createClient();
-    if (!supabase) { setLoading(false); return; }
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}` },
+      options: { shouldCreateUser: true },
     });
     setLoading(false);
-    if (error) { setMsg(error.message); return; }
-    setMsg("📧 أرسلنا رابط دخول إلى بريدك — افتحه لتسجيل الدخول بلا كلمة مرور.");
+    if (error) {
+      setMsg(error.message);
+      return;
+    }
+    setPhase("code");
+    setOk("📧 أرسلنا رمزاً من 6 أرقام إلى بريدك. أدخله أدناه.");
+  }
+
+  // التحقق من الرمز وتسجيل الدخول
+  async function verifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    const token = code.replace(/\s/g, "");
+    if (token.length < 6) {
+      setMsg("أدخل الرمز المكوّن من 6 أرقام.");
+      return;
+    }
+    setLoading(true);
+    const supabase = createClient();
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "email" });
+    if (error) {
+      setLoading(false);
+      const m = error.message.toLowerCase();
+      setMsg(m.includes("expired") || m.includes("invalid") ? "الرمز غير صحيح أو منتهٍ. أعد الإرسال." : error.message);
+      return;
+    }
+    await routeAfterAuth();
+  }
+
+  // مسار بديل: كلمة المرور (للحسابات القديمة)
+  async function passwordLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    if (!configured) {
+      window.location.assign(redirect);
+      return;
+    }
+    setLoading(true);
+    const supabase = createClient();
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) {
+      setLoading(false);
+      const m = error.message.toLowerCase();
+      setMsg(m.includes("invalid login") ? "البريد أو كلمة المرور غير صحيحة." : error.message);
+      return;
+    }
+    await routeAfterAuth();
   }
 
   return (
@@ -144,11 +154,9 @@ function LoginInner() {
             <span className="text-xl font-extrabold text-fg">مُلكي إدراك</span>
           </Link>
 
-          <h1 className="text-2xl font-extrabold text-fg">
-            {signup ? "أنشئ حسابك" : "أهلاً بعودتك"}
-          </h1>
+          <h1 className="text-2xl font-extrabold text-fg">الدخول / التسجيل</h1>
           <p className="mt-1 text-sm text-mut">
-            {signup ? "ابدأ تجربتك المجانية في دقائق." : "سجّل دخولك لمتابعة عملك."}
+            أدخل بريدك ونرسل لك رمز دخول — بلا كلمات مرور وبلا روابط.
           </p>
 
           {!configured && (
@@ -157,96 +165,102 @@ function LoginInner() {
             </div>
           )}
 
-          {banner && (
-            <div className={`mt-4 rounded-xl border p-3 text-xs ${params.get("reset") === "1" ? "border-ok/30 bg-ok/10 text-ok" : "border-gold/30 bg-gold/10 text-gold"}`}>
-              {banner}
-            </div>
+          {ok && <div className="mt-4 rounded-xl border border-ok/30 bg-ok/10 p-3 text-xs text-ok">{ok}</div>}
+
+          {/* تدفّق الرمز عبر البريد */}
+          {!usePassword && phase === "email" && (
+            <form onSubmit={sendCode} className="mt-6 space-y-4">
+              <Field label="البريد الإلكتروني">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required={configured}
+                  className={inputCls}
+                  placeholder="name@example.com"
+                />
+              </Field>
+              {msg && <p className="text-sm text-bad">{msg}</p>}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "جارٍ الإرسال..." : "إرسال رمز الدخول"}
+              </Button>
+            </form>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-fg">
-                البريد الإلكتروني
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required={configured}
-                className="w-full rounded-xl border border-line px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                placeholder="name@example.com"
-              />
-            </div>
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label className="block text-sm font-medium text-fg">كلمة المرور</label>
-                {!signup && (
-                  <Link href="/forgot" className="text-xs font-bold text-gold hover:underline">
-                    نسيت كلمة المرور؟
-                  </Link>
-                )}
+          {!usePassword && phase === "code" && (
+            <form onSubmit={verifyCode} className="mt-6 space-y-4">
+              <Field label={`الرمز المُرسَل إلى ${email}`}>
+                <input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className={`${inputCls} text-center text-lg tracking-[0.5em]`}
+                  placeholder="------"
+                  maxLength={6}
+                />
+              </Field>
+              {msg && <p className="text-sm text-bad">{msg}</p>}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "جارٍ التحقق..." : "تأكيد ودخول"}
+              </Button>
+              <div className="flex items-center justify-between text-xs">
+                <button type="button" onClick={() => { setPhase("email"); setCode(""); setMsg(null); }} className="font-bold text-mut hover:underline">
+                  ← تغيير البريد
+                </button>
+                <button type="button" onClick={() => sendCode()} disabled={loading} className="font-bold text-gold hover:underline disabled:opacity-50">
+                  إعادة إرسال الرمز
+                </button>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required={configured}
-                className="w-full rounded-xl border border-line px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {msg && <p className={`text-sm ${msg.startsWith("📧") || msg.startsWith("تم") ? "text-ok" : "text-bad"}`}>{msg}</p>}
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "جارٍ..." : signup ? "إنشاء الحساب" : "تسجيل الدخول"}
-            </Button>
-          </form>
-
-          {/* إعادة إرسال رابط التأكيد — يظهر بعد التسجيل أو عند فشل الرابط */}
-          {(awaitingConfirm || errParam === "confirm") && (
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={loading}
-              className="mt-3 w-full rounded-xl border border-gold/40 bg-gold/5 px-4 py-2.5 text-sm font-bold text-gold hover:bg-gold/10 disabled:opacity-50"
-            >
-              🔄 إعادة إرسال رابط التأكيد
-            </button>
+            </form>
           )}
 
-          {/* فاصل */}
+          {/* مسار كلمة المرور (بديل للحسابات القديمة) */}
+          {usePassword && (
+            <form onSubmit={passwordLogin} className="mt-6 space-y-4">
+              <Field label="البريد الإلكتروني">
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required={configured} className={inputCls} placeholder="name@example.com" />
+              </Field>
+              <Field label="كلمة المرور">
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required={configured} className={inputCls} placeholder="••••••••" />
+              </Field>
+              {msg && <p className="text-sm text-bad">{msg}</p>}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "جارٍ..." : "تسجيل الدخول"}
+              </Button>
+              <Link href="/forgot" className="block text-center text-xs font-bold text-gold hover:underline">
+                نسيت كلمة المرور؟
+              </Link>
+            </form>
+          )}
+
+          {/* مبدّل الطريقة */}
           <div className="my-5 flex items-center gap-3 text-xs text-mut">
             <span className="h-px flex-1 bg-line" />
             أو
             <span className="h-px flex-1 bg-line" />
           </div>
-
-          {/* تسجيل الدخول عبر البريد (رابط سحري بلا كلمة مرور) */}
           <button
             type="button"
-            onClick={handleMagicLink}
-            disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-card2 px-4 py-2.5 text-sm font-bold text-fg hover:bg-card2/70 disabled:opacity-50"
+            onClick={() => { setUsePassword((v) => !v); setMsg(null); setOk(null); setPhase("email"); }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-card2 px-4 py-2.5 text-sm font-bold text-fg hover:bg-card2/70"
           >
-            <span className="text-base">✉️</span>
-            تسجيل الدخول عبر البريد (رابط بلا كلمة مرور)
+            {usePassword ? "✉️ الدخول برمز عبر البريد" : "🔑 الدخول بكلمة المرور"}
           </button>
-          <p className="mt-2 text-center text-[11px] text-mut">
-            نرسل لك رابط دخول إلى بريدك — اضغطه وتدخل مباشرة دون كلمة مرور.
-          </p>
-
-          <p className="mt-6 text-center text-sm text-mut">
-            {signup ? "لديك حساب؟ " : "ليس لديك حساب؟ "}
-            <Link
-              href={signup ? "/login" : "/login?mode=signup"}
-              className="font-bold text-gold hover:underline"
-            >
-              {signup ? "سجّل الدخول" : "أنشئ حساباً"}
-            </Link>
-          </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+const inputCls =
+  "w-full rounded-xl border border-line px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-fg">{label}</label>
+      {children}
     </div>
   );
 }

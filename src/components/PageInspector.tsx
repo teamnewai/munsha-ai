@@ -18,10 +18,11 @@ interface Item {
 // استنتاج «مهمة» العنصر من نصّه/وجهته
 function inferMission(label: string, href: string | null, kind: string): string {
   const t = (label + " " + (href ?? "")).toLowerCase();
+  if (/أنشئ مكتبك|افتح مكتبك|مكتبك الافتراضي/.test(label)) return "يحوّلك إلى أداة توليد الهيكل التنظيمي (إدارات · مناصب · صلاحيات)";
   if (href) {
     if (href.includes("/login") && href.includes("signup")) return "إنشاء حساب جديد";
     if (href.includes("/login")) return "الانتقال لتسجيل الدخول";
-    if (href.includes("/onboarding")) return "فتح/إنشاء منشأة";
+    if (href.includes("/onboarding")) return "يحوّلك إلى أداة توليد الهيكل التنظيمي للمنشأة";
     if (href.includes("/dashboard/providers")) return "مزوّدو الخدمات";
     if (href.includes("/dashboard")) return "لوحة التحكم";
     if (href.includes("/pricing")) return "صفحة الأسعار والباقات";
@@ -53,6 +54,38 @@ export function PageInspector() {
   // وضع الشرح: اضغط أي زر لمعرفة وظيفته (دون تنفيذه)
   const [explain, setExplain] = useState(false);
   const [tip, setTip] = useState<{ x: number; y: number; label: string; mission: string; href: string | null; kind: string } | null>(null);
+  const [tipMsg, setTipMsg] = useState<string | null>(null);
+
+  // حفظ ملاحظة عامة (تُستخدم لخانة الملاحظات وأزرار الإجراءات السريعة)
+  async function logNote(text: string, section: string): Promise<boolean> {
+    try {
+      if (isSupabaseConfigured()) {
+        const supabase = createClient()!;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: m } = await supabase.from("memberships").select("org_id").eq("user_id", user.id).limit(1).maybeSingle();
+          const { error } = await supabase.from("page_feedback").insert({
+            org_id: m?.org_id ?? null, user_id: user.id, page_path: pathname, page_title: document.title,
+            note: text, status: "open", priority: "normal", section,
+          });
+          if (!error) return true;
+        }
+      }
+      const key = "mulki_notes";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      prev.unshift({ page: pathname, note: text, at: new Date().toISOString() });
+      localStorage.setItem(key, JSON.stringify(prev.slice(0, 200)));
+      return false; // حُفظ محلياً
+    } catch { return false; }
+  }
+
+  // إجراء سريع على عنصر من بطاقة الشرح
+  async function flag(action: string) {
+    if (!tip) return;
+    const text = `[${action}] العنصر «${tip.label}» — الوظيفة: ${tip.mission}${tip.href ? " — الوجهة: " + tip.href : ""}`;
+    const saved = await logNote(text, "إجراء على عنصر: " + action);
+    setTipMsg(saved ? `✅ سُجّل «${action}» في الملاحظات.` : `📝 سُجّل «${action}» محلياً (سجّل الدخول للحفظ في حسابك).`);
+  }
 
   useEffect(() => {
     if (!explain) return;
@@ -66,6 +99,7 @@ export function PageInspector() {
       const isLink = el.tagName.toLowerCase() === "a";
       const href = isLink ? el.getAttribute("href") : null;
       const label = (el.getAttribute("aria-label") || el.textContent || el.getAttribute("title") || "—").replace(/\s+/g, " ").trim().slice(0, 60) || "(بلا نص)";
+      setTipMsg(null);
       setTip({
         x: Math.min(e.clientX, window.innerWidth - 20),
         y: e.clientY,
@@ -191,6 +225,16 @@ export function PageInspector() {
               تنفيذ الانتقال فعلاً ←
             </a>
           )}
+          {/* إجراءات سريعة على العنصر */}
+          <div className="mt-2 grid grid-cols-4 gap-1">
+            {[["لا يعمل","🔴"],["عدّل","✏️"],["أصلح","🔧"],["أضف","➕"]].map(([a, e]) => (
+              <button key={a} onClick={() => flag(a)}
+                className="rounded-lg border border-line bg-card2 px-1 py-1.5 text-[11px] font-bold text-fg hover:border-gold/50">
+                <span className="block">{e}</span>{a}
+              </button>
+            ))}
+          </div>
+          {tipMsg && <p className="mt-1.5 text-[11px] font-bold text-gold">{tipMsg}</p>}
         </div>
       )}
 

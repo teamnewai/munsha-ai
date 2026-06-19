@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { CrashListener } from "@/components/CrashListener";
+import { PageInspector } from "@/components/PageInspector";
 
 export const metadata: Metadata = {
   title: {
@@ -38,6 +39,7 @@ export default function RootLayout({
         {children}
         <CrashListener />
         <FeedbackWidget />
+        <PageInspector />
       </body>
     </html>
   );

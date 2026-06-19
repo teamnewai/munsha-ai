@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
-import { COMPANY, EMPLOYEES, DEPARTMENTS, TASKS, FINANCE, fmt } from "@/lib/os-data";
+import { COMPANY, fmt, type OsData } from "@/lib/os-data";
 import {
   TrendingUp, TrendingDown, DollarSign, CheckCircle2, Users, AlertTriangle,
   Building2, Wallet, UserCheck, Megaphone, Settings as SettingsIcon, Briefcase,
@@ -63,10 +63,11 @@ const COMMS = {
 } as const;
 type CommsTab = keyof typeof COMMS;
 
-export function ExecutiveDashboard({ tenantName }: { tenantName: string }) {
+export function ExecutiveDashboard({ data }: { data: OsData }) {
   const [range, setRange] = useState<"day" | "week" | "month">("day");
   const [commsTab, setCommsTab] = useState<CommsTab>("اجتماعات");
-  const owner = tenantName || COMPANY.owner;
+  const { departments: DEPARTMENTS, employees: EMPLOYEES, tasks: TASKS, finance: FINANCE } = data;
+  const owner = data.owner || COMPANY.owner;
 
   const heroStats = [
     { label: "إجمالي الإيرادات", value: fmt(FINANCE.revenue), change: "+15.6%", color: "#10b981", icon: TrendingUp, kind: "spark" as const },
@@ -110,7 +111,12 @@ export function ExecutiveDashboard({ tenantName }: { tenantName: string }) {
         <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
           <div className="text-right">
             <h2 className="font-display text-2xl md:text-3xl font-semibold">مرحباً بك، {owner}</h2>
-            <p className="text-sm text-muted-foreground mt-1">إليك نظرة عامة على أداء منشآتك اليوم</p>
+            <p className="text-sm text-muted-foreground mt-1">نظرة عامة على أداء «{data.orgName}» اليوم</p>
+            <span className={`inline-flex items-center gap-1.5 mt-2 rounded-full px-2.5 py-0.5 text-[11px] ${
+              data.source === "live" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+              <span className={`size-1.5 rounded-full ${data.source === "live" ? "bg-emerald-500" : "bg-muted-foreground"}`} />
+              {data.source === "live" ? "متصل بقاعدة البيانات" : "عرض تجريبي"}
+            </span>
           </div>
           <div className="relative">
             <select value={range} onChange={(e) => setRange(e.target.value as typeof range)}

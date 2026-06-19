@@ -14,31 +14,31 @@ const whyMulki = [
 ];
 
 const heroActions = [
-  { label: "اطلب وحدة", emoji: "🏠", to: "/login?mode=signup" },
-  { label: "اطلب صيانة", emoji: "🔧", to: "/login?mode=signup" },
+  { label: "اطلب وحدة", emoji: "🏠", to: "/services?category=rent" },
+  { label: "اطلب صيانة", emoji: "🔧", to: "/services?category=maintenance" },
   { label: "أنشئ مكتبك", emoji: "⬡", to: "/onboarding", primary: true },
-  { label: "اطلب نظافة", emoji: "🧹", to: "/login?mode=signup" },
-  { label: "اطلب مقاول", emoji: "👷", to: "/login?mode=signup" },
+  { label: "اطلب نظافة", emoji: "🧹", to: "/services?category=cleaning" },
+  { label: "اطلب مقاول", emoji: "👷", to: "/services?category=contractor" },
 ];
 
 const consultants = [
-  { emoji: "⚖️", title: "مستشار قانوني", sub: "عقود · امتثال" },
-  { emoji: "📊", title: "مستشار إداري", sub: "تنظيم · حوكمة" },
-  { emoji: "💻", title: "مستشار تقني", sub: "أنظمة · تحول رقمي" },
-  { emoji: "🤖", title: "مستشار AI", sub: "ذكاء اصطناعي" },
+  { emoji: "⚖️", title: "مستشار قانوني", sub: "عقود · امتثال", to: "/services?category=legal" },
+  { emoji: "📊", title: "مستشار إداري", sub: "تنظيم · حوكمة", to: "/services?category=admin" },
+  { emoji: "💻", title: "مستشار تقني", sub: "أنظمة · تحول رقمي", to: "/services?category=tech" },
+  { emoji: "🤖", title: "مستشار AI", sub: "ذكاء اصطناعي", to: "/services?category=ai" },
 ];
 
 const specialServices = [
-  { emoji: "🧾", title: "موظف حسابات", sub: "محاسب · مدير مالي" },
-  { emoji: "🛎️", title: "موظف خدمات عامة", sub: "دوائر · منصات حكومية" },
-  { emoji: "🛡️", title: "خدمات التأمين", sub: "تأمين · بوالص" },
+  { emoji: "🧾", title: "موظف حسابات", sub: "محاسب · مدير مالي", to: "/services?category=accounting" },
+  { emoji: "🛎️", title: "موظف خدمات عامة", sub: "دوائر · منصات حكومية", to: "/services?category=gov" },
+  { emoji: "🛡️", title: "خدمات التأمين", sub: "تأمين · بوالص", to: "/services?category=insurance" },
 ];
 
 const requestKinds = [
-  { emoji: "🏠", label: "اطلب وحدة", sub: "للإيجار" },
-  { emoji: "🔧", label: "اطلب صيانة", sub: "صيانة · ترميم" },
-  { emoji: "🧹", label: "اطلب نظافة", sub: "تنظيف · تعقيم" },
-  { emoji: "👷", label: "اطلب مقاول", sub: "بناء · تشطيب" },
+  { emoji: "🏠", label: "اطلب وحدة", sub: "للإيجار", to: "/services?category=rent" },
+  { emoji: "🔧", label: "اطلب صيانة", sub: "صيانة · ترميم", to: "/services?category=maintenance" },
+  { emoji: "🧹", label: "اطلب نظافة", sub: "تنظيف · تعقيم", to: "/services?category=cleaning" },
+  { emoji: "👷", label: "اطلب مقاول", sub: "بناء · تشطيب", to: "/services?category=contractor" },
 ];
 
 const clients = [
@@ -256,7 +256,7 @@ export default function LandingPage() {
           <div className="text-xs uppercase tracking-[0.22em] text-primary mb-3">مستشارون</div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {consultants.map((c) => (
-              <Link href="/login?mode=signup" key={c.title} className="mulki-card p-5 hover:border-primary/50 transition-colors text-center">
+              <Link href={c.to} key={c.title} className="mulki-card p-5 hover:border-primary/50 transition-colors text-center">
                 <div className="text-3xl mb-2">{c.emoji}</div>
                 <div className="font-semibold text-fg">{c.title}</div>
                 <div className="text-xs text-muted-foreground mt-1">{c.sub}</div>
@@ -268,7 +268,7 @@ export default function LandingPage() {
           <div className="text-xs uppercase tracking-[0.22em] text-primary mb-3">خدمات خاصة</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {specialServices.map((c) => (
-              <Link href="/login?mode=signup" key={c.title} className="mulki-card p-5 hover:border-primary/50 transition-colors text-center">
+              <Link href={c.to} key={c.title} className="mulki-card p-5 hover:border-primary/50 transition-colors text-center">
                 <div className="text-3xl mb-2">{c.emoji}</div>
                 <div className="font-semibold text-fg">اطلب {c.title}</div>
                 <div className="text-xs text-muted-foreground mt-1">{c.sub}</div>
@@ -290,14 +290,14 @@ export default function LandingPage() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           {requestKinds.map((r) => (
-            <Link href="/login?mode=signup" key={r.label} className="mulki-card p-5 hover:border-primary/50 transition-colors text-center">
+            <Link href={r.to} key={r.label} className="mulki-card p-5 hover:border-primary/50 transition-colors text-center">
               <div className="text-3xl mb-2">{r.emoji}</div>
               <div className="font-semibold text-fg">{r.label}</div>
               <div className="text-xs text-muted-foreground mt-1">{r.sub}</div>
             </Link>
           ))}
         </div>
-        <form action="/login?mode=signup" className="mulki-card p-6 md:p-8 max-w-3xl mx-auto">
+        <form action="/services?category=rent" className="mulki-card p-6 md:p-8 max-w-3xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="الدولة">
               <select className="mulki-input">

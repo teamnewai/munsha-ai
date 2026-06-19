@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CITIES_BY_COUNTRY } from "@/lib/activities";
@@ -112,11 +112,49 @@ export default function OnboardingPage() {
   const [empList, setEmpList] = useState<EmpRow[]>([]);
   const [empNote, setEmpNote] = useState<string | null>(null);
 
-  const structure: GeneratedStructure | null = useMemo(
+  const localStructure: GeneratedStructure | null = useMemo(
     () => (step >= 3 ? generateStructure(primaryBase, employees, extraBases) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [step, primaryBase, employees, JSON.stringify(extraBases)]
   );
+  // توليد بالذكاء الاصطناعي (طريقة منشأتي) — مع ارتداد للمولّد المحلي
+  const [aiStructure, setAiStructure] = useState<GeneratedStructure | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiNote, setAiNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (step !== 3 || method !== "monshaati") { setAiStructure(null); return; }
+    let cancelled = false;
+    (async () => {
+      setAiLoading(true);
+      setAiNote(null);
+      try {
+        const res = await fetch("/api/ai/generate-structure", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ activity: primaryBase, activityName: activitiesDetail[0]?.name, employees, name }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.ok && data.structure) {
+          setAiStructure(data.structure as GeneratedStructure);
+          setAiNote("✨ هذا الهيكل وُلّد بالذكاء الاصطناعي (Claude).");
+        } else {
+          setAiStructure(null);
+          setAiNote(data?.configured === false ? "ℹ️ توليد محلي (الذكاء الاصطناعي غير مُفعّل بمفتاح بعد)." : "تعذّر التوليد بالـAI — استُخدم المولّد المحلي.");
+        }
+      } catch {
+        if (!cancelled) { setAiStructure(null); setAiNote("تعذّر الاتصال بالـAI — استُخدم المولّد المحلي."); }
+      } finally {
+        if (!cancelled) setAiLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, method, primaryBase, employees]);
+
+  const structure: GeneratedStructure | null =
+    method === "monshaati" && aiStructure ? aiStructure : localStructure;
 
   // محرّرات الأنشطة
   function setActivityRow(i: number, patch: Partial<{ section: string; sub: string }>) {
@@ -565,6 +603,11 @@ export default function OnboardingPage() {
         {step === 4 && structure && (
           <Card>
             <H>الهيكل المولّد</H>
+            {method === "monshaati" && (
+              <p className={`mt-2 text-xs font-bold ${aiStructure ? "text-emerald-600" : "text-mut"}`}>
+                {aiLoading ? "✨ جارٍ التوليد بالذكاء الاصطناعي..." : aiNote}
+              </p>
+            )}
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label="فئة الحجم" value={structure.scale} />
               <Stat label="الإدارات" value={String(structure.deptCount)} />

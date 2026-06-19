@@ -16,6 +16,22 @@ export function AccountSecurity() {
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
 
+  // رموز الاستعادة الاحتياطية
+  const [codes, setCodes] = useState<string[] | null>(null);
+  const [genLoading, setGenLoading] = useState(false);
+  const [genErr, setGenErr] = useState<string | null>(null);
+
+  async function generateCodes() {
+    setGenErr(null);
+    if (!isSupabaseConfigured()) { setGenErr("الوضع التجريبي: غير متاح."); return; }
+    setGenLoading(true);
+    const supabase = createClient()!;
+    const { data, error } = await supabase.rpc("generate_recovery_codes");
+    setGenLoading(false);
+    if (error) { setGenErr(error.message); return; }
+    setCodes((data as string[]) ?? []);
+  }
+
   useEffect(() => {
     (async () => {
       if (!isSupabaseConfigured()) return;
@@ -92,6 +108,47 @@ export function AccountSecurity() {
         {ok && <p className="text-sm text-ok">{ok}</p>}
         <Button type="submit" disabled={loading}>{loading ? "جارٍ الحفظ..." : "تغيير كلمة المرور"}</Button>
       </form>
+
+      {/* رموز الاستعادة الاحتياطية */}
+      <div className="mt-8 border-t border-line pt-6">
+        <h3 className="font-bold text-fg">رموز الاستعادة الاحتياطية</h3>
+        <p className="mt-1 text-sm text-mut">
+          رموز تستعيد بها كلمة مرورك إن نسيتها — بلا بريد. احفظها في مكان آمن؛ كل رمز يُستخدم مرة واحدة.
+        </p>
+
+        {codes && codes.length > 0 ? (
+          <div className="mt-4">
+            <div className="grid grid-cols-2 gap-2 rounded-xl border border-gold/30 bg-gold/5 p-4 font-mono text-sm sm:grid-cols-4">
+              {codes.map((c) => (
+                <span key={c} className="text-center font-bold tracking-wider text-fg">{c}</span>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => navigator.clipboard?.writeText(codes.join("\n"))}
+                className="rounded-lg border border-line px-3 py-1.5 text-xs font-bold text-fg hover:bg-card2"
+              >
+                📋 نسخ الكل
+              </button>
+              <button type="button" onClick={() => window.print()} className="rounded-lg border border-line px-3 py-1.5 text-xs font-bold text-fg hover:bg-card2">
+                🖨️ طباعة
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-bad">⚠️ لن تظهر هذه الرموز مرة أخرى — احفظها الآن.</p>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={generateCodes}
+            disabled={genLoading}
+            className="mt-4 rounded-xl border border-gold/40 bg-gold/5 px-4 py-2.5 text-sm font-bold text-gold hover:bg-gold/10 disabled:opacity-50"
+          >
+            {genLoading ? "جارٍ التوليد..." : "🔐 توليد رموز استعادة جديدة"}
+          </button>
+        )}
+        {genErr && <p className="mt-2 text-sm text-bad">{genErr}</p>}
+      </div>
     </div>
   );
 }

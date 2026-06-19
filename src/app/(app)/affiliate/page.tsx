@@ -7,7 +7,7 @@ import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Users, UserCheck, UserX, DollarSign, Clock, CheckCircle2, TrendingUp,
@@ -314,10 +314,8 @@ function ManagersTab() {
           <h2 className="font-display text-xl font-semibold">مدراء الحسابات</h2>
           <p className="text-sm text-muted-foreground">سجّل مدراء الحسابات لتعيينهم على عملائك.</p>
         </div>
+        <Button onClick={() => setOpen(true)}><Plus className="size-4 ms-2" /> إضافة مدير حساب</Button>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="size-4 ms-2" /> إضافة مدير حساب</Button>
-          </DialogTrigger>
           <DialogContent dir="rtl">
             <DialogHeader><DialogTitle>تسجيل مدير حساب جديد</DialogTitle></DialogHeader>
             <form className="space-y-4" onSubmit={handleCreate}>

@@ -99,7 +99,9 @@ export default function OnboardingPage() {
   const [country, setCountry] = useState("SA");
   const [city, setCity] = useState(CITIES_BY_COUNTRY["SA"][0]);
   const [clientType, setClientType] = useState("company");
-  const [enableAI, setEnableAI] = useState(true);
+  // نوع التشغيل: بشري 100% · هجين (بنسبة) · AI 100%
+  const [operationType, setOperationType] = useState<"human" | "hybrid" | "ai">("hybrid");
+  const [aiRatio, setAiRatio] = useState(40);
   // الخطوة 3
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -202,7 +204,10 @@ export default function OnboardingPage() {
         // org_structure_docs + approvals + org_departments/org_sections/org_roles
         if (structure) {
           const { data: gen, error: genErr } = await supabase.rpc("generate_org", {
-            p_input: { name, activity, activities: activitiesDetail, employees, country, city, clientType },
+            p_input: {
+              name, activity, activities: activitiesDetail, employees, country, city, clientType,
+              operation_type: operationType, ai_ratio: operationType === "hybrid" ? aiRatio : operationType === "ai" ? 100 : 0,
+            },
             p_structure: structure,
             p_source: method === "mulki" ? "local" : "ai",
             p_employees: empList.filter((e) => e.full_name.trim()),
@@ -389,12 +394,43 @@ export default function OnboardingPage() {
                   ))}
                 </select>
               </Field>
-              <Field label="وكلاء الذكاء للأدوار غير المموّلة">
-                <label className="flex h-[42px] items-center gap-2 rounded-xl border border-line px-4">
-                  <input type="checkbox" checked={enableAI} onChange={(e) => setEnableAI(e.target.checked)} />
-                  <span className="text-sm text-mut">تفعيل (قيد التفعيل)</span>
-                </label>
-              </Field>
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-fg">نوع التشغيل</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { v: "human", l: "بشري 100%", icon: "👤", d: "الموظفون فقط" },
+                    { v: "hybrid", l: "هجين", icon: "🤝", d: "بشر + وكلاء AI" },
+                    { v: "ai", l: "AI 100%", icon: "🤖", d: "وكلاء ذكاء" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => setOperationType(o.v as "human" | "hybrid" | "ai")}
+                      className={`rounded-xl border p-3 text-center transition-colors ${
+                        operationType === o.v ? "border-gold bg-gold/10" : "border-line hover:bg-card2"
+                      }`}
+                    >
+                      <div className="text-xl">{o.icon}</div>
+                      <div className="mt-1 text-sm font-bold text-fg">{o.l}</div>
+                      <div className="text-[11px] text-mut">{o.d}</div>
+                    </button>
+                  ))}
+                </div>
+                {operationType === "hybrid" && (
+                  <div className="mt-3 rounded-xl border border-line bg-card2/40 p-3">
+                    <div className="flex items-center justify-between text-xs text-mut">
+                      <span>بشري {100 - aiRatio}%</span>
+                      <span className="font-bold text-gold">نسبة الذكاء الاصطناعي: {aiRatio}%</span>
+                    </div>
+                    <input
+                      type="range" min={0} max={100} step={10}
+                      value={aiRatio}
+                      onChange={(e) => setAiRatio(Number(e.target.value))}
+                      className="mt-2 w-full accent-[var(--gold,#caa53d)]"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <Nav
               onBack={() => setStep(1)}

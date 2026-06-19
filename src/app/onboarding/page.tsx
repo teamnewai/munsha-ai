@@ -44,6 +44,7 @@ export default function OnboardingPage() {
   // الخطوة 3
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [approved, setApproved] = useState(false); // بوابة اعتماد المالك (إلزامية)
 
   const structure: GeneratedStructure | null = useMemo(
     () => (step >= 3 ? generateStructure(activity, employees) : null),
@@ -74,6 +75,22 @@ export default function OnboardingPage() {
           setSaving(false);
           setErr("تعذّر إنشاء المنشأة: " + error.message);
           return;
+        }
+
+        // تثبيت الهيكل المولّد بعد اعتماد المالك:
+        // org_structure_docs + approvals + org_departments/org_sections/org_roles
+        if (structure) {
+          const { data: gen, error: genErr } = await supabase.rpc("generate_org", {
+            p_input: { name, activity, employees, country, city, clientType },
+            p_structure: structure,
+            p_source: method === "mulki" ? "local" : "ai",
+          });
+          const g = gen as { ok?: boolean; reason?: string } | null;
+          if (genErr || (g && g.ok === false)) {
+            setSaving(false);
+            setErr("تعذّر بناء الهيكل: " + (genErr?.message ?? g?.reason ?? "خطأ غير معروف"));
+            return;
+          }
         }
       }
     }
@@ -282,13 +299,30 @@ export default function OnboardingPage() {
               ))}
             </div>
 
+            {/* بوابة اعتماد المالك — إلزامية قبل أي بناء فعلي */}
+            <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-2xl border border-gold/40 bg-gold/5 p-4">
+              <input
+                type="checkbox"
+                checked={approved}
+                onChange={(e) => setApproved(e.target.checked)}
+                className="mt-0.5 h-5 w-5 accent-[var(--gold,#caa53d)]"
+              />
+              <span className="text-sm leading-relaxed text-fg">
+                <span className="font-bold">أعتمد هذا البناء.</span>{" "}
+                <span className="text-mut">
+                  بصفتي المالك/المخوّل، أوافق على إنشاء الهيكل التنظيمي والإدارات والمناصب أعلاه. لن
+                  يُنفّذ أي بناء فعلي قبل هذا الاعتماد.
+                </span>
+              </span>
+            </label>
+
             {err && <p className="mt-4 text-sm text-bad">{err}</p>}
 
             <Nav
               onBack={() => setStep(2)}
               onNext={finish}
-              nextLabel={saving ? "جارٍ فتح المكتب..." : "فتح المكتب والدخول"}
-              nextDisabled={saving}
+              nextLabel={saving ? "جارٍ بناء المنشأة..." : "اعتماد وفتح المكتب"}
+              nextDisabled={saving || !approved}
             />
           </Card>
         )}

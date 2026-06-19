@@ -3,10 +3,12 @@
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { deptKnowledge, PERM_LABELS } from "@/lib/deptKnowledge";
 
 type Dept = { dept_key: string; name: string; icon: string | null; mission: string | null };
 type Member = { id: string; full_name: string; job_title: string | null; section: string | null; present: boolean; status: string };
 type Agent = { name: string; persona: string | null; enabled: boolean };
+type Role = { title: string; perms: string[] | null };
 
 export default function DeptOfficePage({ params }: { params: Promise<{ key: string }> }) {
   const { key } = use(params);
@@ -14,7 +16,7 @@ export default function DeptOfficePage({ params }: { params: Promise<{ key: stri
   const [orgId, setOrgId] = useState<string | null>(null);
   const [dept, setDept] = useState<Dept | null>(null);
   const [sections, setSections] = useState<string[]>([]);
-  const [roles, setRoles] = useState<string[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [agent, setAgent] = useState<Agent | null>(null);
 
@@ -39,19 +41,22 @@ export default function DeptOfficePage({ params }: { params: Promise<{ key: stri
     const [{ data: d }, { data: secs }, { data: rls }, { data: mem }, { data: ag }] = await Promise.all([
       supabase.from("org_departments").select("dept_key, name, icon, mission").eq("org_id", m.org_id).eq("dept_key", key).maybeSingle(),
       supabase.from("org_sections").select("name").eq("org_id", m.org_id).eq("dept_key", key).order("sort"),
-      supabase.from("org_roles").select("title").eq("org_id", m.org_id).eq("dept_key", key).order("sort"),
+      supabase.from("org_roles").select("title, perms").eq("org_id", m.org_id).eq("dept_key", key).order("sort"),
       supabase.from("dept_members").select("id, full_name, job_title, section, present, status").eq("org_id", m.org_id).eq("dept_key", key).order("full_name"),
       supabase.from("ai_agents").select("name, persona, enabled").eq("org_id", m.org_id).eq("dept_key", key).eq("scope", "department").maybeSingle(),
     ]);
     setDept(d as Dept | null);
     setSections((secs ?? []).map((x) => x.name));
-    setRoles((rls ?? []).map((x) => x.title));
+    setRoles((rls ?? []).map((x) => ({ title: x.title, perms: (x.perms as string[] | null) })) as Role[]);
     setMembers((mem ?? []) as Member[]);
     setAgent(ag as Agent | null);
     setLoading(false);
   }, [key]);
 
   useEffect(() => { load(); }, [load]);
+
+  // معرفة القسم: مهام · دورة مستندية · سياسات · حوكمة
+  const k = dept ? deptKnowledge(dept.dept_key, dept.name) : null;
 
   async function addMember(e: React.FormEvent) {
     e.preventDefault();
@@ -115,8 +120,8 @@ export default function DeptOfficePage({ params }: { params: Promise<{ key: stri
               )}
             </div>
 
-            {/* الأقسام والمناصب */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {/* الأقسام الفرعية */}
+            <div className="mt-6">
               <Panel title={`الأقسام الفرعية (${sections.length})`}>
                 {sections.length ? (
                   <div className="flex flex-wrap gap-2">
@@ -124,14 +129,62 @@ export default function DeptOfficePage({ params }: { params: Promise<{ key: stri
                   </div>
                 ) : <Empty>لا أقسام فرعية.</Empty>}
               </Panel>
-              <Panel title={`المناصب (${roles.length})`}>
+            </div>
+
+            {/* المناصب والصلاحيات */}
+            <div className="mt-4">
+              <Panel title={`المناصب الوظيفية والصلاحيات (${roles.length})`}>
                 {roles.length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {roles.map((r) => <Chip key={r}>{r}</Chip>)}
+                  <div className="space-y-2">
+                    {roles.map((r) => (
+                      <div key={r.title} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                        <div className="text-sm font-bold">👤 {r.title}</div>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {(r.perms ?? []).length
+                            ? (r.perms ?? []).map((p) => (
+                                <span key={p} className="rounded-full bg-gold-500/15 px-2 py-0.5 text-[11px] font-bold text-gold-300">
+                                  {PERM_LABELS[p] ?? p}
+                                </span>
+                              ))
+                            : <span className="text-[11px] text-slate-500">لا صلاحيات محدّدة</span>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : <Empty>لا مناصب.</Empty>}
               </Panel>
             </div>
+
+            {/* المهام · الدورة المستندية · السياسات · الحوكمة */}
+            {k && (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <Panel title="المهام والواجبات">
+                  <ul className="space-y-1.5 text-sm text-slate-300">
+                    {k.duties.map((d) => <li key={d} className="flex gap-2"><span className="text-gold-400">✓</span>{d}</li>)}
+                  </ul>
+                </Panel>
+                <Panel title="الدورة المستندية">
+                  <ol className="space-y-1.5 text-sm text-slate-300">
+                    {k.documentCycle.map((s, idx) => (
+                      <li key={s} className="flex items-center gap-2">
+                        <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gold-500/15 text-[11px] font-bold text-gold-300">{idx + 1}</span>
+                        {s}{idx < k.documentCycle.length - 1 && <span className="text-slate-600">→</span>}
+                      </li>
+                    ))}
+                  </ol>
+                </Panel>
+                <Panel title="لائحة السياسات الداخلية">
+                  <ul className="space-y-1.5 text-sm text-slate-300">
+                    {k.policies.map((p) => <li key={p} className="flex gap-2"><span className="text-gold-400">§</span>{p}</li>)}
+                  </ul>
+                </Panel>
+                <Panel title="الحوكمة">
+                  <ul className="space-y-1.5 text-sm text-slate-300">
+                    {k.governance.map((g) => <li key={g} className="flex gap-2"><span className="text-gold-400">⚖</span>{g}</li>)}
+                  </ul>
+                </Panel>
+              </div>
+            )}
 
             {/* الموظفون + إضافة */}
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -148,7 +201,7 @@ export default function DeptOfficePage({ params }: { params: Promise<{ key: stri
                   <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="البريد (اختياري)" className={inp} />
                   <select value={job} onChange={(e) => setJob(e.target.value)} className={inp}>
                     <option value="">— المسمى الوظيفي —</option>
-                    {roles.map((r) => <option key={r} value={r} className="bg-[#0a0f1e]">{r}</option>)}
+                    {roles.map((r) => <option key={r.title} value={r.title} className="bg-[#0a0f1e]">{r.title}</option>)}
                   </select>
                   <select value={section} onChange={(e) => setSection(e.target.value)} className={inp}>
                     <option value="">— القسم الفرعي —</option>

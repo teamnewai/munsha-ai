@@ -24,68 +24,8 @@ type Conference = {
   featured: boolean;
 };
 
-const CONFERENCES: Conference[] = [
-  {
-    id: "e1",
-    name: "قمة الابتكار الرقمي السعودي 2026",
-    organizer: "وزارة الاتصالات وتقنية المعلومات",
-    city: "الرياض", country: "المملكة العربية السعودية",
-    startDate: "2026-09-15", endDate: "2026-09-17",
-    sector: "التقنية والرقمنة",
-    attendees: 5000,
-    status: "upcoming", website: "digital-summit.sa", featured: true,
-  },
-  {
-    id: "e2",
-    name: "مؤتمر الاستثمار المالي الخليجي",
-    organizer: "اتحاد المصارف الخليجية",
-    city: "دبي", country: "الإمارات العربية المتحدة",
-    startDate: "2026-10-08", endDate: "2026-10-10",
-    sector: "المال والاستثمار",
-    attendees: 3200,
-    status: "upcoming", website: "gulf-finance-conf.ae", featured: false,
-  },
-  {
-    id: "e3",
-    name: "ملتقى الموارد البشرية العربي",
-    organizer: "مجلس الموارد البشرية",
-    city: "الرياض", country: "المملكة العربية السعودية",
-    startDate: "2026-07-20", endDate: "2026-07-21",
-    sector: "الموارد البشرية",
-    attendees: 1800,
-    status: "upcoming", website: "hr-summit.sa", featured: false,
-  },
-  {
-    id: "e4",
-    name: "معرض ومؤتمر المقاولات والبناء 2026",
-    organizer: "الهيئة السعودية للمقاولين",
-    city: "جدة", country: "المملكة العربية السعودية",
-    startDate: "2026-06-22", endDate: "2026-06-24",
-    sector: "الإنشاء والتطوير",
-    attendees: 4500,
-    status: "ongoing", website: "build-expo.sa", featured: true,
-  },
-  {
-    id: "e5",
-    name: "قمة التسويق الرقمي",
-    organizer: "جمعية التسويق العربي",
-    city: "القاهرة", country: "مصر",
-    startDate: "2026-04-10", endDate: "2026-04-11",
-    sector: "التسويق",
-    attendees: 2100,
-    status: "past", website: "digital-mktg.ae", featured: false,
-  },
-  {
-    id: "e6",
-    name: "مؤتمر رؤية 2030 للابتكار",
-    organizer: "مركز محمد بن سلمان للريادة",
-    city: "الرياض", country: "المملكة العربية السعودية",
-    startDate: "2026-03-05", endDate: "2026-03-07",
-    sector: "الريادة والابتكار",
-    attendees: 8000,
-    status: "past", website: "vision2030-summit.sa", featured: false,
-  },
-];
+// لا مؤتمرات وهمية — تُضاف المؤتمرات الحقيقية عبر زر «إضافة» وتظهر هنا.
+const CONFERENCES: Conference[] = [];
 
 const STATUS_LABEL: Record<string, string> = { upcoming: "قادم", ongoing: "جارٍ الآن", past: "منتهي" };
 const STATUS_COLOR: Record<string, string> = {
@@ -272,6 +212,13 @@ export default function ConferencesPage() {
       {/* All list */}
       <div>
         {filter === "all" && <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">جميع الفعاليات</h3>}
+        {events.length === 0 && (
+          <Card className="mulki-card p-12 text-center">
+            <Presentation className="size-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+            <p className="text-muted-foreground mb-1">لا توجد مؤتمرات بعد.</p>
+            <p className="text-xs text-muted-foreground">أضف فعالية عبر زر «إضافة مؤتمر» لتظهر هنا.</p>
+          </Card>
+        )}
         <div className="space-y-3">
           {visible.filter((c) => filter !== "all" || !c.featured).map((c) => (
             <Card key={c.id} className="mulki-card p-4">

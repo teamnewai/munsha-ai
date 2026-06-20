@@ -1,4 +1,6 @@
-// المصدر الموحّد لأرقام مُلكي OS — أرقام متسقة ومترابطة، مع دعم القراءة الحيّة من Supabase.
+// المصدر الموحّد لأرقام مُلكي OS.
+// القاعدة: بيانات المنشأة الحقيقية لها الأولوية دائماً. وعند غيابها تُعرض
+// «بيانات تجريبية» موسومة بوضوح (source: "demo") ليجرّب المستخدم الخدمة فوراً.
 
 export type Dept = {
   key: string;
@@ -25,26 +27,16 @@ export type OsData = {
   inbox: { newEmails: number; callsToday: number };
   presentNow: PresentEmp[];
   absent: AbsentEmp[];
+  recentComms?: { kind: "meeting" | "call" | "message"; from: string; to: string; msg: string; time: string }[];
 };
 
-const DEFAULT_PRESENT: PresentEmp[] = [
-  { name: "سارة القحطاني", role: "محاسبة أول", dept: "المالية", time: "09:10" },
-  { name: "محمد الشهري", role: "أخصائي رواتب", dept: "الموارد البشرية", time: "09:05" },
-  { name: "ناصر المطيري", role: "مندوب مبيعات", dept: "المبيعات", time: "09:12" },
-  { name: "عبدالله السبيعي", role: "مدير العمليات", dept: "التشغيل", time: "09:08" },
-  { name: "ريم العبيدي", role: "أخصائية تسويق", dept: "التسويق", time: "09:15" },
-];
-const DEFAULT_ABSENT: AbsentEmp[] = [
-  { name: "خالد الحربي", role: "مطور برامج", dept: "تقنية المعلومات" },
-  { name: "علي الزهراني", role: "محلل مالي", dept: "المالية" },
-];
-
-export const COMPANY = { owner: "أحمد بن محمد", title: "الرئيس التنفيذي" };
+// وسم العرض حين تكون البيانات تجريبية (لا تخصّ منشأة فعلية)
+export const DEMO_LABEL = "تجريبي";
 
 export const PALETTE = ["#10b981", "#3b82f6", "#a855f7", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4", "#6366f1"];
 
-// إدارات العرض الافتراضية — مجموع الموظفين = 156
-export const MOCK_DEPARTMENTS: Dept[] = [
+// ── بيانات تجريبية للعرض فقط (تظهر موسومة «تجريبي» عند غياب منشأة حقيقية) ──
+const DEMO_DEPARTMENTS: Dept[] = [
   { key: "finance", name: "المالية", color: PALETTE[0], employees: 18, open: 18, done: 142, perf: 92 },
   { key: "hr", name: "الموارد البشرية", color: PALETTE[1], employees: 16, open: 22, done: 108, perf: 88 },
   { key: "sales", name: "المبيعات", color: PALETTE[2], employees: 28, open: 31, done: 206, perf: 95 },
@@ -55,7 +47,17 @@ export const MOCK_DEPARTMENTS: Dept[] = [
   { key: "it", name: "تقنية المعلومات", color: PALETTE[7], employees: 18, open: 14, done: 96, perf: 91 },
 ];
 
-// يشتق كل الإجماليات من الإدارات حتى تبقى الأرقام متسقة وصحيحة دائماً
+const DEMO_PRESENT: PresentEmp[] = [
+  { name: "موظف تجريبي ١", role: "محاسب أول", dept: "المالية", time: "" },
+  { name: "موظف تجريبي ٢", role: "أخصائي رواتب", dept: "الموارد البشرية", time: "" },
+  { name: "موظف تجريبي ٣", role: "مندوب مبيعات", dept: "المبيعات", time: "" },
+  { name: "موظف تجريبي ٤", role: "مدير العمليات", dept: "التشغيل", time: "" },
+];
+const DEMO_ABSENT: AbsentEmp[] = [
+  { name: "موظف تجريبي ٥", role: "مطوّر برامج", dept: "تقنية المعلومات" },
+];
+
+// يشتق الإجماليات من بيانات الإدارات
 export function deriveOsData(
   departments: Dept[],
   opts: {
@@ -63,43 +65,50 @@ export function deriveOsData(
     inbox?: { newEmails: number; callsToday: number };
     employees?: { total: number; present: number };
     presentNow?: PresentEmp[]; absent?: AbsentEmp[];
+    finance?: { revenue: number; expenses: number };
+    recentComms?: OsData["recentComms"];
   },
 ): OsData {
   const total = opts.employees?.total ?? departments.reduce((s, d) => s + d.employees, 0);
-  const present = opts.employees?.present ?? Math.round(total * 0.82);
+  const present = opts.employees?.present ?? (opts.source === "demo" ? Math.round(total * 0.82) : 0);
   const open = departments.reduce((s, d) => s + d.open, 0);
   const done = departments.reduce((s, d) => s + d.done, 0);
-  const revenue = 2458000;
-  const expenses = 1125000;
+  const revenue = opts.finance?.revenue ?? 0;
+  const expenses = opts.finance?.expenses ?? 0;
   return {
     source: opts.source,
     orgName: opts.orgName,
-    owner: opts.owner ?? COMPANY.owner,
+    owner: opts.owner ?? DEMO_LABEL,
     departments,
-    employees: { total, present, absent: total - present },
+    employees: { total, present, absent: Math.max(total - present, 0) },
     tasks: {
       open,
       done,
       completedPct: done + open > 0 ? Math.round((done / (done + open)) * 100) : 0,
-      overdue: Math.round(open * 0.15),
+      overdue: opts.source === "demo" ? Math.round(open * 0.15) : 0,
     },
     finance: { revenue, expenses, profit: revenue - expenses },
-    notifications: { unread: opts.notifications ?? 3 },
-    inbox: opts.inbox ?? { newEmails: 5, callsToday: 12 },
-    presentNow: opts.presentNow ?? DEFAULT_PRESENT,
-    absent: opts.absent ?? DEFAULT_ABSENT,
+    notifications: { unread: opts.notifications ?? 0 },
+    inbox: opts.inbox ?? { newEmails: 0, callsToday: 0 },
+    presentNow: opts.presentNow ?? [],
+    absent: opts.absent ?? [],
+    recentComms: opts.recentComms,
   };
 }
 
-export const MOCK_OS = deriveOsData(MOCK_DEPARTMENTS, { source: "demo", orgName: "منشأتك" });
-
-// توافق مع صفحة المكتب (تستهلك القيم مباشرةً)
-export const EMPLOYEES = MOCK_OS.employees;
-export const DEPARTMENTS = MOCK_DEPARTMENTS;
-export const TASKS = MOCK_OS.tasks;
-export const FINANCE = MOCK_OS.finance;
-export const NOTIFICATIONS = MOCK_OS.notifications;
-export const INBOX = MOCK_OS.inbox;
-export const MY_DAILY_TASKS = { unfinished: 12, fromManager: 8, fromDepartments: 15, phone: 6 };
+// عرض تجريبي جاهز (موسوم «تجريبي») — يظهر حين لا توجد منشأة/بيانات فعلية
+export const DEMO_OS: OsData = deriveOsData(DEMO_DEPARTMENTS, {
+  source: "demo",
+  orgName: DEMO_LABEL,
+  finance: { revenue: 2458000, expenses: 1125000 },
+  presentNow: DEMO_PRESENT,
+  absent: DEMO_ABSENT,
+  notifications: 3,
+  inbox: { newEmails: 5, callsToday: 12 },
+  recentComms: [
+    { kind: "message", from: "تجريبي", to: "الجميع", msg: "هذه رسالة تجريبية لعرض الخدمة", time: "" },
+    { kind: "meeting", from: "تجريبي", to: "الفريق", msg: "اجتماع تجريبي", time: "" },
+  ],
+});
 
 export const fmt = (n: number) => n.toLocaleString("en-US");

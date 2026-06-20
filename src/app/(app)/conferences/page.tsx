@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Presentation, MapPin, Calendar, Users, Globe, ExternalLink, Bookmark, BookmarkCheck, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { DemoBanner } from "@/components/DemoBanner";
 
 type Conference = {
   id: string;
@@ -24,67 +25,10 @@ type Conference = {
   featured: boolean;
 };
 
+// بيانات تجريبية لعرض الخدمة — تُستبدل بمؤتمراتك الحقيقية عند الإضافة.
 const CONFERENCES: Conference[] = [
-  {
-    id: "e1",
-    name: "قمة الابتكار الرقمي السعودي 2026",
-    organizer: "وزارة الاتصالات وتقنية المعلومات",
-    city: "الرياض", country: "المملكة العربية السعودية",
-    startDate: "2026-09-15", endDate: "2026-09-17",
-    sector: "التقنية والرقمنة",
-    attendees: 5000,
-    status: "upcoming", website: "digital-summit.sa", featured: true,
-  },
-  {
-    id: "e2",
-    name: "مؤتمر الاستثمار المالي الخليجي",
-    organizer: "اتحاد المصارف الخليجية",
-    city: "دبي", country: "الإمارات العربية المتحدة",
-    startDate: "2026-10-08", endDate: "2026-10-10",
-    sector: "المال والاستثمار",
-    attendees: 3200,
-    status: "upcoming", website: "gulf-finance-conf.ae", featured: false,
-  },
-  {
-    id: "e3",
-    name: "ملتقى الموارد البشرية العربي",
-    organizer: "مجلس الموارد البشرية",
-    city: "الرياض", country: "المملكة العربية السعودية",
-    startDate: "2026-07-20", endDate: "2026-07-21",
-    sector: "الموارد البشرية",
-    attendees: 1800,
-    status: "upcoming", website: "hr-summit.sa", featured: false,
-  },
-  {
-    id: "e4",
-    name: "معرض ومؤتمر المقاولات والبناء 2026",
-    organizer: "الهيئة السعودية للمقاولين",
-    city: "جدة", country: "المملكة العربية السعودية",
-    startDate: "2026-06-22", endDate: "2026-06-24",
-    sector: "الإنشاء والتطوير",
-    attendees: 4500,
-    status: "ongoing", website: "build-expo.sa", featured: true,
-  },
-  {
-    id: "e5",
-    name: "قمة التسويق الرقمي",
-    organizer: "جمعية التسويق العربي",
-    city: "القاهرة", country: "مصر",
-    startDate: "2026-04-10", endDate: "2026-04-11",
-    sector: "التسويق",
-    attendees: 2100,
-    status: "past", website: "digital-mktg.ae", featured: false,
-  },
-  {
-    id: "e6",
-    name: "مؤتمر رؤية 2030 للابتكار",
-    organizer: "مركز محمد بن سلمان للريادة",
-    city: "الرياض", country: "المملكة العربية السعودية",
-    startDate: "2026-03-05", endDate: "2026-03-07",
-    sector: "الريادة والابتكار",
-    attendees: 8000,
-    status: "past", website: "vision2030-summit.sa", featured: false,
-  },
+  { id: "d1", name: "مؤتمر تجريبي ١", organizer: "جهة تجريبية", city: "تجريبي", country: "—", startDate: "2026-09-15", endDate: "2026-09-17", sector: "تجريبي", attendees: 0, status: "upcoming", website: "—", featured: true },
+  { id: "d2", name: "مؤتمر تجريبي ٢", organizer: "جهة تجريبية", city: "تجريبي", country: "—", startDate: "2026-10-08", endDate: "2026-10-10", sector: "تجريبي", attendees: 0, status: "upcoming", website: "—", featured: false },
 ];
 
 const STATUS_LABEL: Record<string, string> = { upcoming: "قادم", ongoing: "جارٍ الآن", past: "منتهي" };
@@ -151,8 +95,11 @@ export default function ConferencesPage() {
     });
   };
 
+  const isDemo = events.every((c) => c.id.startsWith("d"));
+
   return (
     <div className="p-6 md:p-8 space-y-6" dir="rtl">
+      {isDemo && <DemoBanner />}
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>

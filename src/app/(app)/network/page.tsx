@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Network, Search, MapPin, Star, MessageSquare, UserPlus, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { DemoBanner } from "@/components/DemoBanner";
 
 type Contact = {
   id: string;
@@ -22,55 +23,11 @@ type Contact = {
   avatar: string;
 };
 
+// بيانات تجريبية لعرض الخدمة — تُستبدل بجهاتك الحقيقية عند الإضافة.
 const CONTACTS: Contact[] = [
-  {
-    id: "p1", name: "م. أحمد الغامدي", title: "مدير عام التقنية", company: "مجموعة الأفق للتقنية",
-    sector: "تقنية المعلومات", city: "الرياض",
-    specialty: ["حوكمة تقنية المعلومات", "التحول الرقمي", "الأمن السيبراني"],
-    rating: 4.9, connected: true, avatar: "أ",
-  },
-  {
-    id: "p2", name: "د. نورة السبيعي", title: "مديرة الموارد البشرية", company: "البنك التجاري الأول",
-    sector: "القطاع المالي", city: "جدة",
-    specialty: ["إدارة المواهب", "التطوير التنظيمي", "القيادة"],
-    rating: 4.7, connected: true, avatar: "ن",
-  },
-  {
-    id: "p3", name: "خالد العتيبي", title: "مستشار مالي أول", company: "شركة الرواد للاستثمار",
-    sector: "المال والاستثمار", city: "الرياض",
-    specialty: ["التحليل المالي", "إدارة المحافظ", "الاستثمار البديل"],
-    rating: 4.8, connected: false, avatar: "خ",
-  },
-  {
-    id: "p4", name: "م. فهد المطيري", title: "مدير المشاريع", company: "مؤسسة النماء للبناء",
-    sector: "المقاولات", city: "الدمام",
-    specialty: ["إدارة المشاريع", "الهندسة المدنية", "البناء الأخضر"],
-    rating: 4.5, connected: false, avatar: "ف",
-  },
-  {
-    id: "p5", name: "سارة الدوسري", title: "مديرة التسويق الرقمي", company: "شركة روابط لحلول الأعمال",
-    sector: "التسويق", city: "الرياض",
-    specialty: ["التسويق الرقمي", "تجربة المستخدم", "تحليل البيانات"],
-    rating: 4.6, connected: true, avatar: "س",
-  },
-  {
-    id: "p6", name: "عبدالله القحطاني", title: "مدير العمليات اللوجستية", company: "مجموعة سما للخدمات اللوجستية",
-    sector: "النقل والخدمات", city: "جدة",
-    specialty: ["سلسلة الإمداد", "المستودعات", "التخطيط اللوجستي"],
-    rating: 4.3, connected: false, avatar: "ع",
-  },
-  {
-    id: "p7", name: "د. هند الزهراني", title: "مديرة التطوير والابتكار", company: "مركز الابتكار السعودي",
-    sector: "الريادة والابتكار", city: "الرياض",
-    specialty: ["الابتكار المؤسسي", "الريادة", "إدارة المعرفة"],
-    rating: 4.9, connected: false, avatar: "ه",
-  },
-  {
-    id: "p8", name: "محمد الشهري", title: "مدير التطوير العقاري", company: "شركة نخيل للتطوير العقاري",
-    sector: "العقارات", city: "الرياض",
-    specialty: ["التطوير العقاري", "التفاوض التجاري", "دراسات الجدوى"],
-    rating: 4.4, connected: true, avatar: "م",
-  },
+  { id: "d1", name: "جهة تجريبية ١", title: "مدير عام", company: "شركة تجريبية", sector: "تقنية المعلومات", city: "تجريبي", specialty: ["تجريبي"], rating: 0, connected: false, avatar: "ت" },
+  { id: "d2", name: "جهة تجريبية ٢", title: "مديرة الموارد البشرية", company: "شركة تجريبية", sector: "الموارد البشرية", city: "تجريبي", specialty: ["تجريبي"], rating: 0, connected: false, avatar: "ت" },
+  { id: "d3", name: "جهة تجريبية ٣", title: "مستشار مالي", company: "شركة تجريبية", sector: "المال", city: "تجريبي", specialty: ["تجريبي"], rating: 0, connected: false, avatar: "ت" },
 ];
 
 const COLORS = ["#6366f1", "#C9A24B", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"];
@@ -132,8 +89,11 @@ export default function NetworkPage() {
     );
   };
 
+  const isDemo = contacts.every((c) => c.id.startsWith("d"));
+
   return (
     <div className="p-6 md:p-8 space-y-6" dir="rtl">
+      {isDemo && <DemoBanner />}
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>

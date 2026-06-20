@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
-import { COMPANY, fmt, type OsData } from "@/lib/os-data";
+import { DEMO_LABEL, fmt, type OsData } from "@/lib/os-data";
 import {
   TrendingUp, TrendingDown, DollarSign, CheckCircle2, Users, AlertTriangle,
   Building2, Wallet, UserCheck, Megaphone, Settings as SettingsIcon, Briefcase,
@@ -50,28 +50,22 @@ function Donut({ value, color }: { value: number; color: string }) {
   );
 }
 
-const COMMS = {
-  اجتماعات: [
-    { from: "الرئيس التنفيذي", to: "جميع الموظفين", msg: "اجتماع يوم الأحد القادم", time: "09:00 AM", badge: 5 },
-    { from: "المالية", to: "المبيعات", msg: "مراجعة الميزانية الربعية", time: "11:30 AM", badge: 2 },
-  ],
-  مكالمات: [
-    { from: "الموارد البشرية", to: "التشغيل", msg: "مكالمة بخصوص طلب الإجازة", time: "10:15 AM", badge: 1 },
-    { from: "المبيعات", to: "العميل 1001", msg: "متابعة عرض السعر", time: "09:40 AM", badge: 3 },
-  ],
-  رسائل: [
-    { from: "المالية", to: "المبيعات", msg: "تم تحويل المبلغ للعميل رقم 1001", time: "10:30 AM", badge: 3 },
-    { from: "الموارد البشرية", to: "التشغيل", msg: "طلب إجازة جديد من الموظف أحمد", time: "10:15 AM", badge: 2 },
-  ],
-} as const;
-type CommsTab = keyof typeof COMMS;
+type CommsItem = { from: string; to: string; msg: string; time: string; badge?: number };
+type CommsTab = "اجتماعات" | "مكالمات" | "رسائل";
 
 export function ExecutiveDashboard({ data }: { data: OsData }) {
   const router = useRouter();
   const [range, setRange] = useState<"day" | "week" | "month">("day");
-  const [commsTab, setCommsTab] = useState<CommsTab>("اجتماعات");
+  const [commsTab, setCommsTab] = useState<CommsTab>("رسائل");
   const { departments: DEPARTMENTS, employees: EMPLOYEES, tasks: TASKS, finance: FINANCE } = data;
-  const owner = data.owner || COMPANY.owner;
+
+  // بناء قائمة التواصل: من DB (recentComms) أو فارغة إن لم توجد بيانات
+  const commsMap: Record<CommsTab, CommsItem[]> = {
+    اجتماعات: (data.recentComms ?? []).filter((c) => c.kind === "meeting").map((c) => ({ from: c.from, to: c.to, msg: c.msg, time: c.time })),
+    مكالمات: (data.recentComms ?? []).filter((c) => c.kind === "call").map((c) => ({ from: c.from, to: c.to, msg: c.msg, time: c.time })),
+    رسائل: (data.recentComms ?? []).filter((c) => c.kind === "message").map((c) => ({ from: c.from, to: c.to, msg: c.msg, time: c.time })),
+  };
+  const owner = data.owner || DEMO_LABEL;
 
   const heroStats = [
     { label: "إجمالي الإيرادات", value: fmt(FINANCE.revenue), change: "+15.6%", color: "#10b981", icon: TrendingUp, kind: "spark" as const },
@@ -84,11 +78,12 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
 
   const presentNow = data.presentNow;
   const absent = data.absent;
+  const currentMonth = new Date().toLocaleDateString("ar-SA", { month: "long", year: "numeric" });
   const reports = [
-    { title: "التقرير المالي الشهري", date: "مايو 2024", icon: FileText, color: "#ef4444" },
-    { title: "تقرير المبيعات التفصيلي", date: "مايو 2024", icon: BarChart3, color: "#3b82f6" },
-    { title: "تقرير أداء الموظفين", date: "مايو 2024", icon: PieChart, color: "#a855f7" },
-    { title: "تقرير المشاريع", date: "مايو 2024", icon: TrendingUp, color: "#10b981" },
+    { title: "التقرير المالي الشهري", date: currentMonth, icon: FileText, color: "#ef4444" },
+    { title: "تقرير المبيعات التفصيلي", date: currentMonth, icon: BarChart3, color: "#3b82f6" },
+    { title: "تقرير أداء الموظفين", date: currentMonth, icon: PieChart, color: "#a855f7" },
+    { title: "تقرير المشاريع", date: currentMonth, icon: TrendingUp, color: "#10b981" },
   ];
   const actionBar = [
     { label: "مكالمة صوتية", icon: Phone, color: "#10b981", action: () => router.push("/people") },
@@ -101,6 +96,14 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
 
   return (
     <section className="space-y-6">
+      {/* شريط الوضع التجريبي — يظهر فقط حين لا توجد بيانات منشأة حقيقية */}
+      {data.source === "demo" && (
+        <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-600 dark:text-amber-400">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span>هذه <b>بيانات تجريبية</b> لعرض الخدمة. ستُستبدل تلقائياً ببيانات منشأتك فور إضافتها.</span>
+        </div>
+      )}
+
       {/* Hero */}
       <Card className="mulki-card p-6 relative overflow-hidden">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
@@ -153,6 +156,9 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
             <h3 className="font-display font-semibold">الموظفون المتواجدون الآن</h3>
             <UserCheck className="size-4 text-primary" />
           </div>
+          {presentNow.length === 0 && (
+            <p className="py-4 text-center text-xs text-muted-foreground">لا يوجد موظفون متواجدون حالياً.</p>
+          )}
           <ul className="space-y-3">
             {presentNow.map((p) => (
               <li key={p.name} className="flex items-center gap-3">
@@ -164,7 +170,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
                 <div className="text-right shrink-0">
                   <div className="text-xs text-muted-foreground">{p.dept}</div>
                   <div className="text-[11px] text-emerald-500 flex items-center gap-1 justify-end">
-                    <span className="size-1.5 rounded-full bg-emerald-500" />متواجد {p.time}
+                    <span className="size-1.5 rounded-full bg-emerald-500" />{p.time ? `متواجد ${p.time}` : "متواجد الآن"}
                   </div>
                 </div>
               </li>
@@ -195,7 +201,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
           <div className="flex flex-col items-center gap-4">
             <div className="rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-center">
               <div className="text-sm font-semibold">{owner}</div>
-              <div className="text-[11px] text-muted-foreground">{COMPANY.title}</div>
+              <div className="text-[11px] text-muted-foreground">{data.source === "live" ? "المالك" : DEMO_LABEL}</div>
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="grid grid-cols-4 md:grid-cols-8 gap-3 w-full">
@@ -280,13 +286,19 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
             <button onClick={() => router.push("/network")} className="size-7 rounded-md bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25"><Plus className="size-4" /></button>
           </div>
           <div className="flex gap-2 mb-3 text-xs">
-            {(Object.keys(COMMS) as CommsTab[]).map((t) => (
+            {(["رسائل", "اجتماعات", "مكالمات"] as CommsTab[]).map((t) => (
               <button key={t} onClick={() => setCommsTab(t)}
-                className={`rounded-md px-3 py-1 transition-colors ${commsTab === t ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-background/40"}`}>{t}</button>
+                className={`rounded-md px-3 py-1 transition-colors ${commsTab === t ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-background/40"}`}>
+                {t}
+                {commsMap[t].length > 0 && <span className="mr-1 inline-flex size-4 items-center justify-center rounded-full bg-primary text-[9px] text-primary-foreground">{commsMap[t].length}</span>}
+              </button>
             ))}
           </div>
+          {commsMap[commsTab].length === 0 ? (
+            <p className="py-6 text-center text-xs text-muted-foreground">لا توجد إشعارات في هذه الفئة.</p>
+          ) : (
           <ul className="space-y-2">
-            {COMMS[commsTab].map((c, i) => (
+            {commsMap[commsTab].map((c, i) => (
               <li key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-background/40 transition-colors">
                 <div className="size-9 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0"><MessageSquare className="size-4" /></div>
                 <div className="flex-1 min-w-0">
@@ -299,11 +311,11 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-[10px] text-muted-foreground">{c.time}</div>
-                  <div className="inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold mt-0.5">{c.badge}</div>
                 </div>
               </li>
             ))}
           </ul>
+          )}
           <Link href="/network" className="mt-3 block text-center rounded-lg border border-primary/40 bg-primary/10 text-primary py-2 text-xs">فتح مركز التواصل</Link>
         </Card>
       </div>

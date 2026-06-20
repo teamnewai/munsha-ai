@@ -1,37 +1,21 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Building2, Search, MapPin, Phone, Globe, Star, Users, Briefcase, ExternalLink, Plus } from "lucide-react";
+import { Building2, Search, MapPin, Phone, Globe, Star, Users, Briefcase, ExternalLink, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { getCompanies, addCompany, type CompanyRow as Company, type CompanyType } from "@/app/actions/companies";
+import { DemoBanner } from "@/components/DemoBanner";
 
-type Company = {
-  id: string;
-  name: string;
-  type: "شريك" | "عميل" | "مورّد" | "مستثمر";
-  sector: string;
-  city: string;
-  phone: string;
-  website: string;
-  employees: number;
-  rating: number;
-  since: number;
-  active: boolean;
-};
-
-const COMPANIES: Company[] = [
-  { id: "c1", name: "مجموعة الأفق للتقنية", type: "شريك", sector: "تقنية المعلومات", city: "الرياض", phone: "+966 11 234 5678", website: "horizon-tech.sa", employees: 320, rating: 4.8, since: 2018, active: true },
-  { id: "c2", name: "البنك التجاري الأول", type: "عميل", sector: "القطاع المالي", city: "جدة", phone: "+966 12 765 4321", website: "fcb.sa", employees: 1200, rating: 4.5, since: 2020, active: true },
-  { id: "c3", name: "مؤسسة النماء للبناء", type: "مورّد", sector: "المقاولات", city: "الدمام", phone: "+966 13 456 7890", website: "namaa-build.sa", employees: 450, rating: 4.2, since: 2019, active: true },
-  { id: "c4", name: "شركة الرواد للاستثمار", type: "مستثمر", sector: "الاستثمار والتمويل", city: "الرياض", phone: "+966 11 987 6543", website: "ruwwad-invest.sa", employees: 85, rating: 4.9, since: 2021, active: true },
-  { id: "c5", name: "مجموعة سما للخدمات اللوجستية", type: "شريك", sector: "النقل والخدمات اللوجستية", city: "جدة", phone: "+966 12 321 9876", website: "sama-logistics.sa", employees: 680, rating: 4.4, since: 2017, active: true },
-  { id: "c6", name: "شركة نخيل للتطوير العقاري", type: "عميل", sector: "التطوير العقاري", city: "الرياض", phone: "+966 11 567 8901", website: "nakheel-dev.sa", employees: 230, rating: 4.6, since: 2016, active: true },
-  { id: "c7", name: "مصنع القمة للتصنيع", type: "مورّد", sector: "التصنيع الصناعي", city: "المدينة المنورة", phone: "+966 14 234 5670", website: "qimma-mfg.sa", employees: 530, rating: 4.0, since: 2015, active: true },
-  { id: "c8", name: "شركة روابط لحلول الأعمال", type: "شريك", sector: "استشارات الأعمال", city: "الرياض", phone: "+966 11 890 1234", website: "rawabett.sa", employees: 110, rating: 4.7, since: 2022, active: true },
+// بيانات تجريبية تظهر موسومة «تجريبي» حتى يضيف المستخدم شركاءه الحقيقيين
+const DEMO_COMPANIES: Company[] = [
+  { id: "d1", name: "شركة تجريبية للتقنية", type: "شريك", sector: "تقنية المعلومات", city: "تجريبي", phone: "—", website: "—", employees: 0, rating: 0, since: 2024, active: true },
+  { id: "d2", name: "عميل تجريبي", type: "عميل", sector: "تجريبي", city: "تجريبي", phone: "—", website: "—", employees: 0, rating: 0, since: 2024, active: true },
+  { id: "d3", name: "مورّد تجريبي", type: "مورّد", sector: "تجريبي", city: "تجريبي", phone: "—", website: "—", employees: 0, rating: 0, since: 2024, active: true },
 ];
 
 const TYPE_COLOR: Record<string, string> = {
@@ -55,7 +39,9 @@ function Stars({ n }: { n: number }) {
 export default function CompaniesPage() {
   const [q, setQ] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [companies, setCompanies] = useState<Company[]>(COMPANIES);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
 
   const nameRef = useRef<HTMLInputElement>(null);
@@ -67,31 +53,39 @@ export default function CompaniesPage() {
 
   const types = ["all", "شريك", "عميل", "مورّد", "مستثمر"];
 
+  useEffect(() => {
+    let alive = true;
+    getCompanies().then((r) => { if (alive) { setCompanies(r.companies); setLoading(false); } });
+    return () => { alive = false; };
+  }, []);
+
+  // عند عدم وجود شركات حقيقية بعد، نعرض بيانات تجريبية موسومة
+  const isDemo = !loading && companies.length === 0;
+  const source = isDemo ? DEMO_COMPANIES : companies;
+
   const visible = useMemo(() => {
-    return companies.filter((c) => {
+    return source.filter((c) => {
       const matchType = typeFilter === "all" || c.type === typeFilter;
       const matchQ = !q.trim() || c.name.includes(q) || c.sector.includes(q) || c.city.includes(q);
       return matchType && matchQ;
     });
-  }, [companies, q, typeFilter]);
+  }, [source, q, typeFilter]);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const name = nameRef.current?.value.trim();
     if (!name) { toast.error("اسم الشركة مطلوب"); return; }
-    const newCompany: Company = {
-      id: `c${Date.now()}`,
+    setSaving(true);
+    const res = await addCompany({
       name,
-      type: (typeRef.current?.value as Company["type"]) || "شريك",
-      sector: sectorRef.current?.value.trim() || "غير محدد",
-      city: cityRef.current?.value.trim() || "—",
-      phone: phoneRef.current?.value.trim() || "—",
-      website: websiteRef.current?.value.trim() || "—",
-      employees: 0,
-      rating: 0,
-      since: new Date().getFullYear(),
-      active: true,
-    };
-    setCompanies((prev) => [newCompany, ...prev]);
+      type: (typeRef.current?.value as CompanyType) || "شريك",
+      sector: sectorRef.current?.value.trim(),
+      city: cityRef.current?.value.trim(),
+      phone: phoneRef.current?.value.trim(),
+      website: websiteRef.current?.value.trim(),
+    });
+    setSaving(false);
+    if (!res.ok || !res.company) { toast.error(res.error || "تعذّرت الإضافة"); return; }
+    setCompanies((prev) => [res.company!, ...prev]);
     toast.success("تمت إضافة الشركة بنجاح");
     setOpen(false);
   };
@@ -128,17 +122,21 @@ export default function CompaniesPage() {
                 <Input ref={phoneRef} placeholder="الهاتف" />
               </div>
               <Input ref={websiteRef} placeholder="الموقع الإلكتروني" />
-              <Button className="w-full" onClick={handleAdd}>حفظ الشركة</Button>
+              <Button className="w-full" onClick={handleAdd} disabled={saving}>
+                {saving && <Loader2 className="size-4 animate-spin ms-2" />}حفظ الشركة
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
+      {isDemo && <DemoBanner />}
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {types.slice(1).map((t) => (
           <Card key={t} className="mulki-card p-4 text-center cursor-pointer hover:border-primary/40 transition-colors" onClick={() => setTypeFilter(t)}>
-            <div className="text-2xl font-bold text-primary mb-1">{companies.filter((c) => c.type === t).length}</div>
+            <div className="text-2xl font-bold text-primary mb-1">{source.filter((c) => c.type === t).length}</div>
             <div className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium inline-block", TYPE_COLOR[t])}>{t}</div>
           </Card>
         ))}
@@ -167,7 +165,11 @@ export default function CompaniesPage() {
       </div>
 
       {/* Grid */}
-      {visible.length === 0 ? (
+      {loading ? (
+        <Card className="mulki-card p-12 text-center">
+          <Loader2 className="size-8 text-primary mx-auto animate-spin" />
+        </Card>
+      ) : visible.length === 0 ? (
         <Card className="mulki-card p-12 text-center">
           <Building2 className="size-10 text-muted-foreground mx-auto mb-3 opacity-50" />
           <p className="text-muted-foreground">لا توجد نتائج مطابقة.</p>

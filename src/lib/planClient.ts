@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { getPlan, isUnlimited, type Plan } from "@/lib/plans";
+import { getPlan, type Plan } from "@/lib/plans";
 
 // مُلكي إدراك — قراءة باقة المنشأة وفرض الحدود (من جهة العميل)
 // ملاحظة: هذا فرضٌ على مستوى تجربة الاستخدام (UX gating)، لا حاجزٌ أمني.
@@ -26,15 +26,11 @@ export async function getPlanUsage(orgId: string): Promise<PlanUsage> {
   };
 }
 
-/** يتحقّق من إمكان إضافة عنصر؛ يُرجع رسالة خطأ إن تجاوز الحدّ، وإلا null. */
-export async function checkLimit(orgId: string, resource: "users" | "properties"): Promise<string | null> {
-  const u = await getPlanUsage(orgId);
-  const limit = u.plan.limits[resource];
-  if (isUnlimited(limit)) return null;
-  const current = resource === "users" ? u.users : u.properties;
-  if (current >= limit) {
-    const label = resource === "users" ? "المستخدمين" : "العقارات";
-    return `بلغت حدّ ${label} في باقة «${u.plan.name}» (${limit}). رقِّ باقتك للمزيد — راجع «الاشتراك والفوترة».`;
-  }
+/**
+ * المرحلة الحالية: كل الميزات متاحة للجميع بلا قيود باقات أو اشتراك مدفوع.
+ * نُبقي التوقيع كما هو حتى لا تتأثّر مواضع الاستدعاء، لكنه لا يفرض أي حدّ.
+ */
+export async function checkLimit(_orgId: string, _resource: "users" | "properties"): Promise<string | null> {
+  void _orgId; void _resource;
   return null;
 }

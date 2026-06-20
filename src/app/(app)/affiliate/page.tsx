@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/lib/toast";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
@@ -14,78 +14,46 @@ import {
   Handshake, Plus, Trash2, Eye, MessageSquare, KeyRound, LifeBuoy, Loader2,
   type LucideIcon,
 } from "lucide-react";
-
-// ---------------- Mock data ----------------
-type ClientRow = {
-  id: string;
-  client_name: string;
-  organization_name: string;
-  subscription_plan: string | null;
-  subscription_status: "active" | "trial" | "inactive" | "cancelled";
-  registration_date: string;
-  last_activity_at: string | null;
-  account_manager_name: string | null;
-};
-
-type AccountManagerRow = {
-  id: string;
-  name: string;
-  email: string;
-  mobile: string | null;
-  position: string | null;
-  created_at: string;
-};
-
-const MOCK_CLIENTS: ClientRow[] = [
-  {
-    id: "c1", client_name: "محمد العتيبي", organization_name: "مؤسسة الريادة التجارية",
-    subscription_plan: "الباقة الاحترافية", subscription_status: "active",
-    registration_date: "2026-01-12", last_activity_at: "2026-06-17", account_manager_name: "سارة القحطاني",
-  },
-  {
-    id: "c2", client_name: "نورة الدوسري", organization_name: "شركة آفاق المستقبل",
-    subscription_plan: "الباقة الأساسية", subscription_status: "trial",
-    registration_date: "2026-05-28", last_activity_at: "2026-06-18", account_manager_name: null,
-  },
-  {
-    id: "c3", client_name: "خالد المطيري", organization_name: "مجموعة النخبة القابضة",
-    subscription_plan: "الباقة المؤسسية", subscription_status: "inactive",
-    registration_date: "2025-11-03", last_activity_at: "2026-03-09", account_manager_name: "سارة القحطاني",
-  },
-  {
-    id: "c4", client_name: "عبدالله الشهري", organization_name: "مكتب الإنجاز للاستشارات",
-    subscription_plan: null, subscription_status: "cancelled",
-    registration_date: "2025-09-21", last_activity_at: null, account_manager_name: null,
-  },
-];
-
-const MOCK_MANAGERS: AccountManagerRow[] = [
-  {
-    id: "m1", name: "سارة القحطاني", email: "sara@partner.sa", mobile: "0551234567",
-    position: "مدير حسابات أول", created_at: "2026-02-01",
-  },
-  {
-    id: "m2", name: "فهد الزهراني", email: "fahad@partner.sa", mobile: "0509876543",
-    position: "مدير حسابات", created_at: "2026-04-15",
-  },
-];
-
-const MOCK_STATS = {
-  totalReferrals: 24,
-  activeClients: 14,
-  inactiveClients: 6,
-  monthlyRevenue: 48200,
-  totalCommissions: 132500,
-  pendingCommissions: 18400,
-  paidCommissions: 114100,
-  commissionRate: 15,
-};
+import { getAffiliateData, type AffiliateClient as ClientRow, type AffiliateManager as AccountManagerRow, type AffiliateStats, type AffiliateData } from "@/app/actions/affiliate";
 
 export default function AffiliatePage() {
-  // المالك مُعتمد كشريك — نعرض مساحة العمل مباشرة (تصميم بصري فقط)
+  const [data, setData] = useState<AffiliateData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    getAffiliateData().then((d) => { if (alive) { setData(d); setLoading(false); } });
+    return () => { alive = false; };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 md:p-8 flex items-center justify-center min-h-[40vh]" dir="rtl">
+        <Loader2 className="size-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!data?.isAffiliate) {
+    return (
+      <div className="p-6 md:p-8" dir="rtl">
+        <Card className="mulki-card p-12 text-center max-w-lg mx-auto">
+          <Handshake className="size-12 text-primary mx-auto mb-4" />
+          <h2 className="font-display text-2xl font-semibold mb-2">برنامج الشريك التابع</h2>
+          <p className="text-muted-foreground text-sm mb-6">
+            لم يتم تسجيلك كشريك تابع بعد. عند اعتماد حسابك كشريك ستظهر هنا إحالاتك وعمولاتك ومندوبوك.
+          </p>
+          <Button onClick={() => toast.info("سيتواصل معك فريق الشراكات لإكمال التسجيل.")}>
+            <Plus className="size-4 ms-2" /> طلب الانضمام كشريك
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 md:p-8 space-y-6" dir="rtl">
-      <PartnerWorkspace />
+      <PartnerWorkspace stats={data.stats} clients={data.clients} initialManagers={data.managers} refCode={data.refCode} />
     </div>
   );
 }
@@ -105,7 +73,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 // ---------------- Partner workspace (inline Tabs) ----------------
-function PartnerWorkspace() {
+function PartnerWorkspace({ stats, clients, initialManagers, refCode }: {
+  stats: AffiliateStats; clients: ClientRow[]; initialManagers: AccountManagerRow[]; refCode: string | null;
+}) {
   const [tab, setTab] = useState<"dashboard" | "clients" | "managers">("dashboard");
   const tabs: { value: "dashboard" | "clients" | "managers"; label: string }[] = [
     { value: "dashboard", label: "لوحة التحكم" },
@@ -114,6 +84,15 @@ function PartnerWorkspace() {
   ];
   return (
     <div className="space-y-6">
+      {refCode && (
+        <Card className="mulki-card p-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="text-sm">
+            <span className="text-muted-foreground">رمز الإحالة الخاص بك: </span>
+            <span className="font-mono font-bold text-primary">{refCode}</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => { navigator.clipboard?.writeText(refCode); toast.success("نُسخ رمز الإحالة."); }}>نسخ الرمز</Button>
+        </Card>
+      )}
       <div className="grid grid-cols-3 max-w-xl items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
         {tabs.map((t) => (
           <button
@@ -128,16 +107,15 @@ function PartnerWorkspace() {
           </button>
         ))}
       </div>
-      {tab === "dashboard" && <DashboardTab />}
-      {tab === "clients" && <ClientsTab />}
-      {tab === "managers" && <ManagersTab />}
+      {tab === "dashboard" && <DashboardTab stats={stats} />}
+      {tab === "clients" && <ClientsTab clients={clients} />}
+      {tab === "managers" && <ManagersTab initialManagers={initialManagers} />}
     </div>
   );
 }
 
 // ---------------- Dashboard tab ----------------
-function DashboardTab() {
-  const stats = MOCK_STATS;
+function DashboardTab({ stats }: { stats: AffiliateStats }) {
   const sar = (n: number) =>
     new Intl.NumberFormat("ar-SA", { style: "currency", currency: "SAR", maximumFractionDigits: 0 }).format(n);
 
@@ -187,9 +165,7 @@ function StatCard({
 }
 
 // ---------------- Clients tab ----------------
-function ClientsTab() {
-  const clients = MOCK_CLIENTS;
-
+function ClientsTab({ clients }: { clients: ClientRow[] }) {
   if (clients.length === 0) {
     return (
       <Card className="mulki-card p-10 text-center">
@@ -275,8 +251,8 @@ function ActionBtn({ icon: Icon, label, onClick }: { icon: LucideIcon; label: st
 }
 
 // ---------------- Account managers tab ----------------
-function ManagersTab() {
-  const [managers, setManagers] = useState<AccountManagerRow[]>(MOCK_MANAGERS);
+function ManagersTab({ initialManagers }: { initialManagers: AccountManagerRow[] }) {
+  const [managers, setManagers] = useState<AccountManagerRow[]>(initialManagers);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", mobile: "", position: "", notes: "" });

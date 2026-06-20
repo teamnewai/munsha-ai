@@ -1,15 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// مُلكي — حماية المسارات (مرجع: Blueprint §18 Gap 4, §20 Rec 3)
-// ملاحظة: /os مشمول بالحماية — إغلاق الثغرة الأمنية الحرجة في الوثيقة.
 const PROTECTED_PREFIXES = ["/dashboard", "/os", "/portal", "/onboarding"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // قبل ربط Supabase: مرّر كل الطلبات حتى يعمل التطبيق محلياً.
   if (!url || !key) return NextResponse.next();
 
   let response = NextResponse.next({ request });

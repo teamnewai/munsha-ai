@@ -5,8 +5,10 @@ import { Card } from "@/components/ui/card";
 import { deriveRole, ROLE_LABEL, ROLE_ICON, SECTIONS } from "@/lib/workspace";
 import { enterAs } from "@/components/os-app/ImpersonationBanner";
 import { toast } from "@/lib/toast";
-import { Sparkles, LogIn, CheckCircle2, Video, Phone } from "lucide-react";
+import { Sparkles, LogIn, CheckCircle2, Video, Phone, Loader2 } from "lucide-react";
 import type { RealMember } from "@/app/actions/access";
+import { createCallInvitation, updateCallStatus } from "@/app/actions/calls";
+import type { CallInvitation, CallType } from "@/app/actions/calls";
 import dynamic from "next/dynamic";
 
 const VideoCallModal = dynamic(() => import("@/components/VideoCallModal"), { ssr: false });
@@ -15,28 +17,61 @@ type Props = {
   member: RealMember & { dept: string; color: string };
 };
 
+// معرّف المتصل مؤقت — يُستبدل بـ auth لاحقاً
+const CALLER_ID = "current-user";
+const CALLER_NAME = "أنت";
+
 export default function WorkspaceClient({ member }: Props) {
   const role = deriveRole("employee", member.role);
   const sections = SECTIONS[role];
   const RIcon = ROLE_ICON[role];
   const grantCount = Object.values(member.perms).filter((g) => g.granted).length;
 
-  const [callType, setCallType] = useState<"video" | "audio" | null>(null);
+  const [calling, setCalling] = useState(false);
+  const [activeInvitation, setActiveInvitation] = useState<CallInvitation | null>(null);
 
-  const channelName = `munsha-${member.id.slice(0, 8)}`;
+  const startCall = async (type: CallType) => {
+    setCalling(true);
+    try {
+      const result = await createCallInvitation({
+        callerId: CALLER_ID,
+        callerName: CALLER_NAME,
+        calleeId: member.id,
+        calleeName: member.name,
+        callType: type,
+      });
 
-  const startCall = (type: "video" | "audio") => {
-    setCallType(type);
+      if (!result.ok || !result.invitation) {
+        toast.error("تعذّر بدء المكالمة");
+        return;
+      }
+
+      setActiveInvitation(result.invitation);
+    } catch {
+      toast.error("خطأ في الاتصال");
+    } finally {
+      setCalling(false);
+    }
+  };
+
+  const endCall = async () => {
+    if (activeInvitation) {
+      await updateCallStatus(activeInvitation.id, "ended");
+    }
+    setActiveInvitation(null);
   };
 
   return (
     <section className="space-y-6" dir="rtl">
-      {callType && (
+      {/* نافذة المكالمة الفعلية */}
+      {activeInvitation && (
         <VideoCallModal
-          channelName={channelName}
+          channelName={activeInvitation.room_name}
           memberName={member.name}
-          memberEmail={member.email}
-          onClose={() => setCallType(null)}
+          callType={activeInvitation.call_type}
+          invitationId={activeInvitation.id}
+          isWaiting={true}
+          onClose={endCall}
         />
       )}
 
@@ -60,30 +95,37 @@ export default function WorkspaceClient({ member }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {!member.suspended && (
-              <>
-                <button
-                  onClick={() => startCall("audio")}
-                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-2 text-sm font-medium hover:bg-emerald-500/20 transition-colors"
-                >
-                  <Phone className="size-4" /> اتصال صوتي
-                </button>
-                <button
-                  onClick={() => startCall("video")}
-                  className="inline-flex items-center gap-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 px-3 py-2 text-sm font-medium hover:bg-blue-500/20 transition-colors"
-                >
-                  <Video className="size-4" /> اتصال مرئي
-                </button>
-                <button
-                  onClick={() => { enterAs(member.name, member.role, "employee", member.id); toast.success(`تتصفّح الآن بصلاحيات ${member.name}`); }}
-                  className="inline-flex items-center gap-2 rounded-xl mulki-gold-bg px-4 py-2.5 text-sm font-bold hover:opacity-90"
-                >
-                  <LogIn className="size-4" /> تصفّح بصلاحياته
-                </button>
-              </>
-            )}
-          </div>
+          {!member.suspended && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* اتصال صوتي */}
+              <button
+                onClick={() => startCall("audio")}
+                disabled={calling}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-2 text-sm font-medium hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
+              >
+                {calling ? <Loader2 className="size-4 animate-spin" /> : <Phone className="size-4" />}
+                اتصال صوتي
+              </button>
+
+              {/* اتصال مرئي */}
+              <button
+                onClick={() => startCall("video")}
+                disabled={calling}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 px-3 py-2 text-sm font-medium hover:bg-blue-500/20 transition-colors disabled:opacity-50"
+              >
+                {calling ? <Loader2 className="size-4 animate-spin" /> : <Video className="size-4" />}
+                اتصال مرئي
+              </button>
+
+              {/* تصفح بصلاحياته */}
+              <button
+                onClick={() => { enterAs(member.name, member.role, "employee", member.id); toast.success(`تتصفّح الآن بصلاحيات ${member.name}`); }}
+                className="inline-flex items-center gap-2 rounded-xl mulki-gold-bg px-4 py-2.5 text-sm font-bold hover:opacity-90"
+              >
+                <LogIn className="size-4" /> تصفّح بصلاحياته
+              </button>
+            </div>
+          )}
         </div>
 
         {member.email && (
@@ -93,7 +135,7 @@ export default function WorkspaceClient({ member }: Props) {
         )}
 
         <div className="relative mt-4 inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-1.5 text-xs text-emerald-400">
-          <CheckCircle2 className="size-3.5" /> بيانات حقيقية من قاعدة البيانات — هذا المكتب أُنشئ تلقائياً من الهيكل التنظيمي المعتمد
+          <CheckCircle2 className="size-3.5" /> بيانات حقيقية من قاعدة البيانات
         </div>
       </Card>
 

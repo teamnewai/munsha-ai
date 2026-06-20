@@ -50,12 +50,16 @@ export function PageInspector() {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [noteMsg, setNoteMsg] = useState<string | null>(null);
+  const [noteAi, setNoteAi] = useState<string | null>(null);
+  const [noteAiLoading, setNoteAiLoading] = useState(false);
 
   // وضع الشرح: اضغط أي زر لمعرفة وظيفته (دون تنفيذه)
   const [explain, setExplain] = useState(false);
   const [tip, setTip] = useState<{ x: number; y: number; label: string; mission: string; href: string | null; kind: string } | null>(null);
   const [tipMsg, setTipMsg] = useState<string | null>(null);
   const [tipNote, setTipNote] = useState(""); // نص المشكلة المرتبط بالعنصر المختار
+  const [tipAi, setTipAi] = useState<string | null>(null);
+  const [tipAiLoading, setTipAiLoading] = useState(false);
   const selectedRef = useRef<HTMLElement | null>(null); // العنصر المميّز حالياً (تمييز ثابت)
 
   // تمييز ثابت للعنصر المختار حتى تُغلق البطاقة
@@ -80,6 +84,20 @@ export function PageInspector() {
     setTip(null);
     setTipNote("");
     setTipMsg(null);
+    setTipAi(null);
+    setTipAiLoading(false);
+  }
+
+  async function verifyWithAI(noteText: string, element: string, action: string) {
+    try {
+      const res = await fetch("/api/qa/verify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ note: noteText, page: pathname, action, element }),
+      });
+      const data = await res.json();
+      return data.analysis as string | null;
+    } catch { return null; }
   }
 
   // حفظ ملاحظة عامة — تصل المطوّر مباشرة بدون تسجيل دخول (جدول public_notes)
@@ -113,14 +131,21 @@ export function PageInspector() {
     setTipMsg(saved ? `✅ وصل «${action}» للمطوّر — سيُنفَّذ.` : `📝 سُجّل «${action}» محلياً (سيُرسَل عند عودة الاتصال).`);
   }
 
-  // إرسال مشكلة مكتوبة مرتبطة بالعنصر المختار
+  // إرسال مشكلة مكتوبة مرتبطة بالعنصر المختار + تحقق الذكاء الاصطناعي
   async function submitTipNote() {
     if (!tip) return;
     if (!tipNote.trim()) { setTipMsg("اكتب المشكلة أولاً."); return; }
-    const text = `[مشكلة] العنصر «${tip.label}»${tip.href ? " (" + tip.href + ")" : ""}: ${tipNote.trim()}`;
+    const noteText = tipNote.trim();
+    const text = `[مشكلة] العنصر «${tip.label}»${tip.href ? " (" + tip.href + ")" : ""}: ${noteText}`;
+    setTipAi(null);
     const saved = await logNote(text, "مشكلة على عنصر");
     setTipNote("");
-    setTipMsg(saved ? "✅ وصلت المشكلة للمطوّر — سيراجعها." : "📝 سُجّلت محلياً (تُرسَل عند عودة الاتصال).");
+    setTipMsg(saved ? "✅ وصلت المشكلة — جارٍ تحليلها بالذكاء الاصطناعي…" : "📝 سُجّلت محلياً — جارٍ التحليل…");
+    setTipAiLoading(true);
+    const analysis = await verifyWithAI(noteText, tip.label, "مشكلة على عنصر");
+    setTipAiLoading(false);
+    setTipAi(analysis ?? "⚠️ الذكاء الاصطناعي غير مُفعّل (ANTHROPIC_API_KEY مطلوب) — وصل البلاغ للمطوّر.");
+    setTipMsg(null);
   }
 
   useEffect(() => {
@@ -166,12 +191,19 @@ export function PageInspector() {
 
   async function saveNote() {
     setNoteMsg(null);
+    setNoteAi(null);
     if (!note.trim()) { setNoteMsg("اكتب ملاحظتك أولاً."); return; }
+    const noteText = note.trim();
     setSaving(true);
-    const ok = await logNote(note.trim(), "ملاحظة عامة");
+    const ok = await logNote(noteText, "ملاحظة عامة");
     setSaving(false);
     setNote("");
-    setNoteMsg(ok ? "✅ وصلت ملاحظتك — سيراجعها المطوّر وينفّذها." : "📝 حُفظت محلياً (سنرسلها عند عودة الاتصال).");
+    setNoteMsg(ok ? "✅ وصلت — جارٍ تحليلها بالذكاء الاصطناعي…" : "📝 حُفظت محلياً — جارٍ التحليل…");
+    setNoteAiLoading(true);
+    const analysis = await verifyWithAI(noteText, "", "ملاحظة عامة");
+    setNoteAiLoading(false);
+    setNoteAi(analysis ?? "⚠️ الذكاء الاصطناعي غير مُفعّل — وصلت ملاحظتك للمطوّر.");
+    setNoteMsg(null);
   }
 
   const scan = useCallback(() => {
@@ -269,6 +301,17 @@ export function PageInspector() {
             ))}
           </div>
           {tipMsg && <p className="mt-1.5 text-[11px] font-bold text-gold">{tipMsg}</p>}
+          {tipAiLoading && (
+            <div className="mt-2 flex items-center gap-2 rounded-lg bg-card2 px-2 py-2 text-[11px] text-mut">
+              <span className="animate-spin">⏳</span> وكيل الجودة يحلّل المشكلة…
+            </div>
+          )}
+          {tipAi && !tipAiLoading && (
+            <div className="mt-2 rounded-lg border border-gold/30 bg-gold/5 px-2.5 py-2 text-[11px] text-fg">
+              <div className="mb-1 font-bold text-gold">🤖 تقرير وكيل الجودة</div>
+              <pre className="whitespace-pre-wrap font-sans leading-relaxed">{tipAi}</pre>
+            </div>
+          )}
         </div>
       )}
 
@@ -319,11 +362,22 @@ export function PageInspector() {
               />
               {noteMsg && <p className="mt-1 text-[11px] font-bold text-gold">{noteMsg}</p>}
               <div className="mt-1.5 flex justify-end">
-                <button onClick={saveNote} disabled={saving}
+                <button onClick={saveNote} disabled={saving || noteAiLoading}
                   className="rounded-lg bg-gold px-4 py-1.5 text-xs font-bold text-golddark hover:bg-gold/90 disabled:opacity-50">
                   {saving ? "جارٍ الحفظ…" : "حفظ الملاحظة"}
                 </button>
               </div>
+              {noteAiLoading && (
+                <div className="mt-2 flex items-center gap-2 rounded-lg bg-card px-2 py-2 text-[11px] text-mut">
+                  <span className="animate-spin">⏳</span> وكيل الجودة يحلّل الملاحظة…
+                </div>
+              )}
+              {noteAi && !noteAiLoading && (
+                <div className="mt-2 rounded-lg border border-gold/30 bg-gold/5 px-2.5 py-2 text-[11px] text-fg">
+                  <div className="mb-1 font-bold text-gold">🤖 تقرير وكيل الجودة</div>
+                  <pre className="whitespace-pre-wrap font-sans leading-relaxed">{noteAi}</pre>
+                </div>
+              )}
             </div>
 
             <div className="mb-2 flex gap-2 text-[11px] text-mut">
@@ -373,17 +427,33 @@ function ItemRow({
   onPick: (el: HTMLElement) => void;
   onFlag: (item: Item, text: string) => Promise<boolean>;
 }) {
+  const pathname = usePathname();
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [aiReply, setAiReply] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   async function send() {
     if (!note.trim()) { setMsg("اكتب الملاحظة أولاً."); return; }
+    const noteText = note.trim();
     setSaving(true);
-    const ok = await onFlag(item, note);
+    const ok = await onFlag(item, noteText);
     setSaving(false);
     setNote("");
-    setMsg(ok ? "✅ وصلت للمطوّر — ستُنفَّذ." : "📝 حُفظت محلياً (تُرسَل عند عودة الاتصال).");
+    setMsg(ok ? "✅ وصلت — جارٍ التحليل…" : "📝 حُفظت محلياً — جارٍ التحليل…");
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/qa/verify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ note: noteText, page: pathname, action: "ملاحظة على عنصر", element: item.label }),
+      });
+      const data = await res.json();
+      setAiReply(data.analysis ?? "⚠️ الذكاء الاصطناعي غير مُفعّل — وصلت ملاحظتك للمطوّر.");
+    } catch { setAiReply("📝 حُفظت ملاحظتك — سيراجعها المطوّر."); }
+    setAiLoading(false);
+    setMsg(null);
   }
 
   return (
@@ -418,6 +488,17 @@ function ItemRow({
         </button>
       </div>
       {msg && <p className="mt-1 text-[11px] font-bold text-gold">{msg}</p>}
+      {aiLoading && (
+        <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-mut">
+          <span className="animate-spin">⏳</span> وكيل الجودة يحلّل…
+        </div>
+      )}
+      {aiReply && !aiLoading && (
+        <div className="mt-1.5 rounded-lg border border-gold/20 bg-gold/5 px-2 py-1.5 text-[10px] text-fg">
+          <span className="font-bold text-gold">🤖 </span>
+          <pre className="inline whitespace-pre-wrap font-sans">{aiReply}</pre>
+        </div>
+      )}
     </div>
   );
 }

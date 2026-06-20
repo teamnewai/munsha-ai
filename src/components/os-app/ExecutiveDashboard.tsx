@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
 import { COMPANY, fmt, type OsData } from "@/lib/os-data";
@@ -66,6 +67,7 @@ const COMMS = {
 type CommsTab = keyof typeof COMMS;
 
 export function ExecutiveDashboard({ data }: { data: OsData }) {
+  const router = useRouter();
   const [range, setRange] = useState<"day" | "week" | "month">("day");
   const [commsTab, setCommsTab] = useState<CommsTab>("اجتماعات");
   const { departments: DEPARTMENTS, employees: EMPLOYEES, tasks: TASKS, finance: FINANCE } = data;
@@ -89,12 +91,12 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
     { title: "تقرير المشاريع", date: "مايو 2024", icon: TrendingUp, color: "#10b981" },
   ];
   const actionBar = [
-    { label: "مكالمة صوتية", icon: Phone, color: "#10b981" },
-    { label: "مكالمة فيديو", icon: Video, color: "#3b82f6" },
-    { label: "شاشة ومتابعة", icon: ScreenShare, color: "#8b5cf6" },
-    { label: "بث مباشر", icon: Radio, color: "#ec4899" },
-    { label: "إرسال رسالة", icon: Send, color: "#f59e0b" },
-    { label: "مشاركة ملف", icon: Share2, color: "#06b6d4" },
+    { label: "مكالمة صوتية", icon: Phone, color: "#10b981", action: () => router.push("/people") },
+    { label: "مكالمة فيديو", icon: Video, color: "#3b82f6", action: () => router.push("/people") },
+    { label: "شاشة ومتابعة", icon: ScreenShare, color: "#8b5cf6", action: () => router.push("/meetings") },
+    { label: "بث مباشر", icon: Radio, color: "#ec4899", action: () => router.push("/meetings") },
+    { label: "إرسال رسالة", icon: Send, color: "#f59e0b", action: () => router.push("/network") },
+    { label: "مشاركة ملف", icon: Share2, color: "#06b6d4", action: () => router.push("/knowledge") },
   ];
 
   return (
@@ -275,7 +277,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
         <Card className="mulki-card p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display font-semibold">التواصل الداخلي</h3>
-            <button onClick={() => toast.info("بدء محادثة جديدة")} className="size-7 rounded-md bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25"><Plus className="size-4" /></button>
+            <button onClick={() => router.push("/network")} className="size-7 rounded-md bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25"><Plus className="size-4" /></button>
           </div>
           <div className="flex gap-2 mb-3 text-xs">
             {(Object.keys(COMMS) as CommsTab[]).map((t) => (
@@ -312,7 +314,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
           {actionBar.map((a) => {
             const Icon = a.icon;
             return (
-              <button key={a.label} onClick={() => toast.info(`${a.label} — جارٍ البدء`)}
+              <button key={a.label} onClick={a.action}
                 className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-background/30 py-3 hover:border-primary/40 transition-colors">
                 <div className="size-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${a.color}20`, color: a.color }}>
                   <Icon className="size-5" />

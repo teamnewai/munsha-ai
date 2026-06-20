@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { safeRedirect } from "@/lib/security";
+import { authorizeUser } from "@/app/actions/authz";
 import { Button } from "@/components/ui/Button";
 
 type Method = "email" | "phone" | "google";
@@ -24,7 +25,7 @@ function LoginInner() {
   const [otpSent, setOtpSent] = useState(false); // للرمز (بريد/جوال)
 
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(errorFromParam(params.get("error")));
   const [ok, setOk] = useState<string | null>(null);
 
   function reset(m: Method) {
@@ -35,12 +36,22 @@ function LoginInner() {
     setCode(""); setPassword("");
   }
 
-  // وجهة ما بعد الدخول: منشأة قائمة → اللوحة؛ لا منشأة → فتح المكتب
+  // وجهة ما بعد الدخول: تحقق من الصلاحية أولاً، ثم منشأة قائمة → اللوحة؛ لا منشأة → فتح المكتب
   async function routeAfterAuth() {
     const supabase = createClient();
     if (!supabase) return window.location.assign(redirect);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      // بوابة التحقق: لا يدخل إلا المصرّح لهم (منصّة داخلية)
+      const { authorized, reason } = await authorizeUser({ userId: user.id, email: user.email });
+      if (!authorized) {
+        await supabase.auth.signOut();
+        setLoading(false);
+        setMsg(reason === "suspended"
+          ? "حسابك موقوف — تواصل مع مدير المنشأة."
+          : "هذا الحساب غير مصرّح له بالدخول. تواصل مع مدير المنشأة لإضافة بريدك.");
+        return;
+      }
       const { count } = await supabase
         .from("memberships")
         .select("id", { count: "exact", head: true })
@@ -294,6 +305,16 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </div>
   );
+}
+
+// ترجمة رمز الخطأ القادم من callback إلى رسالة عربية
+function errorFromParam(code: string | null): string | null {
+  if (!code) return null;
+  if (code === "not_authorized" || code === "unauthorized")
+    return "هذا الحساب غير مصرّح له بالدخول. تواصل مع مدير المنشأة لإضافة بريدك.";
+  if (code === "suspended") return "حسابك موقوف — تواصل مع مدير المنشأة.";
+  if (code === "auth") return "تعذّر إكمال تسجيل الدخول. حاول مرة أخرى.";
+  return null;
 }
 
 // 05xxxxxxxx → +9665xxxxxxxx ؛ يقبل صيغاً دولية أيضاً

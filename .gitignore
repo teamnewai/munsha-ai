@@ -1,3 +1,6 @@
+# Claude Code local files
+.claude/
+
 # dependencies
 /node_modules
 /.pnp

@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/os-app/AppSidebar";
 import { TopBar } from "@/components/os-app/TopBar";
 import { ImpersonationBanner } from "@/components/os-app/ImpersonationBanner";
+import { GlobalCallBanner } from "@/components/GlobalCallBanner";
 
 // مُلكي OS — قشرة مساحة العمل (شريط جانبي + علوي) لصفحات Lovable المنقولة
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <TopBar />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
+      <GlobalCallBanner />
     </div>
   );
 }

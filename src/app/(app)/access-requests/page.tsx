@@ -1,112 +1,178 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
-import { CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
+import { CheckCircle2, XCircle, ShieldCheck, RefreshCw, Clock, FileText } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
+import { getAllAccessRequests, decideAccessReq, type AccessReqRow } from "@/app/actions/structure";
 
-type ScopeKind = "department" | "section" | "unit" | "user";
-type Status = "pending" | "approved" | "rejected" | "revoked";
+type Filter = "all" | "pending" | "approved" | "rejected";
 
-type AccessRequest = {
-  id: string;
-  requester_name: string | null;
-  scope_kind: ScopeKind;
-  scope_label: string | null;
-  scope_id: string;
-  reason: string | null;
-  status: Status;
-};
-
-const SCOPE_LABEL: Record<string, string> = {
-  department: "إدارة", section: "قسم", unit: "وحدة", user: "موظف",
-};
 const STATUS_LABEL: Record<string, string> = {
-  pending: "قيد المراجعة", approved: "مُعتمد", rejected: "مرفوض", revoked: "ملغى",
+  pending: "قيد المراجعة",
+  approved: "موافق عليه",
+  rejected: "مرفوض",
 };
 
-const INITIAL_REQUESTS: AccessRequest[] = [
-  { id: "1", requester_name: "سعد العتيبي", scope_kind: "department", scope_label: "الإدارة المالية", scope_id: "a1b2c3d4", reason: "مراجعة تقارير الميزانية الربعية", status: "pending" },
-  { id: "2", requester_name: "نورة القحطاني", scope_kind: "section", scope_label: "قسم المشتريات", scope_id: "e5f6g7h8", reason: "متابعة طلبات الشراء العالقة", status: "pending" },
-  { id: "3", requester_name: "خالد الدوسري", scope_kind: "unit", scope_label: "وحدة الدعم الفني", scope_id: "i9j0k1l2", reason: "تنسيق صيانة الأنظمة", status: "approved" },
-  { id: "4", requester_name: "هند المطيري", scope_kind: "user", scope_label: "ملف الموظف 1042", scope_id: "m3n4o5p6", reason: "تحديث بيانات التواصل", status: "rejected" },
-  { id: "5", requester_name: "فهد الشمري", scope_kind: "department", scope_label: "إدارة الموارد البشرية", scope_id: "q7r8s9t0", reason: "إعداد كشوف الرواتب الشهرية", status: "pending" },
-];
-
-function badgeClass(variant: "default" | "outline" | "destructive" | "secondary") {
-  const base = "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium";
-  const map: Record<string, string> = {
-    default: "bg-primary text-primary-foreground",
-    outline: "border border-border text-foreground",
-    destructive: "bg-destructive text-destructive-foreground",
-    secondary: "bg-secondary text-secondary-foreground",
-  };
-  return `${base} ${map[variant]}`;
+function statusClass(status: string) {
+  const base = "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border";
+  if (status === "approved") return cn(base, "bg-emerald-500/15 text-emerald-500 border-emerald-500/30");
+  if (status === "rejected") return cn(base, "bg-destructive/15 text-destructive border-destructive/30");
+  return cn(base, "bg-amber-500/15 text-amber-500 border-amber-500/30");
 }
 
-export default function AccessRequestsPage() {
-  const [data, setData] = useState<AccessRequest[]>(INITIAL_REQUESTS);
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: "all", label: "الكل" },
+  { key: "pending", label: "قيد المراجعة" },
+  { key: "approved", label: "موافق عليها" },
+  { key: "rejected", label: "مرفوضة" },
+];
 
-  const decide = (id: string, decision: "approved" | "rejected") => {
-    setData((rows) => rows.map((r) => (r.id === id ? { ...r, status: decision } : r)));
-    toast.success("تم تحديث الطلب");
-  };
+export default function AccessRequestsPage() {
+  const [rows, setRows] = useState<AccessReqRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [filter, setFilter] = useState<Filter>("all");
+
+  async function load() {
+    setLoading(true);
+    const res = await getAllAccessRequests();
+    if (res.ok) {
+      setRows(res.requests);
+      setLoaded(true);
+    } else {
+      toast.error("تعذّر تحميل الطلبات");
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const stats = useMemo(() => {
+    const pending = rows.filter((r) => r.status === "pending").length;
+    const approved = rows.filter((r) => r.status === "approved").length;
+    const rejected = rows.filter((r) => r.status === "rejected").length;
+    return { pending, approved, rejected };
+  }, [rows]);
+
+  const filtered = useMemo(
+    () => rows.filter((r) => filter === "all" || r.status === filter),
+    [rows, filter]
+  );
+
+  async function decide(id: string, decision: "approved" | "rejected") {
+    const prev = rows;
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status: decision } : r)));
+    const res = await decideAccessReq(id, decision);
+    if (res.ok) {
+      toast.success(decision === "approved" ? "تمت الموافقة على الطلب" : "تم رفض الطلب");
+    } else {
+      setRows(prev);
+      toast.error("تعذّر تحديث الطلب");
+    }
+  }
+
+  const statItems = [
+    { label: "قيد المراجعة", value: stats.pending, Icon: Clock, tone: "text-amber-500" },
+    { label: "موافق عليها", value: stats.approved, Icon: CheckCircle2, tone: "text-emerald-500" },
+    { label: "مرفوضة", value: stats.rejected, Icon: XCircle, tone: "text-destructive" },
+  ];
 
   return (
-    <div className="p-6 md:p-8 space-y-4" dir="rtl">
-      <Card className="p-5">
-        <div className="flex items-center gap-2 mb-4">
+    <div className="p-6 md:p-8 space-y-6" dir="rtl">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
           <ShieldCheck className="size-5 text-primary" />
-          <h2 className="font-semibold">إدارة طلبات زيارة الإدارات والوحدات</h2>
+          <h1 className="font-display text-xl font-semibold">إدارة طلبات الوصول للبيانات</h1>
         </div>
-        {data.length === 0 ? (
-          <p className="text-muted-foreground text-sm">لا توجد طلبات حتى الآن</p>
-        ) : (
-          <div className="w-full overflow-x-auto">
-            <table className="w-full caption-bottom text-sm">
-              <thead className="[&_tr]:border-b">
-                <tr className="border-b border-border">
-                  <th className="h-10 px-2 text-start align-middle font-medium text-muted-foreground">مقدِّم الطلب</th>
-                  <th className="h-10 px-2 text-start align-middle font-medium text-muted-foreground">النطاق</th>
-                  <th className="h-10 px-2 text-start align-middle font-medium text-muted-foreground">السبب</th>
-                  <th className="h-10 px-2 text-start align-middle font-medium text-muted-foreground">الحالة</th>
-                  <th className="h-10 px-2 text-end align-middle font-medium text-muted-foreground">إجراء</th>
-                </tr>
-              </thead>
-              <tbody className="[&_tr:last-child]:border-0">
-                {data.map((r) => (
-                  <tr key={r.id} className="border-b border-border">
-                    <td className="p-2 align-middle">{r.requester_name ?? "—"}</td>
-                    <td className="p-2 align-middle">
-                      <span className={badgeClass("outline")}>{SCOPE_LABEL[r.scope_kind]}</span>
-                      <span className="ms-2 text-xs text-muted-foreground">{r.scope_label ?? r.scope_id.slice(0, 8)}</span>
-                    </td>
-                    <td className="p-2 align-middle max-w-xs truncate">{r.reason ?? "—"}</td>
-                    <td className="p-2 align-middle">
-                      <span className={badgeClass(r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary")}>
-                        {STATUS_LABEL[r.status]}
-                      </span>
-                    </td>
-                    <td className="p-2 align-middle text-end">
-                      {r.status === "pending" && (
-                        <div className="flex gap-2 justify-end">
-                          <Button size="sm" variant="outline" onClick={() => decide(r.id, "approved")}>
-                            <CheckCircle2 className="size-4 ms-1" />موافقة
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => decide(r.id, "rejected")}>
-                            <XCircle className="size-4 ms-1" />رفض
-                          </Button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+        <div className="flex items-center gap-3">
+          {loaded && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              بيانات حقيقية
+            </span>
+          )}
+          <Button size="sm" variant="outline" onClick={load} disabled={loading}>
+            <RefreshCw className={cn("size-4 ms-1", loading && "animate-spin")} /> تحديث
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {statItems.map((it) => (
+          <Card key={it.label} className="mulki-card p-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <it.Icon className={cn("size-4", it.tone)} /> {it.label}
+            </div>
+            <div className="font-display text-2xl font-semibold mt-1 tabular-nums">{it.value}</div>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex gap-1 rounded-lg border border-border bg-background/40 p-1 w-fit">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={cn(
+              "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              filter === f.key ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <Card className="mulki-card p-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</Card>
+      ) : filtered.length === 0 ? (
+        <Card className="mulki-card p-10 text-center text-sm text-muted-foreground">لا توجد طلبات حتى الآن</Card>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((r) => (
+            <Card key={r.id} className="mulki-card p-4">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div className="min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium">{r.from}</span>
+                    <span className={statusClass(r.status)}>{STATUS_LABEL[r.status] ?? r.status}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <FileText className="size-3.5" />
+                    <span className="text-foreground">النطاق:</span> {r.scope}
+                  </div>
+                  {r.reason && (
+                    <div className="text-xs text-muted-foreground">
+                      <span className="text-foreground">السبب:</span> {r.reason}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <span>المرحلة {r.stage}/{r.totalStages}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="size-3" /> {r.time}
+                    </span>
+                  </div>
+                </div>
+                {r.status === "pending" && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => decide(r.id, "approved")}>
+                      <CheckCircle2 className="size-4 ms-1" /> موافقة
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => decide(r.id, "rejected")}>
+                      <XCircle className="size-4 ms-1" /> رفض
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

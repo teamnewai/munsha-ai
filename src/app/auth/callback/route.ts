@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { authorizeUser } from "@/app/actions/authz";
 
-// مُلكي — استقبال تأكيد البريد / رابط الدخول (PKCE code exchange)
+// مُلكي — استقبال تأكيد البريد / رابط الدخول / Google OAuth (PKCE code exchange)
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
@@ -24,7 +25,18 @@ export async function GET(request: Request) {
       },
     });
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+    if (!error) {
+      // بوابة التحقق: لا يدخل إلا المصرّح لهم (منصّة داخلية)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { authorized, reason } = await authorizeUser({ userId: user.id, email: user.email });
+        if (!authorized) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${origin}/login?error=${reason ?? "unauthorized"}`);
+        }
+      }
+      return NextResponse.redirect(`${origin}${next}`);
+    }
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth`);

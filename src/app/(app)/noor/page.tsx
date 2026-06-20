@@ -8,8 +8,9 @@ import { Sparkles, Send, Bot, User } from "lucide-react";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; text: string };
 
-const CANNED_REPLY =
-  "بالتأكيد. إليك موجزك السريع: لديك 3 مهام عاجلة و2 اجتماع اليوم، والمؤشرات المالية ضمن المعدّل الطبيعي. أنصح بالتركيز على اعتماد التقرير الشهري ومتابعة المعاملات المرتجعة. هل ترغب أن أنسّق مجلس الوكلاء لإعداد ملخص أعمق؟";
+// رد احتياطي محلي عندما لا يكون مفتاح الذكاء مُفعّلاً بعد (ANTHROPIC_API_KEY)
+const FALLBACK_REPLY =
+  "أنا جاهزة للعمل بكامل قدراتي بمجرد تفعيل مفتاح الذكاء الاصطناعي (ANTHROPIC_API_KEY) في إعدادات النظام. مؤقتاً إليك موجز سريع: راجع المهام العاجلة واعتماد التقرير الشهري ومتابعة المعاملات المرتجعة. هل ترغب أن أنسّق مجلس الوكلاء؟";
 
 export default function NoorPage() {
   const [input, setInput] = useState("");
@@ -19,17 +20,28 @@ export default function NoorPage() {
 
   useEffect(() => { inputRef.current?.focus(); }, [messages.length, thinking]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || thinking) return;
     const text = input.trim();
-    setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: "user", text }]);
+    const history = [...messages, { id: `u-${Date.now()}`, role: "user" as const, text }];
+    setMessages(history);
     setInput("");
     setThinking(true);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: "assistant", text: CANNED_REPLY }]);
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history.map((m) => ({ role: m.role, content: m.text })) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const reply: string = (data?.reply && String(data.reply).trim()) || FALLBACK_REPLY;
+      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: "assistant", text: reply }]);
+    } catch {
+      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: "assistant", text: FALLBACK_REPLY }]);
+    } finally {
       setThinking(false);
-    }, 800);
+    }
   };
 
   const suggestions = ["أوجزي لي اليوم", "لخّصي مؤسستي", "على ماذا ينبغي أن أركّز؟"];

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Presentation, MapPin, Calendar, Users, Globe, ExternalLink, Bookmark, BookmarkCheck, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { DemoBanner } from "@/components/DemoBanner";
 
 type Conference = {
   id: string;
@@ -24,8 +25,11 @@ type Conference = {
   featured: boolean;
 };
 
-// لا مؤتمرات وهمية — تُضاف المؤتمرات الحقيقية عبر زر «إضافة» وتظهر هنا.
-const CONFERENCES: Conference[] = [];
+// بيانات تجريبية لعرض الخدمة — تُستبدل بمؤتمراتك الحقيقية عند الإضافة.
+const CONFERENCES: Conference[] = [
+  { id: "d1", name: "مؤتمر تجريبي ١", organizer: "جهة تجريبية", city: "تجريبي", country: "—", startDate: "2026-09-15", endDate: "2026-09-17", sector: "تجريبي", attendees: 0, status: "upcoming", website: "—", featured: true },
+  { id: "d2", name: "مؤتمر تجريبي ٢", organizer: "جهة تجريبية", city: "تجريبي", country: "—", startDate: "2026-10-08", endDate: "2026-10-10", sector: "تجريبي", attendees: 0, status: "upcoming", website: "—", featured: false },
+];
 
 const STATUS_LABEL: Record<string, string> = { upcoming: "قادم", ongoing: "جارٍ الآن", past: "منتهي" };
 const STATUS_COLOR: Record<string, string> = {
@@ -91,8 +95,11 @@ export default function ConferencesPage() {
     });
   };
 
+  const isDemo = events.every((c) => c.id.startsWith("d"));
+
   return (
     <div className="p-6 md:p-8 space-y-6" dir="rtl">
+      {isDemo && <DemoBanner />}
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
@@ -212,13 +219,6 @@ export default function ConferencesPage() {
       {/* All list */}
       <div>
         {filter === "all" && <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">جميع الفعاليات</h3>}
-        {events.length === 0 && (
-          <Card className="mulki-card p-12 text-center">
-            <Presentation className="size-10 text-muted-foreground mx-auto mb-3 opacity-50" />
-            <p className="text-muted-foreground mb-1">لا توجد مؤتمرات بعد.</p>
-            <p className="text-xs text-muted-foreground">أضف فعالية عبر زر «إضافة مؤتمر» لتظهر هنا.</p>
-          </Card>
-        )}
         <div className="space-y-3">
           {visible.filter((c) => filter !== "all" || !c.featured).map((c) => (
             <Card key={c.id} className="mulki-card p-4">

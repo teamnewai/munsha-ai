@@ -1,6 +1,6 @@
 import { createAdminClient } from "./supabase/admin";
 import { getCurrentOrgId } from "./org-context";
-import { EMPTY_OS, DEMO_LABEL, deriveOsData, PALETTE, type Dept, type OsData, type PresentEmp, type AbsentEmp } from "./os-data";
+import { DEMO_OS, DEMO_LABEL, deriveOsData, PALETTE, type Dept, type OsData, type PresentEmp, type AbsentEmp } from "./os-data";
 
 type DeptRow = {
   dept_key: string | null;
@@ -22,11 +22,11 @@ type InvoiceRow = { total_amount: number | null; type: string | null };
  */
 export async function getOsData(): Promise<OsData> {
   const sb = createAdminClient();
-  if (!sb) return EMPTY_OS;
+  if (!sb) return DEMO_OS;
 
   // عزل صارم: بيانات منشأة المستخدم الحالي فقط. بلا منشأة → حالة «تجريبي» فارغة.
   const orgId = await getCurrentOrgId();
-  if (!orgId) return EMPTY_OS;
+  if (!orgId) return DEMO_OS;
 
   try {
     const [orgRes, deptRes, notifRes, memRes, invoiceRes, notifListRes] = await Promise.all([
@@ -40,7 +40,8 @@ export async function getOsData(): Promise<OsData> {
 
     const orgName = (orgRes.data?.name as string) || DEMO_LABEL;
     const rows = (deptRes.data as DeptRow[] | null) ?? [];
-    if (rows.length === 0) return { ...EMPTY_OS, source: "live", orgName };
+    // منشأة حقيقية بلا هيكل بعد → حالة حيّة فارغة (لا بيانات تجريبية)
+    if (rows.length === 0) return deriveOsData([], { source: "live", orgName });
 
     // أسماء وألوان الإدارات الحقيقية + مقاييس فعلية (أصفار عند الغياب، بلا تعبئة وهمية)
     const departments: Dept[] = rows.map((d, i) => ({
@@ -91,6 +92,6 @@ export async function getOsData(): Promise<OsData> {
       recentComms,
     });
   } catch {
-    return EMPTY_OS;
+    return DEMO_OS;
   }
 }

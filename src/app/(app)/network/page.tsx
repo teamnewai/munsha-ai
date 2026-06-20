@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Network, Search, MapPin, Star, MessageSquare, UserPlus, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { DemoBanner } from "@/components/DemoBanner";
 
 type Contact = {
   id: string;
@@ -22,8 +23,12 @@ type Contact = {
   avatar: string;
 };
 
-// لا جهات اتصال وهمية — تُضاف الجهات الحقيقية عبر زر «إضافة» وتظهر هنا.
-const CONTACTS: Contact[] = [];
+// بيانات تجريبية لعرض الخدمة — تُستبدل بجهاتك الحقيقية عند الإضافة.
+const CONTACTS: Contact[] = [
+  { id: "d1", name: "جهة تجريبية ١", title: "مدير عام", company: "شركة تجريبية", sector: "تقنية المعلومات", city: "تجريبي", specialty: ["تجريبي"], rating: 0, connected: false, avatar: "ت" },
+  { id: "d2", name: "جهة تجريبية ٢", title: "مديرة الموارد البشرية", company: "شركة تجريبية", sector: "الموارد البشرية", city: "تجريبي", specialty: ["تجريبي"], rating: 0, connected: false, avatar: "ت" },
+  { id: "d3", name: "جهة تجريبية ٣", title: "مستشار مالي", company: "شركة تجريبية", sector: "المال", city: "تجريبي", specialty: ["تجريبي"], rating: 0, connected: false, avatar: "ت" },
+];
 
 const COLORS = ["#6366f1", "#C9A24B", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899"];
 
@@ -84,8 +89,11 @@ export default function NetworkPage() {
     );
   };
 
+  const isDemo = contacts.every((c) => c.id.startsWith("d"));
+
   return (
     <div className="p-6 md:p-8 space-y-6" dir="rtl">
+      {isDemo && <DemoBanner />}
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>

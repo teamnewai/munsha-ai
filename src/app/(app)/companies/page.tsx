@@ -9,6 +9,14 @@ import { Building2, Search, MapPin, Phone, Globe, Star, Users, Briefcase, Extern
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { getCompanies, addCompany, type CompanyRow as Company, type CompanyType } from "@/app/actions/companies";
+import { DemoBanner } from "@/components/DemoBanner";
+
+// بيانات تجريبية تظهر موسومة «تجريبي» حتى يضيف المستخدم شركاءه الحقيقيين
+const DEMO_COMPANIES: Company[] = [
+  { id: "d1", name: "شركة تجريبية للتقنية", type: "شريك", sector: "تقنية المعلومات", city: "تجريبي", phone: "—", website: "—", employees: 0, rating: 0, since: 2024, active: true },
+  { id: "d2", name: "عميل تجريبي", type: "عميل", sector: "تجريبي", city: "تجريبي", phone: "—", website: "—", employees: 0, rating: 0, since: 2024, active: true },
+  { id: "d3", name: "مورّد تجريبي", type: "مورّد", sector: "تجريبي", city: "تجريبي", phone: "—", website: "—", employees: 0, rating: 0, since: 2024, active: true },
+];
 
 const TYPE_COLOR: Record<string, string> = {
   "شريك": "bg-blue-500/15 text-blue-500",
@@ -51,13 +59,17 @@ export default function CompaniesPage() {
     return () => { alive = false; };
   }, []);
 
+  // عند عدم وجود شركات حقيقية بعد، نعرض بيانات تجريبية موسومة
+  const isDemo = !loading && companies.length === 0;
+  const source = isDemo ? DEMO_COMPANIES : companies;
+
   const visible = useMemo(() => {
-    return companies.filter((c) => {
+    return source.filter((c) => {
       const matchType = typeFilter === "all" || c.type === typeFilter;
       const matchQ = !q.trim() || c.name.includes(q) || c.sector.includes(q) || c.city.includes(q);
       return matchType && matchQ;
     });
-  }, [companies, q, typeFilter]);
+  }, [source, q, typeFilter]);
 
   const handleAdd = async () => {
     const name = nameRef.current?.value.trim();
@@ -118,11 +130,13 @@ export default function CompaniesPage() {
         </Dialog>
       </div>
 
+      {isDemo && <DemoBanner />}
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {types.slice(1).map((t) => (
           <Card key={t} className="mulki-card p-4 text-center cursor-pointer hover:border-primary/40 transition-colors" onClick={() => setTypeFilter(t)}>
-            <div className="text-2xl font-bold text-primary mb-1">{companies.filter((c) => c.type === t).length}</div>
+            <div className="text-2xl font-bold text-primary mb-1">{source.filter((c) => c.type === t).length}</div>
             <div className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium inline-block", TYPE_COLOR[t])}>{t}</div>
           </Card>
         ))}
@@ -154,12 +168,6 @@ export default function CompaniesPage() {
       {loading ? (
         <Card className="mulki-card p-12 text-center">
           <Loader2 className="size-8 text-primary mx-auto animate-spin" />
-        </Card>
-      ) : companies.length === 0 ? (
-        <Card className="mulki-card p-12 text-center">
-          <Building2 className="size-10 text-muted-foreground mx-auto mb-3 opacity-50" />
-          <p className="text-muted-foreground mb-1">لا توجد شركات في دليلك بعد.</p>
-          <p className="text-xs text-muted-foreground">أضف أول شريك أو عميل عبر زر «إضافة شركة».</p>
         </Card>
       ) : visible.length === 0 ? (
         <Card className="mulki-card p-12 text-center">

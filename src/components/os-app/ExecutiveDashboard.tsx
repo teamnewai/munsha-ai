@@ -96,6 +96,14 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
 
   return (
     <section className="space-y-6">
+      {/* شريط الوضع التجريبي — يظهر فقط حين لا توجد بيانات منشأة حقيقية */}
+      {data.source === "demo" && (
+        <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-600 dark:text-amber-400">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span>هذه <b>بيانات تجريبية</b> لعرض الخدمة. ستُستبدل تلقائياً ببيانات منشأتك فور إضافتها.</span>
+        </div>
+      )}
+
       {/* Hero */}
       <Card className="mulki-card p-6 relative overflow-hidden">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-6">

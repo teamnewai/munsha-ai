@@ -1,5 +1,6 @@
 import { createAdminClient } from "./supabase/admin";
-import { MOCK_DEPARTMENTS, MOCK_OS, deriveOsData, PALETTE, type Dept, type OsData, type PresentEmp, type AbsentEmp } from "./os-data";
+import { getCurrentOrgId } from "./org-context";
+import { EMPTY_OS, DEMO_LABEL, deriveOsData, PALETTE, type Dept, type OsData, type PresentEmp, type AbsentEmp } from "./os-data";
 
 type DeptRow = {
   dept_key: string | null;
@@ -21,35 +22,36 @@ type InvoiceRow = { total_amount: number | null; type: string | null };
  */
 export async function getOsData(): Promise<OsData> {
   const sb = createAdminClient();
-  if (!sb) return MOCK_OS;
+  if (!sb) return EMPTY_OS;
+
+  // عزل صارم: بيانات منشأة المستخدم الحالي فقط. بلا منشأة → حالة «تجريبي» فارغة.
+  const orgId = await getCurrentOrgId();
+  if (!orgId) return EMPTY_OS;
 
   try {
     const [orgRes, deptRes, notifRes, memRes, invoiceRes, notifListRes] = await Promise.all([
-      sb.from("organizations").select("name").limit(1).maybeSingle(),
-      sb.from("org_departments").select("dept_key,name,color,staff_count,open_tasks,done_tasks,perf").eq("active", true).order("sort"),
-      sb.from("notifications").select("id", { count: "exact", head: true }).eq("is_read", false),
-      sb.from("dept_members").select("full_name,job_title,dept_key,present").eq("status", "active"),
-      sb.from("invoices").select("total_amount,type"),
-      sb.from("notifications").select("title,body,kind,created_at").order("created_at", { ascending: false }).limit(6),
+      sb.from("organizations").select("name").eq("id", orgId).maybeSingle(),
+      sb.from("org_departments").select("dept_key,name,color,staff_count,open_tasks,done_tasks,perf").eq("org_id", orgId).eq("active", true).order("sort"),
+      sb.from("notifications").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("is_read", false),
+      sb.from("dept_members").select("full_name,job_title,dept_key,present").eq("org_id", orgId).eq("status", "active"),
+      sb.from("invoices").select("total_amount,type").eq("org_id", orgId),
+      sb.from("notifications").select("title,body,kind,created_at").eq("org_id", orgId).order("created_at", { ascending: false }).limit(6),
     ]);
 
-    const orgName = (orgRes.data?.name as string) || MOCK_OS.orgName;
+    const orgName = (orgRes.data?.name as string) || DEMO_LABEL;
     const rows = (deptRes.data as DeptRow[] | null) ?? [];
-    if (rows.length === 0) return { ...MOCK_OS, orgName };
+    if (rows.length === 0) return { ...EMPTY_OS, source: "live", orgName };
 
-    // دمج الأسماء/الأيقونات الحقيقية مع مقاييس متسقة عند غياب القيم الفعلية
-    const departments: Dept[] = rows.map((d, i) => {
-      const fb = MOCK_DEPARTMENTS[i] ?? MOCK_DEPARTMENTS[MOCK_DEPARTMENTS.length - 1];
-      return {
-        key: d.dept_key || fb.key,
-        name: d.name || fb.name,
-        color: d.color && d.color.toUpperCase() !== "#3B82F6" ? d.color : PALETTE[i % PALETTE.length],
-        employees: d.staff_count || fb.employees,
-        open: d.open_tasks || fb.open,
-        done: d.done_tasks || fb.done,
-        perf: d.perf || fb.perf,
-      };
-    });
+    // أسماء وألوان الإدارات الحقيقية + مقاييس فعلية (أصفار عند الغياب، بلا تعبئة وهمية)
+    const departments: Dept[] = rows.map((d, i) => ({
+      key: d.dept_key || `dept-${i}`,
+      name: d.name || DEMO_LABEL,
+      color: d.color && d.color.toUpperCase() !== "#3B82F6" ? d.color : PALETTE[i % PALETTE.length],
+      employees: d.staff_count ?? 0,
+      open: d.open_tasks ?? 0,
+      done: d.done_tasks ?? 0,
+      perf: d.perf ?? 0,
+    }));
 
     // الموظفون الفعليون من dept_members — في الوضع الحي نعرض الواقع (ولو فارغاً) لا أسماء وهمية
     const members = (memRes.data as MemberRow[] | null) ?? [];
@@ -89,6 +91,6 @@ export async function getOsData(): Promise<OsData> {
       recentComms,
     });
   } catch {
-    return MOCK_OS;
+    return EMPTY_OS;
   }
 }

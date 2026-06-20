@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
-import { COMPANY, fmt, type OsData } from "@/lib/os-data";
+import { DEMO_LABEL, fmt, type OsData } from "@/lib/os-data";
 import {
   TrendingUp, TrendingDown, DollarSign, CheckCircle2, Users, AlertTriangle,
   Building2, Wallet, UserCheck, Megaphone, Settings as SettingsIcon, Briefcase,
@@ -65,7 +65,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
     مكالمات: (data.recentComms ?? []).filter((c) => c.kind === "call").map((c) => ({ from: c.from, to: c.to, msg: c.msg, time: c.time })),
     رسائل: (data.recentComms ?? []).filter((c) => c.kind === "message").map((c) => ({ from: c.from, to: c.to, msg: c.msg, time: c.time })),
   };
-  const owner = data.owner || COMPANY.owner;
+  const owner = data.owner || DEMO_LABEL;
 
   const heroStats = [
     { label: "إجمالي الإيرادات", value: fmt(FINANCE.revenue), change: "+15.6%", color: "#10b981", icon: TrendingUp, kind: "spark" as const },
@@ -193,7 +193,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
           <div className="flex flex-col items-center gap-4">
             <div className="rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-center">
               <div className="text-sm font-semibold">{owner}</div>
-              <div className="text-[11px] text-muted-foreground">{COMPANY.title}</div>
+              <div className="text-[11px] text-muted-foreground">{data.source === "live" ? "المالك" : DEMO_LABEL}</div>
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="grid grid-cols-4 md:grid-cols-8 gap-3 w-full">

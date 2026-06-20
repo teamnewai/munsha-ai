@@ -5,8 +5,11 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
-import { GROUPS } from "@/lib/access-data";
+import { DEPARTMENTS as DEPT_CATALOG } from "@/lib/deptMeta";
 import { toast } from "@/lib/toast";
+
+// كتالوج أنواع الإدارات (قالب توليد — ليست بيانات منشأة فعلية)
+const CATALOG = DEPT_CATALOG.map((d) => ({ deptKey: d.key, deptName: d.name, color: d.color }));
 import {
   Database, Sparkles, Network, CheckCircle2, Building2, Users, Bot, KeyRound,
   FileText, Workflow, BarChart3, ClipboardList, Check, ArrowLeft, LayoutDashboard,
@@ -29,15 +32,10 @@ const GENERATED = [
 
 export default function OrgBuilderPage() {
   const [step, setStep] = useState(0);
-  const [selected, setSelected] = useState<string[]>(GROUPS.map((g) => g.deptKey));
+  const [selected, setSelected] = useState<string[]>(CATALOG.map((g) => g.deptKey));
   const [generating, setGenerating] = useState(false);
 
-  const chosen = GROUPS.filter((g) => selected.includes(g.deptKey));
-  const counts = {
-    depts: chosen.length,
-    employees: chosen.reduce((s, g) => s + g.members.filter((m) => m.kind === "employee").length, 0),
-    agents: chosen.reduce((s, g) => s + g.members.filter((m) => m.kind === "agent").length, 0),
-  };
+  const counts = { depts: selected.length };
 
   function toggleDept(k: string) {
     setSelected((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
@@ -114,7 +112,7 @@ export default function OrgBuilderPage() {
           <div className="flex items-center gap-2 text-primary"><Network className="size-5" /><h2 className="font-display font-semibold">الهيكل التنظيمي المقترح — راجِع واعتمد</h2></div>
           <p className="text-xs text-muted-foreground">فعّل/عطّل أي إدارة. عند الاعتماد تُنشأ مكاتب ولوحات وصلاحيات كل العناصر تلقائياً.</p>
           <div className="grid sm:grid-cols-2 gap-2">
-            {GROUPS.map((g) => {
+            {CATALOG.map((g) => {
               const on = selected.includes(g.deptKey);
               return (
                 <button key={g.deptKey} onClick={() => toggleDept(g.deptKey)}
@@ -123,7 +121,6 @@ export default function OrgBuilderPage() {
                     <span className="size-2.5 rounded-full" style={{ backgroundColor: g.color }} />
                     <div>
                       <div className="text-sm font-medium">{g.deptName}</div>
-                      <div className="text-[11px] text-muted-foreground">{g.members.length} كيان (موظفون + وكيل)</div>
                     </div>
                   </div>
                   <span className={`size-5 rounded-full grid place-items-center ${on ? "bg-primary text-primary-foreground" : "border border-border"}`}>{on && <Check className="size-3" />}</span>
@@ -131,8 +128,8 @@ export default function OrgBuilderPage() {
               );
             })}
           </div>
-          <div className="rounded-lg border border-border bg-background/40 p-3 text-sm flex items-center justify-around">
-            <span>{counts.depts} إدارة</span><span>{counts.employees} موظف</span><span>{counts.agents} وكيل AI</span>
+          <div className="rounded-lg border border-border bg-background/40 p-3 text-sm flex items-center justify-center">
+            <span>{counts.depts} إدارة مختارة للتوليد</span>
           </div>
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep(1)}>رجوع</Button>
@@ -164,29 +161,14 @@ export default function OrgBuilderPage() {
 
           <div>
             <h3 className="font-display text-sm uppercase tracking-[0.18em] text-muted-foreground mb-3">المكاتب المُنشأة — ادخل أيّاً منها</h3>
-            <div className="space-y-3">
-              {chosen.map((g) => (
-                <Card key={g.deptKey} className="mulki-card p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="size-2.5 rounded-full" style={{ backgroundColor: g.color }} />
-                    <h4 className="font-semibold">{g.deptName}</h4>
-                  </div>
-                  <div className="grid sm:grid-cols-3 gap-2">
-                    {g.members.map((m) => (
-                      <Link key={m.id} href={`/workspace/${m.id}`}
-                        className="flex items-center gap-2 rounded-lg border border-border bg-background/40 p-2.5 hover:border-primary/50 transition-colors">
-                        <span className={`size-8 rounded-lg grid place-items-center shrink-0 ${m.kind === "agent" ? "bg-violet-500/15 text-violet-400" : "bg-primary/15 text-primary"}`}>
-                          {m.kind === "agent" ? <Bot className="size-4" /> : <Users className="size-4" />}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-xs font-medium truncate">{m.name}</div>
-                          <div className="text-[10px] text-muted-foreground">{m.role}</div>
-                        </div>
-                        <ArrowLeft className="size-3.5 text-muted-foreground" />
-                      </Link>
-                    ))}
-                  </div>
-                </Card>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {CATALOG.filter((g) => selected.includes(g.deptKey)).map((g) => (
+                <Link key={g.deptKey} href="/org"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-background/40 p-3 hover:border-primary/50 transition-colors">
+                  <span className="size-2.5 rounded-full" style={{ backgroundColor: g.color }} />
+                  <h4 className="flex-1 text-sm font-semibold truncate">{g.deptName}</h4>
+                  <ArrowLeft className="size-3.5 text-muted-foreground" />
+                </Link>
               ))}
             </div>
           </div>

@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CATEGORIES, providersByCategory, PROVIDERS, type Provider } from "@/lib/providers";
-import { getDbProviders } from "@/app/actions/services";
+import { getDbProviders, submitLead } from "@/app/actions/services";
+import { toast } from "@/lib/toast";
 
 // توجيه ذكي: يختار الزائر الخدمة → تظهر المنشآت المزوّدة المطابقة → يُرسل الطلب فيُوجَّه للمنشأة.
 
@@ -81,7 +82,7 @@ export function ServicesClient() {
         </div>
 
         {routedTo ? (
-          <RoutedConfirmation provider={routedTo} category={current.label} onReset={() => setRoutedTo(null)} />
+          <RoutedConfirmation provider={routedTo} category={current.label} categoryKey={cat} onReset={() => setRoutedTo(null)} />
         ) : (
           <>
             <div className="mulki-card p-4 mb-5 flex items-center gap-3">
@@ -129,11 +130,21 @@ function ProviderCard({ provider, onRoute }: { provider: Provider; onRoute: () =
   );
 }
 
-function RoutedConfirmation({ provider, category, onReset }: { provider: Provider; category: string; onReset: () => void }) {
+function RoutedConfirmation({ provider, category, categoryKey, onReset }: { provider: Provider; category: string; categoryKey: string; onReset: () => void }) {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [details, setDetails] = useState("");
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    const r = await submitLead({ category: categoryKey, provider: provider.name, name, phone, details, city: provider.city });
+    setSubmitting(false);
+    if (r.ok) setSent(true);
+    else toast.error(`تعذّر إرسال الطلب: ${r.error ?? ""}`);
+  }
 
   if (sent) {
     return (
@@ -163,7 +174,7 @@ function RoutedConfirmation({ provider, category, onReset }: { provider: Provide
           <div className="font-semibold text-fg">{provider.name}</div>
         </div>
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} className="space-y-3">
+      <form onSubmit={submit} className="space-y-3">
         <input required value={name} onChange={(e) => setName(e.target.value)} className="mulki-input" placeholder="الاسم" />
         <input required value={phone} onChange={(e) => setPhone(e.target.value)} className="mulki-input" placeholder="رقم التواصل — 05xxxxxxxx" />
         <textarea value={details} onChange={(e) => setDetails(e.target.value)} className="mulki-input" rows={3} placeholder="تفاصيل طلبك (اختياري)" />
@@ -172,7 +183,7 @@ function RoutedConfirmation({ provider, category, onReset }: { provider: Provide
         </p>
         <div className="flex justify-between items-center">
           <button type="button" onClick={onReset} className="text-sm text-muted-foreground hover:text-foreground">← رجوع</button>
-          <button type="submit" className="rounded-xl mulki-gold-bg px-6 py-2.5 text-sm font-bold hover:opacity-90">إرسال الطلب الموجّه ←</button>
+          <button type="submit" disabled={submitting} className="rounded-xl mulki-gold-bg px-6 py-2.5 text-sm font-bold hover:opacity-90 disabled:opacity-50">{submitting ? "جارٍ الإرسال…" : "إرسال الطلب الموجّه ←"}</button>
         </div>
       </form>
     </div>

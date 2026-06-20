@@ -1,24 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/lib/toast";
+import dynamic from "next/dynamic";
 import {
   Bot, Bell, CalendarDays, Search, User, Building2, Phone, Video,
   MessageSquare, CheckCircle2, XCircle, Send, Clock, ShieldCheck,
-  Sparkles, Briefcase, BadgeCheck, ArrowRight, Building, Network,
+  Sparkles, Briefcase, BadgeCheck, ArrowRight, Building, Network, Loader2,
 } from "lucide-react";
+import { getOrgGroups } from "@/app/actions/access";
+import { createCallInvitation, updateCallStatus } from "@/app/actions/calls";
+import type { RealGroup } from "@/app/actions/access";
+import type { CallInvitation, CallType } from "@/app/actions/calls";
 
-// MULKI OS — بوابة الزائر الذكية (تجربة استقبال ذكية متكاملة للزوار والمواعيد)
-// قسم تفاعلي يُعرض في الصفحة الرئيسية تحت الهيرو.
+const VideoCallModal = dynamic(() => import("@/components/VideoCallModal"), { ssr: false });
 
 type Screen = "entry" | "reception" | "bell" | "appt" | "inquiry";
 
-const ORGS = ["شركة ABC", "مكتب المحاماة", "مكتب المحاسبة", "مكتب الصيانة", "إدارة الموارد البشرية", "أخرى"];
-const PERSONS = ["محمد العتيبي", "مدير الموارد البشرية", "مدير الإدارة المالية", "الرئيس التنفيذي", "موظف محدد", "أخرى"];
 const CONTACTS = [
-  { label: "رسالة نصية", Icon: MessageSquare },
-  { label: "مكالمة صوتية", Icon: Phone },
-  { label: "اجتماع مرئي مباشر", Icon: Video },
+  { label: "رسالة نصية", Icon: MessageSquare, type: null },
+  { label: "مكالمة صوتية", Icon: Phone, type: "audio" as CallType },
+  { label: "اجتماع مرئي مباشر", Icon: Video, type: "video" as CallType },
 ];
 
 const FEATURES = [
@@ -42,22 +44,96 @@ export function VisitorPortal() {
   const [screen, setScreen] = useState<Screen>("entry");
   // مسار الجرس
   const [org, setOrg] = useState<string | null>(null);
+  const [selectedOrgKey, setSelectedOrgKey] = useState<string | null>(null);
   const [person, setPerson] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [contact, setContact] = useState<string | null>(null);
+  const [selectedCallType, setSelectedCallType] = useState<CallType | null>(null);
   // مسار الموعد
   const [apptNo, setApptNo] = useState("");
   const [apptResult, setApptResult] = useState<null | "found" | "notfound">(null);
+  // بيانات حقيقية
+  const [orgGroups, setOrgGroups] = useState<RealGroup[]>([]);
+  const [loadingOrgs, setLoadingOrgs] = useState(true);
+  // المكالمة الفعلية
+  const [activeCall, setActiveCall] = useState<CallInvitation | null>(null);
+  const [creatingCall, setCreatingCall] = useState(false);
+  const [visitorId] = useState(() => `visitor-${Date.now()}`);
+
+  useEffect(() => {
+    getOrgGroups().then((res) => {
+      if (res.ok) setOrgGroups(res.groups);
+      setLoadingOrgs(false);
+    });
+  }, []);
+
+  const orgList = orgGroups.map((g) => ({ value: g.deptKey, label: g.deptName }));
+  const memberList = orgGroups.find((g) => g.deptKey === selectedOrgKey)?.members ?? [];
 
   function reset() {
-    setScreen("entry"); setOrg(null); setPerson(null); setContact(null);
+    setScreen("entry");
+    setOrg(null); setSelectedOrgKey(null);
+    setPerson(null); setSelectedMemberId(null);
+    setContact(null); setSelectedCallType(null);
     setApptNo(""); setApptResult(null);
   }
-  function resetBell() { setOrg(null); setPerson(null); setContact(null); }
+  function resetBell() {
+    setOrg(null); setSelectedOrgKey(null);
+    setPerson(null); setSelectedMemberId(null);
+    setContact(null); setSelectedCallType(null);
+  }
 
   const bellDone = org && person && contact;
 
+  const handleCallAccept = async () => {
+    if (!selectedCallType) {
+      toast.info("الرسائل النصية — ميزة قادمة قريباً");
+      return;
+    }
+    if (!selectedMemberId || !person) {
+      toast.error("يرجى اختيار الشخص المطلوب");
+      return;
+    }
+    setCreatingCall(true);
+    try {
+      const result = await createCallInvitation({
+        callerId: visitorId,
+        callerName: "زائر",
+        calleeId: selectedMemberId,
+        calleeName: person,
+        callType: selectedCallType,
+      });
+      if (result.ok && result.invitation) {
+        setActiveCall(result.invitation);
+      } else {
+        toast.error("تعذّر بدء المكالمة");
+      }
+    } catch {
+      toast.error("خطأ في الاتصال");
+    } finally {
+      setCreatingCall(false);
+    }
+  };
+
+  const endCall = async () => {
+    if (activeCall) await updateCallStatus(activeCall.id, "ended");
+    setActiveCall(null);
+  };
+
   return (
     <section id="visitor" className="mx-auto max-w-7xl px-6 py-20">
+      {/* نافذة المكالمة */}
+      {activeCall && (
+        <VideoCallModal
+          channelName={activeCall.room_name}
+          memberName={person ?? ""}
+          callType={activeCall.call_type}
+          invitationId={activeCall.id}
+          isWaiting={true}
+          onClose={endCall}
+        />
+      )}
+
       {/* العنوان */}
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-primary mulki-glow">
@@ -86,7 +162,7 @@ export function VisitorPortal() {
             </div>
           )}
 
-          {/* ١) الصفحة الرئيسية — بوابة الزائر */}
+          {/* ١) الصفحة الرئيسية */}
           {screen === "entry" && (
             <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8 items-center">
               <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/60 to-background p-8 text-center">
@@ -138,17 +214,35 @@ export function VisitorPortal() {
               {!bellDone ? (
                 <div className="mt-6 max-w-xl mx-auto">
                   {!org && (
-                    <PickList title="أي منشأة ترغب بزيارتها؟" items={ORGS} onPick={setOrg} />
+                    loadingOrgs ? (
+                      <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground text-sm">
+                        <Loader2 className="size-4 animate-spin" /> جارٍ تحميل المنشآت...
+                      </div>
+                    ) : (
+                      <PickList
+                        title="أي منشأة ترغب بزيارتها؟"
+                        items={orgList.length > 0 ? orgList : [{ value: "demo", label: "شركة تجريبية" }]}
+                        onPick={(key, name) => { setSelectedOrgKey(key); setOrg(name); }}
+                      />
+                    )
                   )}
                   {org && !person && (
-                    <PickList title="من تريد تحديداً؟" items={PERSONS} onPick={setPerson} />
+                    memberList.length === 0 ? (
+                      <div className="text-center text-sm text-muted-foreground py-8">لا يوجد موظفون في هذه المنشأة</div>
+                    ) : (
+                      <PickList
+                        title="من تريد تحديداً؟"
+                        items={memberList.map((m) => ({ value: m.id, label: m.name }))}
+                        onPick={(id, name) => { setSelectedMemberId(id); setPerson(name); }}
+                      />
+                    )
                   )}
                   {org && person && !contact && (
                     <div>
                       <h4 className="text-center font-semibold text-fg mb-4">كيف تفضل التواصل؟</h4>
                       <div className="grid sm:grid-cols-3 gap-3">
-                        {CONTACTS.map(({ label, Icon }) => (
-                          <button key={label} onClick={() => setContact(label)}
+                        {CONTACTS.map(({ label, Icon, type }) => (
+                          <button key={label} onClick={() => { setContact(label); setSelectedCallType(type); }}
                             className="rounded-xl border border-border bg-background/40 p-5 hover:border-primary/60 transition-colors text-center">
                             <Icon className="size-7 mx-auto text-primary" />
                             <div className="mt-2 text-sm font-medium text-fg">{label}</div>
@@ -167,10 +261,15 @@ export function VisitorPortal() {
                     <p className="text-sm text-muted-foreground mt-1">تم إرسال طلبك بنجاح إلى:</p>
                     <div className="mt-2 font-semibold text-fg">{person}</div>
                     <div className="text-xs text-muted-foreground">{org} · {contact}</div>
-                    <p className="text-xs text-emerald-400 mt-3">سيتم إشعارك عند الرد</p>
+                    {selectedCallType && (
+                      <p className="text-xs text-emerald-400 mt-3">في انتظار رد الموظف لبدء المكالمة...</p>
+                    )}
+                    {!selectedCallType && (
+                      <p className="text-xs text-amber-400 mt-3">سيتم التواصل معك عبر رسالة</p>
+                    )}
                     <button onClick={reset} className="mt-4 text-xs text-primary hover:underline">طلب زيارة جديد</button>
                   </div>
-                  {/* إشعار الشخص المطلوب */}
+                  {/* إشعار الشخص المطلوب (نموذج محاكاة) */}
                   <div className="rounded-2xl border border-border bg-background/40 p-5">
                     <div className="text-xs uppercase tracking-[0.18em] text-primary mb-3">إشعار الشخص المطلوب</div>
                     <div className="flex items-center gap-3 mb-3">
@@ -181,17 +280,37 @@ export function VisitorPortal() {
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      <button onClick={() => toast.success("تم قبول الطلب — جارٍ الاتصال")} className="rounded-lg bg-emerald-500/15 text-emerald-400 py-2 text-xs font-medium hover:bg-emerald-500/25">قبول</button>
-                      <button onClick={() => toast.error("تم رفض الطلب")} className="rounded-lg bg-destructive/15 text-destructive py-2 text-xs font-medium hover:bg-destructive/25">رفض</button>
-                      <button onClick={() => toast.info("سيتم اقتراح موعد")} className="rounded-lg bg-amber-500/15 text-amber-400 py-2 text-xs font-medium hover:bg-amber-500/25">طلب موعد</button>
+                      <button
+                        onClick={handleCallAccept}
+                        disabled={creatingCall || !selectedCallType}
+                        className="rounded-lg bg-emerald-500/15 text-emerald-400 py-2 text-xs font-medium hover:bg-emerald-500/25 disabled:opacity-50 flex items-center justify-center gap-1"
+                      >
+                        {creatingCall ? <Loader2 className="size-3 animate-spin" /> : null}
+                        قبول
+                      </button>
+                      <button
+                        onClick={() => toast.error("تم رفض الطلب")}
+                        className="rounded-lg bg-destructive/15 text-destructive py-2 text-xs font-medium hover:bg-destructive/25"
+                      >
+                        رفض
+                      </button>
+                      <button
+                        onClick={() => toast.info("سيتم اقتراح موعد")}
+                        className="rounded-lg bg-amber-500/15 text-amber-400 py-2 text-xs font-medium hover:bg-amber-500/25"
+                      >
+                        طلب موعد
+                      </button>
                     </div>
+                    {!selectedCallType && contact && (
+                      <p className="text-[11px] text-muted-foreground mt-2 text-center">زر القبول متاح فقط للمكالمات الصوتية والمرئية</p>
+                    )}
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* ٥) تدفق زر الموعد */}
+          {/* ٤) تدفق الموعد */}
           {screen === "appt" && (
             <div className="max-w-xl mx-auto">
               {!apptResult ? (
@@ -213,7 +332,7 @@ export function VisitorPortal() {
                   <CheckCircle2 className="size-12 mx-auto text-emerald-400" />
                   <h4 className="mt-3 font-semibold text-fg">تم العثور على الموعد</h4>
                   <p className="text-sm text-muted-foreground mt-1">سيتم إشعار الشخص المعني بقدومك، وسيُسمح لك بالدخول.</p>
-                  <button onClick={() => setScreen("inquiry")} className="hidden" />
+                  <p className="text-xs text-emerald-400 mt-3">جارٍ توليد المكالمة تلقائياً...</p>
                   <button onClick={reset} className="mt-4 text-xs text-primary hover:underline">تحقق من موعد آخر</button>
                 </div>
               ) : (
@@ -303,15 +422,19 @@ function EntryBtn({ Icon, title, sub, tone, onClick }: {
   );
 }
 
-function PickList({ title, items, onPick }: { title: string; items: string[]; onPick: (v: string) => void }) {
+function PickList({ title, items, onPick }: {
+  title: string;
+  items: { value: string; label: string }[];
+  onPick: (value: string, label: string) => void;
+}) {
   return (
     <div>
       <h4 className="text-center font-semibold text-fg mb-4">{title}</h4>
       <div className="grid sm:grid-cols-2 gap-2.5">
         {items.map((it) => (
-          <button key={it} onClick={() => onPick(it)}
+          <button key={it.value} onClick={() => onPick(it.value, it.label)}
             className="rounded-xl border border-border bg-background/40 px-4 py-3 text-sm text-fg hover:border-primary/60 hover:bg-primary/5 transition-colors text-start">
-            {it}
+            {it.label}
           </button>
         ))}
       </div>

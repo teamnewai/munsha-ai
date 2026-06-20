@@ -1,91 +1,105 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
-import { Building2, Search, MapPin, Phone, Globe, Star, Users, Briefcase, ExternalLink } from "lucide-react";
+import { Button } from "@/components/uikit/button";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { Building2, Search, X, Mail, Globe, MapPin, Phone, User, ChevronLeft } from "lucide-react";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+type CompanyType = "شريك استراتيجي" | "مورّد" | "عميل" | "شريك تقني" | "مورّد تقني" | "بنك" | "محتمل";
+type CompanyStatus = "نشط" | "معلّق" | "محتمل";
 
 type Company = {
   id: string;
   name: string;
-  type: "شريك" | "عميل" | "مورّد" | "مستثمر";
-  sector: string;
-  city: string;
-  phone: string;
+  initials: string;
+  type: CompanyType;
+  industry: string;
+  contactPerson: string;
+  contactPhone: string;
+  email: string;
   website: string;
-  employees: number;
-  rating: number;
-  since: number;
-  active: boolean;
+  address: string;
+  status: CompanyStatus;
+  notes: string;
 };
 
+// ─── Mock Data ────────────────────────────────────────────────────────────────
 const COMPANIES: Company[] = [
-  { id: "c1", name: "مجموعة الأفق للتقنية", type: "شريك", sector: "تقنية المعلومات", city: "الرياض", phone: "+966 11 234 5678", website: "horizon-tech.sa", employees: 320, rating: 4.8, since: 2018, active: true },
-  { id: "c2", name: "البنك التجاري الأول", type: "عميل", sector: "القطاع المالي", city: "جدة", phone: "+966 12 765 4321", website: "fcb.sa", employees: 1200, rating: 4.5, since: 2020, active: true },
-  { id: "c3", name: "مؤسسة النماء للبناء", type: "مورّد", sector: "المقاولات", city: "الدمام", phone: "+966 13 456 7890", website: "namaa-build.sa", employees: 450, rating: 4.2, since: 2019, active: true },
-  { id: "c4", name: "شركة الرواد للاستثمار", type: "مستثمر", sector: "الاستثمار والتمويل", city: "الرياض", phone: "+966 11 987 6543", website: "ruwwad-invest.sa", employees: 85, rating: 4.9, since: 2021, active: true },
-  { id: "c5", name: "مجموعة سما للخدمات اللوجستية", type: "شريك", sector: "النقل والخدمات اللوجستية", city: "جدة", phone: "+966 12 321 9876", website: "sama-logistics.sa", employees: 680, rating: 4.4, since: 2017, active: true },
-  { id: "c6", name: "شركة نخيل للتطوير العقاري", type: "عميل", sector: "التطوير العقاري", city: "الرياض", phone: "+966 11 567 8901", website: "nakheel-dev.sa", employees: 230, rating: 4.6, since: 2016, active: true },
-  { id: "c7", name: "مصنع القمة للتصنيع", type: "مورّد", sector: "التصنيع الصناعي", city: "المدينة المنورة", phone: "+966 14 234 5670", website: "qimma-mfg.sa", employees: 530, rating: 4.0, since: 2015, active: true },
-  { id: "c8", name: "شركة روابط لحلول الأعمال", type: "شريك", sector: "استشارات الأعمال", city: "الرياض", phone: "+966 11 890 1234", website: "rawabett.sa", employees: 110, rating: 4.7, since: 2022, active: true },
+  { id: "c1", name: "الاختيار للعقارات", initials: "اخ", type: "شريك استراتيجي", industry: "عقارات", contactPerson: "محمد الاختيار", contactPhone: "0512345678", email: "info@alekhtiar.sa", website: "www.alekhtiar.sa", address: "الرياض، حي العليا، شارع الملك فهد", status: "نشط", notes: "شراكة استراتيجية في مشاريع التطوير العقاري منذ 2020" },
+  { id: "c2", name: "مصرف الراجحي", initials: "رج", type: "بنك", industry: "مالية", contactPerson: "خالد الراجحي", contactPhone: "0500000000", email: "corporate@alrajhi.com", website: "www.alrajhibank.com.sa", address: "الرياض، مركز المملكة", status: "نشط", notes: "شريك مصرفي رئيسي لتمويل المشاريع" },
+  { id: "c3", name: "شركة الخليج للمقاولات", initials: "خج", type: "مورّد", industry: "مقاولات", contactPerson: "عبدالله الخليج", contactPhone: "0555551234", email: "contracts@gulf-co.sa", website: "www.gulf-contractors.sa", address: "الرياض، حي الصناعية", status: "نشط", notes: "مورّد معتمد للمشاريع الإنشائية بموجب عقد سنوي" },
+  { id: "c4", name: "بوابة سلة", initials: "سل", type: "شريك تقني", industry: "تجارة إلكترونية", contactPerson: "فريق الشراكات", contactPhone: "920000000", email: "partners@salla.sa", website: "www.salla.sa", address: "جدة، حي العزيزية", status: "نشط", notes: "منصة التجارة الإلكترونية المفضّلة للمنشأة" },
+  { id: "c5", name: "شركة أوراكل السعودية", initials: "أو", type: "مورّد تقني", industry: "تقنية", contactPerson: "سامي الحربي", contactPhone: "0501112233", email: "ksa@oracle.com", website: "www.oracle.com/sa", address: "الرياض، مركز الأعمال", status: "نشط", notes: "مزوّد حلول قواعد البيانات والأنظمة السحابية" },
+  { id: "c6", name: "مكتب الاستشارات القانونية", initials: "قن", type: "مورّد", industry: "قانون", contactPerson: "د. عبدالرحمن الزيد", contactPhone: "0503334455", email: "legal@alzaid-law.sa", website: "www.alzaid-law.sa", address: "الرياض، حي الملقا", status: "نشط", notes: "المستشار القانوني المعتمد للمنشأة" },
+  { id: "c7", name: "شركة الحراسة الأمنية", initials: "حر", type: "مورّد", industry: "أمن", contactPerson: "تركي العسكر", contactPhone: "0556667788", email: "ops@security-sa.com", website: "www.security-sa.com", address: "جدة، المنطقة الصناعية", status: "نشط", notes: "مزوّد خدمات الأمن والحراسة للمرافق" },
+  { id: "c8", name: "مجموعة زهران", initials: "زه", type: "عميل", industry: "تطوير عقاري", contactPerson: "وليد زهران", contactPhone: "0509998877", email: "wm@zahran-group.sa", website: "www.zahran-group.sa", address: "جدة، حي الحمراء", status: "نشط", notes: "عميل استراتيجي مع عدة مشاريع تطوير جارية" },
+  { id: "c9", name: "شركة النخيل للمقاولات", initials: "نخ", type: "عميل", industry: "مقاولات", contactPerson: "فيصل النخيل", contactPhone: "0512223344", email: "info@nakheel-co.sa", website: "www.nakheel-contractors.sa", address: "الدمام، المنطقة الشرقية", status: "معلّق", notes: "تم تعليق التعامل بانتظار تجديد العقد" },
+  { id: "c10", name: "مؤسسة التقنية الحديثة", initials: "تق", type: "محتمل", industry: "تقنية", contactPerson: "هند العمري", contactPhone: "0566667788", email: "hend@modtech.sa", website: "www.modtech.sa", address: "الرياض، حي النزهة", status: "محتمل", notes: "اتصال أولي — في طور دراسة الشراكة" },
 ];
 
-const TYPE_COLOR: Record<string, string> = {
-  "شريك": "bg-blue-500/15 text-blue-500",
-  "عميل": "bg-emerald-500/15 text-emerald-500",
-  "مورّد": "bg-amber-500/15 text-amber-500",
-  "مستثمر": "bg-purple-500/15 text-purple-500",
+const TYPE_FILTERS = ["الكل", "شريك استراتيجي", "مورّد", "عميل", "شريك تقني", "مورّد تقني", "بنك", "محتمل"] as const;
+
+const STATUS_COLORS: Record<CompanyStatus, string> = {
+  "نشط": "bg-green-100 text-green-700",
+  "معلّق": "bg-yellow-100 text-yellow-700",
+  "محتمل": "bg-blue-100 text-blue-700",
 };
 
-function Stars({ n }: { n: number }) {
+// ─── Inline primitives ────────────────────────────────────────────────────────
+function Badge({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <span className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} className={cn("size-3", i < Math.floor(n) ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
-      ))}
-      <span className="text-xs text-muted-foreground ms-1">{n}</span>
+    <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", className)}>
+      {children}
     </span>
   );
 }
 
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function CompaniesPage() {
-  const [q, setQ] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("الكل");
+  const [selected, setSelected] = useState<Company | null>(null);
 
-  const types = ["all", "شريك", "عميل", "مورّد", "مستثمر"];
+  const filtered = COMPANIES.filter((c) => {
+    const matchType = typeFilter === "الكل" || c.type === typeFilter;
+    const matchQuery =
+      !query ||
+      c.name.includes(query) ||
+      c.contactPerson.includes(query) ||
+      c.industry.includes(query);
+    return matchType && matchQuery;
+  });
 
-  const visible = useMemo(() => {
-    return COMPANIES.filter((c) => {
-      const matchType = typeFilter === "all" || c.type === typeFilter;
-      const matchQ = !q.trim() || c.name.includes(q) || c.sector.includes(q) || c.city.includes(q);
-      return matchType && matchQ;
-    });
-  }, [q, typeFilter]);
+  const activeCount = COMPANIES.filter((c) => c.status === "نشط").length;
+  const pendingCount = COMPANIES.filter((c) => c.status === "معلّق").length;
 
   return (
     <div className="p-6 md:p-8 space-y-6" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="font-display text-2xl font-semibold flex items-center gap-2">
-            <Building2 className="size-6 text-primary" /> دليل الشركات والشركاء
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">شركاء وعملاء وموردو المنشأة</p>
+      <div className="flex items-center gap-3">
+        <div className="size-10 rounded-xl mulki-gold-bg flex items-center justify-center">
+          <Building2 className="size-5 text-white" />
         </div>
-        <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => toast.info("إضافة شركة جديدة — قريباً")}>
-          <Building2 className="size-4" /> إضافة شركة
-        </Button>
+        <div>
+          <h1 className="font-display text-2xl font-semibold">دليل الشركات والشركاء</h1>
+          <p className="text-sm text-muted-foreground">إدارة علاقات الأعمال والشراكات الاستراتيجية</p>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {types.slice(1).map((t) => (
-          <Card key={t} className="mulki-card p-4 text-center cursor-pointer hover:border-primary/40 transition-colors" onClick={() => setTypeFilter(t)}>
-            <div className="text-2xl font-bold text-primary mb-1">{COMPANIES.filter((c) => c.type === t).length}</div>
-            <div className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium inline-block", TYPE_COLOR[t])}>{t}</div>
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: "إجمالي الشركات", value: COMPANIES.length },
+          { label: "الشراكات النشطة", value: activeCount },
+          { label: "قيد الانتظار", value: pendingCount },
+        ].map(({ label, value }) => (
+          <Card key={label} className="mulki-card p-4">
+            <div className="font-display text-2xl font-bold">{value}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
           </Card>
         ))}
       </div>
@@ -93,66 +107,143 @@ export default function CompaniesPage() {
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input placeholder="ابحث بالاسم أو القطاع أو المدينة..." value={q} onChange={(e) => setQ(e.target.value)} className="pe-9" />
+          <Search className="absolute end-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="بحث بالاسم أو القطاع أو جهة الاتصال…"
+            className="pe-9"
+          />
         </div>
-        <div className="flex gap-2">
-          {types.map((t) => (
+        <div className="flex gap-2 flex-wrap">
+          {TYPE_FILTERS.map((t) => (
             <button
               key={t}
+              type="button"
               onClick={() => setTypeFilter(t)}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
-                typeFilter === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground",
+                "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap",
+                typeFilter === t
+                  ? "mulki-gold-bg border-transparent text-white"
+                  : "border-border text-muted-foreground hover:text-foreground",
               )}
             >
-              {t === "all" ? "الكل" : t}
+              {t}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Grid */}
-      {visible.length === 0 ? (
-        <Card className="mulki-card p-12 text-center">
-          <Building2 className="size-10 text-muted-foreground mx-auto mb-3 opacity-50" />
-          <p className="text-muted-foreground">لا توجد نتائج مطابقة.</p>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {visible.map((c) => (
-            <Card key={c.id} className="mulki-card p-5">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="size-11 rounded-xl bg-primary/10 text-primary grid place-items-center font-bold text-lg shrink-0">
-                    {c.name.slice(0, 1)}
+      {/* Companies Grid + Detail Panel */}
+      <div className="flex gap-6">
+        <div className={cn("grid gap-4 flex-1 transition-all", selected ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
+          {filtered.length === 0 ? (
+            <Card className="mulki-card p-10 text-center col-span-full">
+              <Building2 className="size-8 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">لا توجد شركات تطابق معايير البحث</p>
+            </Card>
+          ) : (
+            filtered.map((company) => (
+              <Card
+                key={company.id}
+                className={cn(
+                  "mulki-card p-5 cursor-pointer transition-all hover:shadow-md",
+                  selected?.id === company.id && "ring-2 ring-primary",
+                )}
+                onClick={() => setSelected(selected?.id === company.id ? null : company)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="size-11 rounded-xl mulki-gold-bg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                    {company.initials}
                   </div>
-                  <div>
-                    <h3 className="font-display font-semibold">{c.name}</h3>
-                    <div className="text-xs text-muted-foreground">{c.sector}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold truncate">{company.name}</div>
+                    <div className="text-xs text-muted-foreground">{company.industry}</div>
+                  </div>
+                  <Badge className={STATUS_COLORS[company.status]}>{company.status}</Badge>
+                </div>
+                <div className="mt-3 text-xs text-muted-foreground border-t border-border pt-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Badge className="bg-secondary text-secondary-foreground">{company.type}</Badge>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <User className="size-3" />
+                    {company.contactPerson}
                   </div>
                 </div>
-                <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-medium shrink-0", TYPE_COLOR[c.type])}>{c.type}</span>
+                <div className="mt-3 flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1" onClick={(e) => { e.stopPropagation(); setSelected(company); }}>
+                    عرض الملف
+                  </Button>
+                  <Button size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); toast.info(`فتح محادثة مع ${company.name}`); }}>
+                    <Mail className="size-3 ms-1" />
+                    مراسلة
+                  </Button>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Detail Slide-out */}
+        {selected && (
+          <div className="w-80 flex-shrink-0">
+            <Card className="mulki-card p-5 sticky top-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display font-semibold">ملف الشركة</h3>
+                <button type="button" onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground">
+                  <X className="size-4" />
+                </button>
               </div>
-              <Stars n={c.rating} />
-              <div className="mt-3 grid grid-cols-2 gap-1.5 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><MapPin className="size-3" />{c.city}</span>
-                <span className="flex items-center gap-1"><Users className="size-3" />{c.employees.toLocaleString("ar-SA")} موظف</span>
-                <span className="flex items-center gap-1"><Briefcase className="size-3" />منذ {c.since}</span>
-                <span className="flex items-center gap-1"><Phone className="size-3" />{c.phone}</span>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="size-14 rounded-xl mulki-gold-bg flex items-center justify-center text-white font-bold text-lg">
+                  {selected.initials}
+                </div>
+                <div>
+                  <div className="font-semibold text-base">{selected.name}</div>
+                  <div className="text-xs text-muted-foreground">{selected.industry}</div>
+                  <Badge className={cn("mt-1", STATUS_COLORS[selected.status])}>{selected.status}</Badge>
+                </div>
               </div>
-              <div className="mt-3 pt-3 border-t border-border flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => toast.info(`${c.name} — ${c.phone}`)}>
-                  <Phone className="size-3.5" /> تواصل
+              <div className="space-y-3 text-sm">
+                <DetailRow icon={<Building2 className="size-4" />} label="النوع" value={selected.type} />
+                <DetailRow icon={<User className="size-4" />} label="جهة الاتصال" value={selected.contactPerson} />
+                <DetailRow icon={<Phone className="size-4" />} label="الهاتف" value={selected.contactPhone} />
+                <DetailRow icon={<Mail className="size-4" />} label="البريد" value={selected.email} />
+                <DetailRow icon={<Globe className="size-4" />} label="الموقع" value={selected.website} />
+                <DetailRow icon={<MapPin className="size-4" />} label="العنوان" value={selected.address} />
+                {selected.notes && (
+                  <div className="pt-2 border-t border-border">
+                    <div className="text-xs text-muted-foreground mb-1">ملاحظات</div>
+                    <p className="text-sm leading-relaxed">{selected.notes}</p>
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button size="sm" className="flex-1" onClick={() => toast.info(`فتح محادثة مع ${selected.name}`)}>
+                  <Mail className="size-3 ms-1" />
+                  مراسلة
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => toast.info(c.website)}>
-                  <Globe className="size-3.5" /> الموقع <ExternalLink className="size-3" />
+                <Button size="sm" variant="outline" onClick={() => setSelected(null)}>
+                  <ChevronLeft className="size-3" />
                 </Button>
               </div>
             </Card>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <span className="text-muted-foreground mt-0.5 flex-shrink-0">{icon}</span>
+      <div>
+        <div className="text-xs text-muted-foreground">{label}</div>
+        <div className="font-medium">{value}</div>
+      </div>
     </div>
   );
 }

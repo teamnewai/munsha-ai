@@ -16,6 +16,7 @@ const nav: NavItem[] = [
   { to: "/command-center", label: "مركز القيادة التنفيذي", icon: LayoutDashboard },
   { to: "/office", label: "مكتبي", icon: Briefcase },
   { to: "/noor", label: "نور AI", icon: Sparkles, accent: true },
+  { to: "/org-builder", label: "بناء المنشأة", icon: Sparkles, accent: true },
   { to: "/org", label: "الإدارات والأقسام", icon: Building2 },
   { to: "/units", label: "الوحدات والفرق", icon: Network },
   { to: "/people", label: "الموظفون والوكلاء", icon: Users },

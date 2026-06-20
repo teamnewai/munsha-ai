@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Bot, Search, Building2, Crown, Mail, Calendar, ShieldCheck, Loader2 } from "lucide-react";
 import { getOrgMembers, type OrgMember } from "@/app/actions/org";
 
@@ -294,6 +295,7 @@ function PersonRow({ person, selected, onSelect }: { person: Person; selected: b
 }
 
 function PersonDetail({ person }: { person: Person }) {
+  const router = useRouter();
   return (
     <>
       <div className="h-32 bg-gradient-to-b from-[#C9A24B]/25 to-transparent relative">
@@ -333,15 +335,30 @@ function PersonDetail({ person }: { person: Person }) {
               دخول مكتب الموظف
             </Link>
           ) : (
-            <button className="w-full bg-[#C9A24B] text-[#060A10] font-semibold py-3 rounded-xl shadow-[0_0_20px_rgba(201,162,75,0.2)] hover:shadow-[0_0_30px_rgba(201,162,75,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <button
+              onClick={() => router.push("/meetings")}
+              className="w-full bg-[#C9A24B] text-[#060A10] font-semibold py-3 rounded-xl shadow-[0_0_20px_rgba(201,162,75,0.2)] hover:shadow-[0_0_30px_rgba(201,162,75,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
               <Calendar className="size-4" />
               طلب اجتماع عاجل
             </button>
           )}
-          <button className="w-full border border-white/10 hover:border-[#C9A24B]/50 text-white/80 py-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2">
+          <button
+            onClick={() => {
+              if (person.kind === "employee") router.push(`/workspace/${person.id}`);
+              else router.push("/noor");
+            }}
+            className="w-full border border-white/10 hover:border-[#C9A24B]/50 text-white/80 py-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+          >
             <Mail className="size-4" /> عرض الملف الكامل
           </button>
-          <button className="w-full text-[#C9A24B] text-sm font-medium py-2 hover:underline cursor-pointer flex items-center justify-center gap-1">
+          <button
+            onClick={() => {
+              if (person.kind === "employee") router.push("/access");
+              else router.push("/noor");
+            }}
+            className="w-full text-[#C9A24B] text-sm font-medium py-2 hover:underline cursor-pointer flex items-center justify-center gap-1"
+          >
             <ShieldCheck className="size-3.5" /> طلب منح صلاحيات وصول
           </button>
         </div>

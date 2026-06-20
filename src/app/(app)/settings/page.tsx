@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { Mail, Send, CheckCircle2, XCircle } from "lucide-react";
+import { Mail, Send, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { saveEmailSettings, loadEmailSettings, sendTestEmail } from "@/app/actions/settings";
+import { createClient } from "@/lib/supabase/client";
 
 type TestLog = { time: string; ok: boolean; detail: string };
 
@@ -98,12 +100,28 @@ export default function SettingsPage() {
   const [fromEmail, setFromEmail] = useState("");
   const [fromName, setFromName] = useState("");
   const [testTo, setTestTo] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [kinds, setKinds] = useState<string[]>([
     "workflow_assigned",
     "workflow_approved",
     "task_assigned",
   ]);
   const [testLogs, setTestLogs] = useState<TestLog[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  useEffect(() => {
+    loadEmailSettings().then((res) => {
+      if (res.settings) {
+        setEnabled(res.settings.enabled);
+        setFromEmail(res.settings.fromEmail ?? "");
+        setFromName(res.settings.fromName ?? "");
+        setKinds(res.settings.kinds ?? ["workflow_assigned", "workflow_approved", "task_assigned"]);
+      }
+    });
+    const sb = createClient();
+    if (sb) sb.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? ""));
+  }, []);
 
   const pushLog = (entry: TestLog) =>
     setTestLogs((prev) => [entry, ...prev].slice(0, 10));
@@ -111,13 +129,24 @@ export default function SettingsPage() {
   const toggleKind = (k: string) =>
     setKinds((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
 
-  const save = () => {
-    toast.success("تم حفظ إعدادات البريد");
+  const save = async () => {
+    setSaving(true);
+    const res = await saveEmailSettings({ enabled, fromEmail, fromName, kinds });
+    setSaving(false);
+    if (res.ok) toast.success("تم حفظ إعدادات البريد");
+    else toast.error(res.error ?? "فشل الحفظ");
   };
 
-  const sendTest = () => {
-    pushLog({ time: new Date().toLocaleString("ar-EG"), ok: true, detail: "تم القبول — معرّف: msg_demo_001" });
-    toast.success(`تم إرسال رسالة اختبار إلى ${testTo.trim() || "بريدك"}`);
+  const sendTest = async () => {
+    const to = testTo.trim() || userEmail;
+    if (!to) { toast.error("أدخل بريد المستلم أو سجّل الدخول"); return; }
+    setTesting(true);
+    const res = await sendTestEmail(to, fromEmail || undefined, fromName || undefined);
+    setTesting(false);
+    const time = new Date().toLocaleString("ar-EG");
+    pushLog({ time, ok: res.ok, detail: res.ok ? `تم الإرسال — معرّف: ${res.messageId}` : (res.error ?? "خطأ غير معروف") });
+    if (res.ok) toast.success(`تم إرسال رسالة اختبار إلى ${to}`);
+    else toast.error(res.error ?? "فشل إرسال الرسالة");
   };
 
   return (
@@ -203,13 +232,12 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button onClick={save}>حفظ التغييرات</Button>
-          <Button
-            variant="outline"
-            onClick={sendTest}
-            disabled={!enabled}
-          >
-            <Send className="size-4" />
+          <Button onClick={save} disabled={saving}>
+            {saving && <Loader2 className="size-4 animate-spin" />}
+            حفظ التغييرات
+          </Button>
+          <Button variant="outline" onClick={sendTest} disabled={!enabled || testing}>
+            {testing ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
             إرسال رسالة اختبار
           </Button>
         </div>

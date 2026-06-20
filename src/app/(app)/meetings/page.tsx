@@ -44,6 +44,16 @@ function ImportanceBadge({ importance }: { importance: string }) {
 
 function MeetingCard({ meeting }: { meeting: Meeting }) {
   const date = meeting.starts_at ? new Date(meeting.starts_at) : null;
+
+  const handleJoin = () => {
+    const loc = meeting.location?.trim();
+    if (loc && (loc.startsWith("http://") || loc.startsWith("https://"))) {
+      window.open(loc, "_blank", "noopener,noreferrer");
+    } else {
+      toast.info("لا يوجد رابط للانضمام — أضف رابطاً عند إنشاء الاجتماع");
+    }
+  };
+
   return (
     <Card className="p-4 space-y-3 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -74,7 +84,7 @@ function MeetingCard({ meeting }: { meeting: Meeting }) {
         <Button
           size="sm"
           className="gap-1 bg-[hsl(217_91%_50%)] hover:bg-[hsl(217_91%_45%)]"
-          onClick={() => toast.info("جارٍ الانضمام...")}
+          onClick={handleJoin}
         >
           <Video className="size-3.5" /> انضمام
         </Button>

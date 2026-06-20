@@ -6,7 +6,7 @@ import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getMarketServices, type MarketService } from "@/app/actions/org";
+import { getMarketServices, publishMarketService, type MarketService } from "@/app/actions/org";
 import { toast } from "@/lib/toast";
 import { ShoppingBag, Plus, Tag, Package, Loader2, Search, RefreshCw, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -51,11 +51,20 @@ export default function MarketplacePage() {
     const title = titleRef.current?.value.trim();
     const cat = catRef.current?.value.trim();
     if (!title || !cat) { toast.error("العنوان والتصنيف مطلوبان"); return; }
+    const desc = descRef.current?.value.trim();
+    const priceRaw = priceRef.current?.value.trim();
+    const price = priceRaw ? parseFloat(priceRaw) : 0;
+    const currency = (priceRef.current?.closest("div")?.querySelector("select") as HTMLSelectElement | null)?.value ?? "SAR";
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 600));
+    const res = await publishMarketService({ title, category: cat, description: desc || undefined, price, currency });
     setSaving(false);
-    toast.success("تم إرسال الخدمة للمراجعة بنجاح");
-    setOpen(false);
+    if (res.ok) {
+      toast.success("تم إرسال الخدمة للمراجعة بنجاح — ستظهر بعد الاعتماد");
+      setOpen(false);
+      load();
+    } else {
+      toast.error(res.error ?? "فشل نشر الخدمة");
+    }
   };
 
   return (

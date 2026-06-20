@@ -8,12 +8,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/lib/toast";
-import { LogOut, Sparkles, Bell, Crown } from "lucide-react";
+import { LogOut, Sparkles, Bell, Crown, Loader2 } from "lucide-react";
+import { sendSecretaryMessage } from "@/app/actions/access";
 
 export function TopBar({ title }: { title?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
   const [secretary, setSecretary] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -48,15 +52,29 @@ export function TopBar({ title }: { title?: string }) {
         </button>
       </div>
 
-      <Dialog open={secretary} onOpenChange={setSecretary}>
+      <Dialog open={secretary} onOpenChange={(v) => { setSecretary(v); if (!v) { setSubject(""); setBody(""); } }}>
         <DialogContent dir="rtl">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Crown className="size-4 text-primary" /> مراسلة سكرتير المالك</DialogTitle></DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); setSecretary(false); toast.success("أُرسلت رسالتك إلى سكرتير المالك"); }} className="space-y-3">
-            <Input placeholder="الموضوع" required />
-            <Textarea rows={4} placeholder="نص الرسالة..." required />
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            if (!subject.trim() || !body.trim()) return;
+            setSending(true);
+            const res = await sendSecretaryMessage({ from: email ?? "غير معروف", subject: subject.trim(), body: body.trim() });
+            setSending(false);
+            if (res.ok) {
+              toast.success("أُرسلت رسالتك إلى سكرتير المالك");
+              setSecretary(false); setSubject(""); setBody("");
+            } else {
+              toast.error(res.error ?? "فشل الإرسال");
+            }
+          }} className="space-y-3">
+            <Input placeholder="الموضوع" required value={subject} onChange={(e) => setSubject(e.target.value)} />
+            <Textarea rows={4} placeholder="نص الرسالة..." required value={body} onChange={(e) => setBody(e.target.value)} />
             <DialogFooter>
               <button type="button" onClick={() => setSecretary(false)} className="rounded-lg border border-border px-4 py-2 text-sm">إلغاء</button>
-              <button type="submit" className="rounded-lg mulki-gold-bg px-4 py-2 text-sm font-bold">إرسال</button>
+              <button type="submit" disabled={sending} className="rounded-lg mulki-gold-bg px-4 py-2 text-sm font-bold inline-flex items-center gap-2 disabled:opacity-60">
+                {sending && <Loader2 className="size-3.5 animate-spin" />} إرسال
+              </button>
             </DialogFooter>
           </form>
         </DialogContent>

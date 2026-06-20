@@ -373,3 +373,32 @@ export async function getMarketServices(): Promise<{ ok: boolean; services: Mark
 
   return { ok: true, services };
 }
+
+// ─── publishMarketService ─────────────────────────────────────────────────────
+
+export async function publishMarketService(input: {
+  title: string;
+  category: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const supabase = createAdminClient();
+  if (!supabase) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
+
+  const { error } = await supabase.from("market_services").insert({
+    org_id: ORG_ID,
+    category: input.category,
+    title: input.title,
+    description: input.description ?? null,
+    price: input.price ?? 0,
+    currency: input.currency ?? "SAR",
+    active: false,
+  });
+
+  if (error) {
+    console.error("[publishMarketService]", error);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}

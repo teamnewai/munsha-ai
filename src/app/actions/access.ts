@@ -6,7 +6,7 @@ const ORG_ID = "913b770d-4eee-4c65-8f89-8781f6593b3a";
 
 export type Grant = { granted: boolean; delegate: boolean };
 export type PermMap = Record<string, Grant>;
-export type RealMember = { id: string; name: string; role: string; suspended: boolean; perms: PermMap };
+export type RealMember = { id: string; name: string; email?: string; role: string; suspended: boolean; perms: PermMap };
 export type RealGroup = { deptKey: string; deptName: string; color: string; members: RealMember[] };
 export type RealAccessRequest = { id: string; from: string; scope: string; reason: string; status: string; time: string };
 export type SecretaryMessage = { id: string; from: string; subject: string; body: string; time: string };
@@ -81,11 +81,11 @@ export async function getMemberById(id: string): Promise<{ ok: boolean; member?:
   const sb = createAdminClient();
   if (!sb) return { ok: false };
   const [memRes, deptRes] = await Promise.all([
-    sb.from("dept_members").select("id,full_name,job_title,role_in_dept,dept_key,perms,suspended").eq("id", id).maybeSingle(),
+    sb.from("dept_members").select("id,full_name,email,job_title,role_in_dept,dept_key,perms,suspended").eq("id", id).maybeSingle(),
     sb.from("org_departments").select("dept_key,name,color").eq("active", true),
   ]);
   if (!memRes.data) return { ok: false };
-  const m = memRes.data as { id: string; full_name: string; job_title: string | null; role_in_dept: string; dept_key: string; perms: unknown; suspended: boolean };
+  const m = memRes.data as { id: string; full_name: string; email?: string; job_title: string | null; role_in_dept: string; dept_key: string; perms: unknown; suspended: boolean };
   const depts = (deptRes.data ?? []) as { dept_key: string; name: string; color: string | null }[];
   const dept = depts.find((d) => d.dept_key === m.dept_key);
   return {
@@ -93,6 +93,7 @@ export async function getMemberById(id: string): Promise<{ ok: boolean; member?:
     member: {
       id: m.id,
       name: m.full_name,
+      email: m.email ?? undefined,
       role: m.job_title || (m.role_in_dept === "head" ? "مدير الإدارة" : "موظف"),
       suspended: !!m.suspended,
       perms: normalizePerms(m.perms),

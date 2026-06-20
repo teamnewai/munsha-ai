@@ -25,11 +25,8 @@ type Sec = { id: string; department_id: string; name: string; description: strin
 type Role = {
   id: string; department_id: string | null; title: string; level: string | null;
   mission: string | null; default_assignee: "human" | "ai" | "hybrid";
-  responsibilities: string[]; kpis: string[];
+  responsibilities: string[]; kpis: string[]; perms: string[];
 };
-type PermSet = { id: string; name: string; description: string | null };
-type PermItem = { permission_set_id: string; permission_key: string };
-type Perm = { key: string; category: string; label: string; description: string | null };
 type DocCycle = { id: string; name: string; description: string | null; document_type: string | null; department_id: string | null; stages: { name?: string; actor?: string }[] };
 type Policy = { id: string; kind: string; title: string; version: number; status: string; body_markdown: string };
 type Authority = { id: string; action_key: string; action_label: string; principal_kind: string; amount_limit: number | null; currency: string | null };
@@ -75,47 +72,44 @@ const SECS: Sec[] = [
 ];
 
 const ROLES: Role[] = [
-  { id: "r1", department_id: "d1", title: "المدير المالي", level: "إدارة عليا", mission: "الإشراف على جميع العمليات المالية والاستراتيجية المالية للمؤسسة.", default_assignee: "human", responsibilities: ["إعداد الموازنة السنوية", "الإشراف على التقارير المالية", "إدارة التدفقات النقدية", "اعتماد المصروفات الكبرى"], kpis: ["دقة التقارير المالية 99%", "خفض التكاليف التشغيلية 8%", "الالتزام بمواعيد الإقفال الشهري"] },
-  { id: "r2", department_id: "d1", title: "محاسب أول", level: "إشرافي", mission: "إعداد القيود المحاسبية ومراجعة الحسابات.", default_assignee: "human", responsibilities: ["تسجيل القيود اليومية", "مطابقة الحسابات البنكية"], kpis: ["إقفال شهري في الوقت المحدد"] },
-  { id: "r3", department_id: "d1", title: "وكيل المراجعة الذكي", level: "آلي", mission: "مراجعة آلية للمعاملات المالية وكشف الانحرافات.", default_assignee: "ai", responsibilities: ["فحص المعاملات تلقائياً", "رصد المخالفات المالية"], kpis: ["كشف 100% من الانحرافات"] },
-  { id: "r4", department_id: "d2", title: "مدير الموارد البشرية", level: "إدارة عليا", mission: "قيادة استراتيجية رأس المال البشري.", default_assignee: "human", responsibilities: ["إدارة سياسات التوظيف", "تطوير برامج الحوافز"], kpis: ["معدل الاحتفاظ بالموظفين 92%"] },
-  { id: "r5", department_id: "d2", title: "أخصائي توظيف", level: "تنفيذي", mission: "إدارة دورة التوظيف الكاملة.", default_assignee: "hybrid", responsibilities: ["فرز السير الذاتية", "إجراء المقابلات"], kpis: ["مدة التوظيف < 30 يوم"] },
-  { id: "r6", department_id: "d3", title: "مدير العقارات", level: "إدارة عليا", mission: "إدارة المحفظة العقارية وتعظيم العوائد.", default_assignee: "human", responsibilities: ["تطوير المحفظة العقارية", "متابعة عقود الإيجار"], kpis: ["نسبة الإشغال 95%"] },
-  { id: "r7", department_id: "d4", title: "مدير التشغيل", level: "إدارة عليا", mission: "ضمان كفاءة العمليات التشغيلية.", default_assignee: "human", responsibilities: ["تحسين العمليات", "إدارة الجودة التشغيلية"], kpis: ["رضا العملاء 90%"] },
-  { id: "r8", department_id: "d5", title: "مدير المبيعات", level: "إدارة عليا", mission: "تحقيق أهداف المبيعات وتنمية السوق.", default_assignee: "human", responsibilities: ["وضع خطط المبيعات", "إدارة فريق المبيعات"], kpis: ["نمو المبيعات 15% سنوياً"] },
-  { id: "r9", department_id: "d6", title: "مدير تقنية المعلومات", level: "إدارة عليا", mission: "قيادة التحول الرقمي والبنية التقنية.", default_assignee: "human", responsibilities: ["إدارة البنية التحتية", "أمن المعلومات"], kpis: ["جاهزية الأنظمة 99.9%"] },
-  { id: "r10", department_id: "d7", title: "مدير الجودة", level: "إدارة عليا", mission: "ضمان الامتثال وتطبيق معايير الجودة.", default_assignee: "human", responsibilities: ["تدقيق العمليات", "إدارة شهادات الجودة"], kpis: ["اجتياز عمليات التدقيق 100%"] },
+  { id: "r1", department_id: "d1", title: "المدير المالي", level: "إدارة عليا", mission: "الإشراف على جميع العمليات المالية والاستراتيجية المالية للمؤسسة.", default_assignee: "human", responsibilities: ["إعداد الموازنة السنوية", "الإشراف على التقارير المالية", "إدارة التدفقات النقدية", "اعتماد المصروفات الكبرى"], kpis: ["دقة التقارير المالية 99%", "خفض التكاليف التشغيلية 8%", "الالتزام بمواعيد الإقفال الشهري"], perms: ["fin.approve", "fin.view", "doc.sign"] },
+  { id: "r2", department_id: "d1", title: "محاسب أول", level: "إشرافي", mission: "إعداد القيود المحاسبية ومراجعة الحسابات.", default_assignee: "human", responsibilities: ["تسجيل القيود اليومية", "مطابقة الحسابات البنكية"], kpis: ["إقفال شهري في الوقت المحدد"], perms: ["fin.view", "doc.create"] },
+  { id: "r3", department_id: "d1", title: "وكيل المراجعة الذكي", level: "آلي", mission: "مراجعة آلية للمعاملات المالية وكشف الانحرافات.", default_assignee: "ai", responsibilities: ["فحص المعاملات تلقائياً", "رصد المخالفات المالية"], kpis: ["كشف 100% من الانحرافات"], perms: ["fin.view", "gov.audit"] },
+  { id: "r4", department_id: "d2", title: "مدير الموارد البشرية", level: "إدارة عليا", mission: "قيادة استراتيجية رأس المال البشري.", default_assignee: "human", responsibilities: ["إدارة سياسات التوظيف", "تطوير برامج الحوافز"], kpis: ["معدل الاحتفاظ بالموظفين 92%"], perms: ["hr.manage", "hr.payroll", "doc.sign"] },
+  { id: "r5", department_id: "d2", title: "أخصائي توظيف", level: "تنفيذي", mission: "إدارة دورة التوظيف الكاملة.", default_assignee: "hybrid", responsibilities: ["فرز السير الذاتية", "إجراء المقابلات"], kpis: ["مدة التوظيف < 30 يوم"], perms: ["hr.manage", "doc.create"] },
+  { id: "r6", department_id: "d3", title: "مدير العقارات", level: "إدارة عليا", mission: "إدارة المحفظة العقارية وتعظيم العوائد.", default_assignee: "human", responsibilities: ["تطوير المحفظة العقارية", "متابعة عقود الإيجار"], kpis: ["نسبة الإشغال 95%"], perms: ["doc.sign", "doc.create"] },
+  { id: "r7", department_id: "d4", title: "مدير التشغيل", level: "إدارة عليا", mission: "ضمان كفاءة العمليات التشغيلية.", default_assignee: "human", responsibilities: ["تحسين العمليات", "إدارة الجودة التشغيلية"], kpis: ["رضا العملاء 90%"], perms: ["doc.create", "gov.audit"] },
+  { id: "r8", department_id: "d5", title: "مدير المبيعات", level: "إدارة عليا", mission: "تحقيق أهداف المبيعات وتنمية السوق.", default_assignee: "human", responsibilities: ["وضع خطط المبيعات", "إدارة فريق المبيعات"], kpis: ["نمو المبيعات 15% سنوياً"], perms: ["doc.create", "fin.view"] },
+  { id: "r9", department_id: "d6", title: "مدير تقنية المعلومات", level: "إدارة عليا", mission: "قيادة التحول الرقمي والبنية التقنية.", default_assignee: "human", responsibilities: ["إدارة البنية التحتية", "أمن المعلومات"], kpis: ["جاهزية الأنظمة 99.9%"], perms: ["gov.audit", "doc.sign"] },
+  { id: "r10", department_id: "d7", title: "مدير الجودة", level: "إدارة عليا", mission: "ضمان الامتثال وتطبيق معايير الجودة.", default_assignee: "human", responsibilities: ["تدقيق العمليات", "إدارة شهادات الجودة"], kpis: ["اجتياز عمليات التدقيق 100%"], perms: ["gov.audit", "fin.view"] },
 ];
 
-const PERM_SETS: PermSet[] = [
-  { id: "p1", name: "مجموعة الإدارة العليا", description: "صلاحيات كاملة للقيادات التنفيذية." },
-  { id: "p2", name: "مجموعة الموارد البشرية", description: "صلاحيات إدارة شؤون الموظفين." },
-  { id: "p3", name: "مجموعة المالية", description: "صلاحيات العمليات المالية والمحاسبية." },
-  { id: "p4", name: "مجموعة العرض فقط", description: "صلاحيات الاطلاع دون التعديل." },
-];
+// مرجع تسميات الصلاحيات المعروفة — يُستخدم لعرض اسم مقروء لمفتاح الصلاحية
+const PERM_CATALOG: Record<string, { category: string; label: string }> = {
+  "fin.approve": { category: "المالية", label: "اعتماد المصروفات" },
+  "fin.view": { category: "المالية", label: "عرض التقارير المالية" },
+  "hr.manage": { category: "الموارد البشرية", label: "إدارة الموظفين" },
+  "hr.payroll": { category: "الموارد البشرية", label: "إدارة الرواتب" },
+  "doc.create": { category: "المستندات", label: "إنشاء المستندات" },
+  "doc.sign": { category: "المستندات", label: "التوقيع الإلكتروني" },
+  "gov.audit": { category: "الحوكمة", label: "تدقيق العمليات" },
+};
 
-const PERMS: Perm[] = [
-  { key: "fin.approve", category: "المالية", label: "اعتماد المصروفات", description: null },
-  { key: "fin.view", category: "المالية", label: "عرض التقارير المالية", description: null },
-  { key: "hr.manage", category: "الموارد البشرية", label: "إدارة الموظفين", description: null },
-  { key: "hr.payroll", category: "الموارد البشرية", label: "إدارة الرواتب", description: null },
-  { key: "doc.create", category: "المستندات", label: "إنشاء المستندات", description: null },
-  { key: "doc.sign", category: "المستندات", label: "التوقيع الإلكتروني", description: null },
-  { key: "gov.audit", category: "الحوكمة", label: "تدقيق العمليات", description: null },
-];
+// يحوّل مفتاح صلاحية إلى تسمية/تصنيف مقروء، مع تراجع آمن للمفتاح نفسه
+function permInfo(key: string): { category: string; label: string } {
+  return PERM_CATALOG[key] ?? { category: "أخرى", label: key };
+}
 
-const PERM_ITEMS: PermItem[] = [
-  { permission_set_id: "p1", permission_key: "fin.approve" },
-  { permission_set_id: "p1", permission_key: "hr.manage" },
-  { permission_set_id: "p1", permission_key: "doc.sign" },
-  { permission_set_id: "p1", permission_key: "gov.audit" },
-  { permission_set_id: "p2", permission_key: "hr.manage" },
-  { permission_set_id: "p2", permission_key: "hr.payroll" },
-  { permission_set_id: "p3", permission_key: "fin.approve" },
-  { permission_set_id: "p3", permission_key: "fin.view" },
-  { permission_set_id: "p4", permission_key: "fin.view" },
-  { permission_set_id: "p4", permission_key: "doc.create" },
-];
+// يبني مجموعات الصلاحيات من الأدوار الحقيقية: لكل إدارة، الصلاحيات الفعلية المسندة لأدوارها
+function buildPermGroups(depts: Dept[], roles: Role[]): { id: string; name: string; description: string | null; permKeys: string[] }[] {
+  return depts
+    .map((d) => {
+      const deptRoles = roles.filter((r) => r.department_id === d.id);
+      const keys = Array.from(new Set(deptRoles.flatMap((r) => r.perms)));
+      return { id: d.id, name: d.name, description: `صلاحيات أدوار «${d.name}» (${deptRoles.length} دور)`, permKeys: keys };
+    })
+    .filter((g) => g.permKeys.length > 0);
+}
 
 const CYCLES: DocCycle[] = [
   { id: "c1", name: "دورة اعتماد المصروفات", description: "مسار اعتماد طلبات الصرف المالي.", document_type: "مالي", department_id: "d1", stages: [{ name: "تقديم الطلب", actor: "الموظف" }, { name: "مراجعة المحاسبة", actor: "محاسب أول" }, { name: "اعتماد المدير المالي", actor: "المدير المالي" }] },
@@ -150,10 +144,9 @@ export default function OrgPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
-  // ثانوية: تكتمل في صفحاتها المخصّصة (/permissions /forms /governance)
-  const permSets = PERM_SETS;
-  const permItems = PERM_ITEMS;
-  const perms = PERMS;
+  // الصلاحيات تُشتق من أدوار المنشأة الفعلية؛ والبقية تكتمل في صفحاتها المخصّصة
+  const permGroups = useMemo(() => buildPermGroups(depts, roles), [depts, roles]);
+  const totalPermKeys = useMemo(() => new Set(roles.flatMap((r) => r.perms)).size, [roles]);
   const cycles = CYCLES;
   const policies = POLICIES;
   const authority = AUTHORITY;
@@ -170,7 +163,7 @@ export default function OrgPage() {
           id: r.id, department_id: r.dept_key, title: r.title,
           level: r.reports_to ? `يرفع إلى ${r.reports_to}` : null,
           mission: r.purpose, default_assignee: "human" as const,
-          responsibilities: r.duties, kpis: r.kpis,
+          responsibilities: r.duties, kpis: r.kpis, perms: r.perms,
         })));
         setLive(true);
       } else {
@@ -416,16 +409,22 @@ export default function OrgPage() {
         {tab === "permissions" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">{permSets.length} مجموعة صلاحيات · {perms.length} صلاحية معرّفة</div>
+              <div className="text-sm text-muted-foreground">{permGroups.length} إدارة بصلاحيات · {totalPermKeys} صلاحية مسندة</div>
               <Link href="/permissions"><Button variant="outline" size="sm" className="gap-2"><KeyRound className="size-4" /> إدارة الصلاحيات</Button></Link>
             </div>
+            {permGroups.length === 0 ? (
+              <Card className="mulki-card p-10 text-center">
+                <KeyRound className="size-8 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">لا توجد صلاحيات مسندة لأدوار هذه المنشأة بعد.</p>
+                <Link href="/permissions"><Button variant="outline" size="sm" className="mt-4 gap-2"><KeyRound className="size-4" /> إسناد الصلاحيات</Button></Link>
+              </Card>
+            ) : (
             <div className="grid md:grid-cols-2 gap-3">
-              {permSets.map((ps) => {
-                const items = permItems.filter((x) => x.permission_set_id === ps.id);
-                const byCat: Record<string, Perm[]> = {};
-                items.forEach((it) => {
-                  const p = perms.find((x) => x.key === it.permission_key);
-                  if (p) (byCat[p.category] ||= []).push(p);
+              {permGroups.map((ps) => {
+                const byCat: Record<string, string[]> = {};
+                ps.permKeys.forEach((key) => {
+                  const info = permInfo(key);
+                  (byCat[info.category] ||= []).push(info.label);
                 });
                 return (
                   <Card key={ps.id} className="mulki-card p-5">
@@ -434,7 +433,7 @@ export default function OrgPage() {
                         <KeyRound className="size-4 text-primary" />
                         <div className="font-display font-semibold">{ps.name}</div>
                       </div>
-                      <Badge variant="outline">{items.length} صلاحية</Badge>
+                      <Badge variant="outline">{ps.permKeys.length} صلاحية</Badge>
                     </div>
                     {ps.description && <p className="text-xs text-muted-foreground mb-3">{ps.description}</p>}
                     <div className="space-y-2">
@@ -442,7 +441,7 @@ export default function OrgPage() {
                         <div key={cat}>
                           <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{cat}</div>
                           <div className="flex flex-wrap gap-1">
-                            {list.map((p) => <Badge key={p.key} variant="secondary" className="text-[10px]">{p.label}</Badge>)}
+                            {list.map((label, i) => <Badge key={i} variant="secondary" className="text-[10px]">{label}</Badge>)}
                           </div>
                         </div>
                       ))}
@@ -451,6 +450,7 @@ export default function OrgPage() {
                 );
               })}
             </div>
+            )}
           </div>
         )}
 

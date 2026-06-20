@@ -78,11 +78,12 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
 
   const presentNow = data.presentNow;
   const absent = data.absent;
+  const currentMonth = new Date().toLocaleDateString("ar-SA", { month: "long", year: "numeric" });
   const reports = [
-    { title: "التقرير المالي الشهري", date: "مايو 2024", icon: FileText, color: "#ef4444" },
-    { title: "تقرير المبيعات التفصيلي", date: "مايو 2024", icon: BarChart3, color: "#3b82f6" },
-    { title: "تقرير أداء الموظفين", date: "مايو 2024", icon: PieChart, color: "#a855f7" },
-    { title: "تقرير المشاريع", date: "مايو 2024", icon: TrendingUp, color: "#10b981" },
+    { title: "التقرير المالي الشهري", date: currentMonth, icon: FileText, color: "#ef4444" },
+    { title: "تقرير المبيعات التفصيلي", date: currentMonth, icon: BarChart3, color: "#3b82f6" },
+    { title: "تقرير أداء الموظفين", date: currentMonth, icon: PieChart, color: "#a855f7" },
+    { title: "تقرير المشاريع", date: currentMonth, icon: TrendingUp, color: "#10b981" },
   ];
   const actionBar = [
     { label: "مكالمة صوتية", icon: Phone, color: "#10b981", action: () => router.push("/people") },
@@ -147,6 +148,9 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
             <h3 className="font-display font-semibold">الموظفون المتواجدون الآن</h3>
             <UserCheck className="size-4 text-primary" />
           </div>
+          {presentNow.length === 0 && (
+            <p className="py-4 text-center text-xs text-muted-foreground">لا يوجد موظفون متواجدون حالياً.</p>
+          )}
           <ul className="space-y-3">
             {presentNow.map((p) => (
               <li key={p.name} className="flex items-center gap-3">
@@ -158,7 +162,7 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
                 <div className="text-right shrink-0">
                   <div className="text-xs text-muted-foreground">{p.dept}</div>
                   <div className="text-[11px] text-emerald-500 flex items-center gap-1 justify-end">
-                    <span className="size-1.5 rounded-full bg-emerald-500" />متواجد {p.time}
+                    <span className="size-1.5 rounded-full bg-emerald-500" />{p.time ? `متواجد ${p.time}` : "متواجد الآن"}
                   </div>
                 </div>
               </li>

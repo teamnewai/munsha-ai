@@ -51,23 +51,17 @@ export async function getOsData(): Promise<OsData> {
       };
     });
 
-    // الموظفون الفعليون من dept_members
+    // الموظفون الفعليون من dept_members — في الوضع الحي نعرض الواقع (ولو فارغاً) لا أسماء وهمية
     const members = (memRes.data as MemberRow[] | null) ?? [];
     const deptName = (k: string) => rows.find((r) => r.dept_key === k)?.name || k;
-    let employees: { total: number; present: number } | undefined;
-    let presentNow: PresentEmp[] | undefined;
-    let absent: AbsentEmp[] | undefined;
-    if (members.length > 0) {
-      const present = members.filter((m) => m.present);
-      employees = { total: members.length, present: present.length };
-      presentNow = present.slice(0, 6).map((m, i) => ({
-        name: m.full_name, role: m.job_title || "موظف", dept: deptName(m.dept_key),
-        time: `09:0${(i % 6) + 1}`,
-      }));
-      absent = members.filter((m) => !m.present).slice(0, 4).map((m) => ({
-        name: m.full_name, role: m.job_title || "موظف", dept: deptName(m.dept_key),
-      }));
-    }
+    const present = members.filter((m) => m.present);
+    const employees: { total: number; present: number } = { total: members.length, present: present.length };
+    const presentNow: PresentEmp[] = present.slice(0, 6).map((m) => ({
+      name: m.full_name, role: m.job_title || "موظف", dept: deptName(m.dept_key), time: "",
+    }));
+    const absent: AbsentEmp[] = members.filter((m) => !m.present).slice(0, 4).map((m) => ({
+      name: m.full_name, role: m.job_title || "موظف", dept: deptName(m.dept_key),
+    }));
 
     // حساب الإيرادات والمصروفات من الفواتير الحقيقية
     const invoices = (invoiceRes.data as InvoiceRow[] | null) ?? [];

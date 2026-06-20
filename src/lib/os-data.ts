@@ -10,6 +10,9 @@ export type Dept = {
   perf: number; // الأداء %
 };
 
+export type PresentEmp = { name: string; role: string; dept: string; time: string };
+export type AbsentEmp = { name: string; role: string; dept: string };
+
 export type OsData = {
   source: "live" | "demo";
   orgName: string;
@@ -20,7 +23,21 @@ export type OsData = {
   finance: { revenue: number; expenses: number; profit: number };
   notifications: { unread: number };
   inbox: { newEmails: number; callsToday: number };
+  presentNow: PresentEmp[];
+  absent: AbsentEmp[];
 };
+
+const DEFAULT_PRESENT: PresentEmp[] = [
+  { name: "سارة القحطاني", role: "محاسبة أول", dept: "المالية", time: "09:10" },
+  { name: "محمد الشهري", role: "أخصائي رواتب", dept: "الموارد البشرية", time: "09:05" },
+  { name: "ناصر المطيري", role: "مندوب مبيعات", dept: "المبيعات", time: "09:12" },
+  { name: "عبدالله السبيعي", role: "مدير العمليات", dept: "التشغيل", time: "09:08" },
+  { name: "ريم العبيدي", role: "أخصائية تسويق", dept: "التسويق", time: "09:15" },
+];
+const DEFAULT_ABSENT: AbsentEmp[] = [
+  { name: "خالد الحربي", role: "مطور برامج", dept: "تقنية المعلومات" },
+  { name: "علي الزهراني", role: "محلل مالي", dept: "المالية" },
+];
 
 export const COMPANY = { owner: "أحمد بن محمد", title: "الرئيس التنفيذي" };
 
@@ -41,10 +58,15 @@ export const MOCK_DEPARTMENTS: Dept[] = [
 // يشتق كل الإجماليات من الإدارات حتى تبقى الأرقام متسقة وصحيحة دائماً
 export function deriveOsData(
   departments: Dept[],
-  opts: { source: "live" | "demo"; orgName: string; owner?: string; notifications?: number; inbox?: { newEmails: number; callsToday: number } },
+  opts: {
+    source: "live" | "demo"; orgName: string; owner?: string; notifications?: number;
+    inbox?: { newEmails: number; callsToday: number };
+    employees?: { total: number; present: number };
+    presentNow?: PresentEmp[]; absent?: AbsentEmp[];
+  },
 ): OsData {
-  const total = departments.reduce((s, d) => s + d.employees, 0);
-  const present = Math.round(total * 0.82);
+  const total = opts.employees?.total ?? departments.reduce((s, d) => s + d.employees, 0);
+  const present = opts.employees?.present ?? Math.round(total * 0.82);
   const open = departments.reduce((s, d) => s + d.open, 0);
   const done = departments.reduce((s, d) => s + d.done, 0);
   const revenue = 2458000;
@@ -64,6 +86,8 @@ export function deriveOsData(
     finance: { revenue, expenses, profit: revenue - expenses },
     notifications: { unread: opts.notifications ?? 3 },
     inbox: opts.inbox ?? { newEmails: 5, callsToday: 12 },
+    presentNow: opts.presentNow ?? DEFAULT_PRESENT,
+    absent: opts.absent ?? DEFAULT_ABSENT,
   };
 }
 

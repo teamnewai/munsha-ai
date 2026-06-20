@@ -80,17 +80,8 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
     { label: "المهام المتأخرة", value: String(TASKS.overdue), change: "تحتاج متابعة", color: "#f59e0b", icon: AlertTriangle, kind: "alert" as const },
   ];
 
-  const presentNow = [
-    { name: "سارة القحطاني", role: "محاسبة أول", dept: "المالية", time: "09:10" },
-    { name: "محمد الشهري", role: "أخصائي رواتب", dept: "الموارد البشرية", time: "09:05" },
-    { name: "ناصر المطيري", role: "مندوب مبيعات", dept: "المبيعات", time: "09:12" },
-    { name: "عبدالله السبيعي", role: "مدير العمليات", dept: "التشغيل", time: "09:08" },
-    { name: "ريم العبيدي", role: "أخصائية تسويق", dept: "التسويق", time: "09:15" },
-  ];
-  const absent = [
-    { name: "خالد الحربي", role: "مطور برامج", dept: "تقنية المعلومات" },
-    { name: "علي الزهراني", role: "محلل مالي", dept: "المالية" },
-  ];
+  const presentNow = data.presentNow;
+  const absent = data.absent;
   const reports = [
     { title: "التقرير المالي الشهري", date: "مايو 2024", icon: FileText, color: "#ef4444" },
     { title: "تقرير المبيعات التفصيلي", date: "مايو 2024", icon: BarChart3, color: "#3b82f6" },

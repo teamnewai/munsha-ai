@@ -50,27 +50,21 @@ function Donut({ value, color }: { value: number; color: string }) {
   );
 }
 
-const COMMS = {
-  اجتماعات: [
-    { from: "الرئيس التنفيذي", to: "جميع الموظفين", msg: "اجتماع يوم الأحد القادم", time: "09:00 AM", badge: 5 },
-    { from: "المالية", to: "المبيعات", msg: "مراجعة الميزانية الربعية", time: "11:30 AM", badge: 2 },
-  ],
-  مكالمات: [
-    { from: "الموارد البشرية", to: "التشغيل", msg: "مكالمة بخصوص طلب الإجازة", time: "10:15 AM", badge: 1 },
-    { from: "المبيعات", to: "العميل 1001", msg: "متابعة عرض السعر", time: "09:40 AM", badge: 3 },
-  ],
-  رسائل: [
-    { from: "المالية", to: "المبيعات", msg: "تم تحويل المبلغ للعميل رقم 1001", time: "10:30 AM", badge: 3 },
-    { from: "الموارد البشرية", to: "التشغيل", msg: "طلب إجازة جديد من الموظف أحمد", time: "10:15 AM", badge: 2 },
-  ],
-} as const;
-type CommsTab = keyof typeof COMMS;
+type CommsItem = { from: string; to: string; msg: string; time: string; badge?: number };
+type CommsTab = "اجتماعات" | "مكالمات" | "رسائل";
 
 export function ExecutiveDashboard({ data }: { data: OsData }) {
   const router = useRouter();
   const [range, setRange] = useState<"day" | "week" | "month">("day");
-  const [commsTab, setCommsTab] = useState<CommsTab>("اجتماعات");
+  const [commsTab, setCommsTab] = useState<CommsTab>("رسائل");
   const { departments: DEPARTMENTS, employees: EMPLOYEES, tasks: TASKS, finance: FINANCE } = data;
+
+  // بناء قائمة التواصل: من DB (recentComms) أو فارغة إن لم توجد بيانات
+  const commsMap: Record<CommsTab, CommsItem[]> = {
+    اجتماعات: (data.recentComms ?? []).filter((c) => c.kind === "meeting").map((c) => ({ from: c.from, to: c.to, msg: c.msg, time: c.time })),
+    مكالمات: (data.recentComms ?? []).filter((c) => c.kind === "call").map((c) => ({ from: c.from, to: c.to, msg: c.msg, time: c.time })),
+    رسائل: (data.recentComms ?? []).filter((c) => c.kind === "message").map((c) => ({ from: c.from, to: c.to, msg: c.msg, time: c.time })),
+  };
   const owner = data.owner || COMPANY.owner;
 
   const heroStats = [
@@ -280,13 +274,19 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
             <button onClick={() => router.push("/network")} className="size-7 rounded-md bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25"><Plus className="size-4" /></button>
           </div>
           <div className="flex gap-2 mb-3 text-xs">
-            {(Object.keys(COMMS) as CommsTab[]).map((t) => (
+            {(["رسائل", "اجتماعات", "مكالمات"] as CommsTab[]).map((t) => (
               <button key={t} onClick={() => setCommsTab(t)}
-                className={`rounded-md px-3 py-1 transition-colors ${commsTab === t ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-background/40"}`}>{t}</button>
+                className={`rounded-md px-3 py-1 transition-colors ${commsTab === t ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-background/40"}`}>
+                {t}
+                {commsMap[t].length > 0 && <span className="mr-1 inline-flex size-4 items-center justify-center rounded-full bg-primary text-[9px] text-primary-foreground">{commsMap[t].length}</span>}
+              </button>
             ))}
           </div>
+          {commsMap[commsTab].length === 0 ? (
+            <p className="py-6 text-center text-xs text-muted-foreground">لا توجد إشعارات في هذه الفئة.</p>
+          ) : (
           <ul className="space-y-2">
-            {COMMS[commsTab].map((c, i) => (
+            {commsMap[commsTab].map((c, i) => (
               <li key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-background/40 transition-colors">
                 <div className="size-9 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0"><MessageSquare className="size-4" /></div>
                 <div className="flex-1 min-w-0">
@@ -299,11 +299,11 @@ export function ExecutiveDashboard({ data }: { data: OsData }) {
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-[10px] text-muted-foreground">{c.time}</div>
-                  <div className="inline-flex items-center justify-center size-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold mt-0.5">{c.badge}</div>
                 </div>
               </li>
             ))}
           </ul>
+          )}
           <Link href="/network" className="mt-3 block text-center rounded-lg border border-primary/40 bg-primary/10 text-primary py-2 text-xs">فتح مركز التواصل</Link>
         </Card>
       </div>

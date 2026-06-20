@@ -25,6 +25,7 @@ export type OsData = {
   inbox: { newEmails: number; callsToday: number };
   presentNow: PresentEmp[];
   absent: AbsentEmp[];
+  recentComms?: { kind: "meeting" | "call" | "message"; from: string; to: string; msg: string; time: string }[];
 };
 
 const DEFAULT_PRESENT: PresentEmp[] = [
@@ -63,14 +64,16 @@ export function deriveOsData(
     inbox?: { newEmails: number; callsToday: number };
     employees?: { total: number; present: number };
     presentNow?: PresentEmp[]; absent?: AbsentEmp[];
+    finance?: { revenue: number; expenses: number };
+    recentComms?: OsData["recentComms"];
   },
 ): OsData {
   const total = opts.employees?.total ?? departments.reduce((s, d) => s + d.employees, 0);
   const present = opts.employees?.present ?? Math.round(total * 0.82);
   const open = departments.reduce((s, d) => s + d.open, 0);
   const done = departments.reduce((s, d) => s + d.done, 0);
-  const revenue = 2458000;
-  const expenses = 1125000;
+  const revenue = opts.finance?.revenue ?? 0;
+  const expenses = opts.finance?.expenses ?? 0;
   return {
     source: opts.source,
     orgName: opts.orgName,
@@ -88,6 +91,7 @@ export function deriveOsData(
     inbox: opts.inbox ?? { newEmails: 5, callsToday: 12 },
     presentNow: opts.presentNow ?? DEFAULT_PRESENT,
     absent: opts.absent ?? DEFAULT_ABSENT,
+    recentComms: opts.recentComms,
   };
 }
 

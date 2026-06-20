@@ -12,6 +12,8 @@ type DeptRow = {
 };
 
 type MemberRow = { full_name: string; job_title: string | null; dept_key: string; present: boolean };
+type NotifRow = { title: string; body: string | null; kind: string; created_at: string };
+type InvoiceRow = { total_amount: number | null; type: string | null };
 
 /**
  * يقرأ بيانات لوحة القيادة حيّاً من Supabase (الهيكل التنظيمي الحقيقي)،
@@ -22,11 +24,13 @@ export async function getOsData(): Promise<OsData> {
   if (!sb) return MOCK_OS;
 
   try {
-    const [orgRes, deptRes, notifRes, memRes] = await Promise.all([
+    const [orgRes, deptRes, notifRes, memRes, invoiceRes, notifListRes] = await Promise.all([
       sb.from("organizations").select("name").limit(1).maybeSingle(),
       sb.from("org_departments").select("dept_key,name,color,staff_count,open_tasks,done_tasks,perf").eq("active", true).order("sort"),
-      sb.from("notifications").select("id", { count: "exact", head: true }),
+      sb.from("notifications").select("id", { count: "exact", head: true }).eq("is_read", false),
       sb.from("dept_members").select("full_name,job_title,dept_key,present").eq("status", "active"),
+      sb.from("invoices").select("total_amount,type"),
+      sb.from("notifications").select("title,body,kind,created_at").order("created_at", { ascending: false }).limit(6),
     ]);
 
     const orgName = (orgRes.data?.name as string) || MOCK_OS.orgName;
@@ -65,6 +69,21 @@ export async function getOsData(): Promise<OsData> {
       }));
     }
 
+    // حساب الإيرادات والمصروفات من الفواتير الحقيقية
+    const invoices = (invoiceRes.data as InvoiceRow[] | null) ?? [];
+    const revenue = invoices.filter((i) => i.type === "income" || i.type === "revenue").reduce((s, i) => s + (i.total_amount ?? 0), 0);
+    const expenses = invoices.filter((i) => i.type === "expense" || i.type === "payment").reduce((s, i) => s + (i.total_amount ?? 0), 0);
+
+    // التواصل الأخير من الإشعارات الحقيقية
+    const notifList = (notifListRes.data as NotifRow[] | null) ?? [];
+    const recentComms = notifList.length > 0 ? notifList.map((n) => ({
+      kind: (n.kind === "meeting" ? "meeting" : n.kind === "payment" ? "message" : "message") as "meeting" | "call" | "message",
+      from: "النظام",
+      to: "الجميع",
+      msg: n.title + (n.body ? ` — ${n.body.slice(0, 40)}` : ""),
+      time: new Date(n.created_at).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" }),
+    })) : undefined;
+
     return deriveOsData(departments, {
       source: "live",
       orgName,
@@ -72,6 +91,8 @@ export async function getOsData(): Promise<OsData> {
       employees,
       presentNow,
       absent,
+      finance: revenue > 0 || expenses > 0 ? { revenue, expenses } : undefined,
+      recentComms,
     });
   } catch {
     return MOCK_OS;

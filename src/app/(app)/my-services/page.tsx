@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/lib/toast";
 import { CATEGORIES } from "@/lib/providers";
+import { getOrgServices, saveOrgServices } from "@/app/actions/services";
 import { ChevronDown, Check, Store, ExternalLink, Trash2 } from "lucide-react";
 
 // خدماتي — تختار المنشأة خدماتها من قائمة منسدلة (نفس خدمات الصفحة الرئيسية)
@@ -18,14 +19,22 @@ export default function MyServicesPage() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("mulki:my-services");
-      if (raw) {
-        const v = JSON.parse(raw);
-        setOrgName(v.orgName ?? "");
-        setSelected(Array.isArray(v.categories) ? v.categories : []);
+    // تحميل الخدمات المحفوظة فعلياً من قاعدة البيانات (مع التراجع للتخزين المحلي)
+    getOrgServices().then((r) => {
+      if (r.ok) {
+        if (r.orgName) setOrgName(r.orgName);
+        setSelected(r.categories);
+        return;
       }
-    } catch { /* ignore */ }
+      try {
+        const raw = localStorage.getItem("mulki:my-services");
+        if (raw) {
+          const v = JSON.parse(raw);
+          setOrgName(v.orgName ?? "");
+          setSelected(Array.isArray(v.categories) ? v.categories : []);
+        }
+      } catch { /* ignore */ }
+    });
   }, []);
 
   useEffect(() => {
@@ -38,9 +47,14 @@ export default function MyServicesPage() {
     setSelected((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
   }
 
-  function save() {
+  const [saving, setSaving] = useState(false);
+  async function save() {
+    setSaving(true);
     localStorage.setItem("mulki:my-services", JSON.stringify({ orgName, categories: selected }));
-    toast.success("تم حفظ خدماتك — أصبحت منشأتك مزوّداً لهذه الخدمات في الصفحة الرئيسية");
+    const r = await saveOrgServices(selected);
+    setSaving(false);
+    if (r.ok) toast.success("تم حفظ خدماتك فعلياً — أصبحت منشأتك مزوّداً لهذه الخدمات");
+    else toast.error(`تعذّر الحفظ في القاعدة: ${r.error ?? ""} (حُفظت محلياً)`);
   }
 
   const selectedCats = CATEGORIES.filter((c) => selected.includes(c.key));
@@ -104,9 +118,9 @@ export default function MyServicesPage() {
         )}
 
         <div className="flex items-center gap-3 pt-2">
-          <button onClick={save} disabled={!orgName || selected.length === 0}
+          <button onClick={save} disabled={!orgName || selected.length === 0 || saving}
             className="rounded-xl mulki-gold-bg px-5 py-2.5 text-sm font-bold hover:opacity-90 disabled:opacity-50">
-            حفظ خدماتي
+            {saving ? "جارٍ الحفظ…" : "حفظ خدماتي"}
           </button>
           {selectedCats.length > 0 && (
             <Link href={`/services?category=${selectedCats[0].key}`} className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CATEGORIES, providersByCategory, PROVIDERS, type Provider } from "@/lib/providers";
+import { getDbProviders } from "@/app/actions/services";
 
 // توجيه ذكي: يختار الزائر الخدمة → تظهر المنشآت المزوّدة المطابقة → يُرسل الطلب فيُوجَّه للمنشأة.
 
@@ -13,20 +14,22 @@ export function ServicesClient() {
   const pName = params.get("p");
   const [cat, setCat] = useState<string>(CATEGORIES.some((c) => c.key === initial) ? initial : "financial");
   const [routedTo, setRoutedTo] = useState<Provider | null>(null);
-  const [myCats, setMyCats] = useState<string[]>([]);
-  const [myOrg, setMyOrg] = useState<string>("");
+  const [dbProviders, setDbProviders] = useState<Provider[]>([]);
 
-  // تحميل خدمات منشأتك المعروضة (الوضع التجريبي — تخزين محلي)
+  // المنشآت المزوّدة الفعلية من قاعدة البيانات لهذا التصنيف
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("mulki:my-services");
-      if (raw) {
-        const v = JSON.parse(raw);
-        setMyCats(Array.isArray(v.categories) ? v.categories : []);
-        setMyOrg(typeof v.orgName === "string" ? v.orgName : "");
-      }
-    } catch { /* ignore */ }
-  }, []);
+    let active = true;
+    getDbProviders(cat)
+      .then((rows) => {
+        if (!active) return;
+        setDbProviders(rows.map((r) => ({
+          name: r.name, category: cat, city: r.city, specialty: r.specialty,
+          rating: r.rating, jobs: 0, verified: true,
+        })));
+      })
+      .catch(() => active && setDbProviders([]));
+    return () => { active = false; };
+  }, [cat]);
 
   // توجيه مباشر لمنشأة محددة عبر ?p=
   useEffect(() => {
@@ -36,17 +39,11 @@ export function ServicesClient() {
   }, [pName]);
 
   const current = CATEGORIES.find((c) => c.key === cat)!;
+  // المنشآت الفعلية (من القاعدة) أولاً، ثم المزوّدون التعريفيون
   const providers = useMemo(() => {
-    const base = providersByCategory(cat);
-    if (myCats.includes(cat)) {
-      const mine: Provider = {
-        name: `${myOrg || "منشأتك"} (منشأتك)`, category: cat, city: "منشأتك",
-        specialty: "خدمة معروضة من منشأتك", rating: 5, jobs: 0, verified: true,
-      };
-      return [mine, ...base];
-    }
-    return base;
-  }, [cat, myCats, myOrg]);
+    const demoNames = new Set(dbProviders.map((d) => d.name));
+    return [...dbProviders, ...providersByCategory(cat).filter((p) => !demoNames.has(p.name))];
+  }, [cat, dbProviders]);
 
   return (
     <div className="min-h-screen" dir="rtl">

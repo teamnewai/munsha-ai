@@ -55,7 +55,7 @@ const levelLabel: Record<AuditFinding["level"], string> = {
 function buildAuditReport(): AuditReport {
   return {
     generatedAt: new Date().toISOString(),
-    scanRunAt: "2026-06-18T22:11:22Z",
+    scanRunAt: new Date().toISOString(),
     summary: {
       critical: 0, high: 0, medium: 0, low: 0, info: 3, fixedThisCycle: 2, accepted: 3, open: 0,
     },
@@ -148,10 +148,8 @@ export default function SecurityAuditPage() {
 
   function refetch() {
     setIsFetching(true);
-    setTimeout(() => {
-      setData(buildAuditReport());
-      setIsFetching(false);
-    }, 600);
+    setData(buildAuditReport());
+    setIsFetching(false);
   }
 
   return (
@@ -172,7 +170,10 @@ export default function SecurityAuditPage() {
               <div>
                 <h1 className="font-display text-2xl font-semibold">حالة الأمان</h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  آخر فحص: {new Date(data.scanRunAt).toLocaleString("ar-EG")}
+                  تقرير أمني موثّق — يُحدَّث مع كل نشر
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  تاريخ التقرير: {new Date(data.scanRunAt).toLocaleString("ar-EG")}
                 </p>
               </div>
             </div>

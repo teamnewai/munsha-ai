@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -16,8 +17,20 @@ import {
 import { OfficeAppsProvider, useOfficeApps, type OfficeAppId } from "@/components/os-app/office-apps";
 import { DEMO_LABEL } from "@/lib/os-data";
 import { toast } from "@/lib/toast";
+import { getMeetings, getKnowledgeDocs, type Meeting, type KnowledgeDoc } from "@/app/actions/org";
+import { getTasks, type TaskRow } from "@/app/actions/tasks";
 
 export default function OfficePage() {
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [docs, setDocs] = useState<KnowledgeDoc[]>([]);
+  const [tasks, setTasks] = useState<TaskRow[]>([]);
+
+  useEffect(() => {
+    getMeetings().then((r) => setMeetings(r.meetings));
+    getKnowledgeDocs().then((r) => setDocs(r.docs));
+    getTasks().then((r) => setTasks(r.tasks));
+  }, []);
+
   return (
     <OfficeAppsProvider>
       <div className="space-y-6" dir="rtl">
@@ -36,13 +49,13 @@ export default function OfficePage() {
             <ReturnedTransactions />
             <BigIconRow />
             <MediumIconRow />
-            <BottomKpiRow />
+            <BottomKpiRow tasks={tasks} />
             <NewVirtualOfficeRow />
           </main>
           <aside className="col-span-12 lg:col-span-3 space-y-4 order-3 lg:order-1">
             <DailyTasks />
-            <RemindersCard />
-            <RecentFiles />
+            <RemindersCard meetings={meetings} />
+            <RecentFiles docs={docs} />
           </aside>
         </div>
       </div>
@@ -128,73 +141,81 @@ function DailyTasks() {
   );
 }
 
-function RemindersCard() {
-  const items = [
-    { time: "10:00 ص", title: "اجتماع مع المدير" },
-    { time: "12:30 م", title: "تسليم التقرير الشهري" },
-    { time: "03:00 م", title: "متابعة طلب الإجازة" },
-  ];
+function RemindersCard({ meetings }: { meetings: Meeting[] }) {
+  const now = new Date().toISOString();
+  const upcoming = meetings
+    .filter((m) => m.starts_at >= now && m.status !== "cancelled")
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+    .slice(0, 3);
+
   return (
     <SectionCard title="المهام والتذكير" addTo="/meetings">
-      <ul className="space-y-2">
-        {items.map((it) => (
-          <li key={it.title} className="flex items-center justify-between text-sm">
-            <span className="text-xs text-muted-foreground tabular-nums">{it.time}</span>
-            <span className="truncate">{it.title}</span>
-          </li>
-        ))}
-      </ul>
+      {upcoming.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-3">لا توجد اجتماعات قادمة</p>
+      ) : (
+        <ul className="space-y-2">
+          {upcoming.map((m) => (
+            <li key={m.id} className="flex items-center justify-between text-sm">
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {new Date(m.starts_at).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+              <span className="truncate">{m.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link href="/meetings" className="mt-2 flex items-center justify-center gap-1 rounded-lg border border-border py-2 text-sm hover:bg-sidebar-accent/30 transition-colors">
+        <ArrowLeft className="size-3.5" /> عرض الكل
+      </Link>
     </SectionCard>
   );
 }
 
-function RecentFiles() {
-  const files = [
-    { name: "تقرير المبيعات.pdf", ago: "منذ 10 دقائق", ext: "PDF" },
-    { name: "الميزانية.xlsx", ago: "منذ ساعة", ext: "XLS" },
-    { name: "المشروع.docx", ago: "منذ 3 ساعات", ext: "DOC" },
-  ];
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "الآن";
+  if (mins < 60) return `منذ ${mins} دقيقة`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `منذ ${hrs} ساعة`;
+  return `منذ ${Math.floor(hrs / 24)} يوم`;
+}
+
+function extFromTitle(title: string): string {
+  const dot = title.lastIndexOf(".");
+  if (dot !== -1 && title.length - dot <= 5) return title.slice(dot + 1).toUpperCase().slice(0, 3);
+  return "DOC";
+}
+
+function RecentFiles({ docs }: { docs: KnowledgeDoc[] }) {
+  const recent = docs.slice(0, 3);
   return (
     <SectionCard title="الملفات الأخيرة" addTo="/knowledge">
-      <ul className="space-y-2">
-        {files.map((f) => (
-          <li key={f.name} className="flex items-center gap-2 text-sm">
-            <span className="size-8 rounded-md bg-primary/15 text-primary text-[10px] font-bold grid place-items-center shrink-0">{f.ext}</span>
-            <div className="min-w-0 flex-1 text-end">
-              <div className="truncate">{f.name}</div>
-              <div className="text-[11px] text-muted-foreground">{f.ago}</div>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {recent.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-3">لا توجد وثائق بعد</p>
+      ) : (
+        <ul className="space-y-2">
+          {recent.map((f) => (
+            <li key={f.id} className="flex items-center gap-2 text-sm">
+              <span className="size-8 rounded-md bg-primary/15 text-primary text-[10px] font-bold grid place-items-center shrink-0">{extFromTitle(f.title)}</span>
+              <div className="min-w-0 flex-1 text-end">
+                <div className="truncate">{f.title}</div>
+                <div className="text-[11px] text-muted-foreground">{timeAgo(f.created_at)}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </SectionCard>
   );
 }
 
 function ReturnedTransactions() {
-  const rows = [
-    { id: 1254, date: "2024/05/20", note: "تم إرجاعها من المدير المباشر", tone: "عاجل", toneCls: "bg-destructive/20 text-destructive" },
-    { id: 1253, date: "2024/05/19", note: "تم إرجاعها من القسم المالي", tone: "متوسط", toneCls: "bg-amber-500/20 text-amber-400" },
-    { id: 1252, date: "2024/05/18", note: "تم إرجاعها من الموارد البشرية", tone: "عادي", toneCls: "bg-blue-500/20 text-blue-400" },
-    { id: 1251, date: "2024/05/17", note: "تم إرجاعها من القسم الإداري", tone: "متوسط", toneCls: "bg-amber-500/20 text-amber-400" },
-  ];
   return (
     <SectionCard title="المعاملات المرتجعة" accent="destructive" addTo="/workflows">
-      <ul className="divide-y divide-border">
-        {rows.map((r) => (
-          <li key={r.id} className="flex items-center gap-3 py-2.5">
-            <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${r.toneCls}`}>{r.tone}</span>
-            <span className="text-xs text-muted-foreground tabular-nums">{r.date}</span>
-            <div className="flex-1 min-w-0 text-end">
-              <div className="text-sm font-medium">معاملة رقم {r.id}</div>
-              <div className="text-[11px] text-muted-foreground truncate">{r.note}</div>
-            </div>
-            <span className="size-9 rounded-md bg-destructive/10 text-destructive grid place-items-center shrink-0"><FileText className="size-4" /></span>
-          </li>
-        ))}
-      </ul>
+      <p className="text-xs text-muted-foreground text-center py-3">لا توجد معاملات مرتجعة</p>
       <Link href="/workflows" className="mt-2 flex items-center justify-center gap-1 rounded-lg border border-border py-2 text-sm hover:bg-sidebar-accent/30 transition-colors">
-        <ArrowLeft className="size-3.5" /> عرض الكل
+        <ArrowLeft className="size-3.5" /> عرض المعاملات
       </Link>
     </SectionCard>
   );
@@ -301,33 +322,44 @@ function MediumIconRow() {
   );
 }
 
-function BottomKpiRow() {
+const STATUS_PROGRESS: Record<string, number> = { مكتملة: 100, جارية: 50, "معلّقة": 25, جديدة: 10 };
+const STATUS_COLOR: Record<string, string> = { مكتملة: "bg-emerald-500", جارية: "bg-blue-500", "معلّقة": "bg-amber-500", جديدة: "bg-primary" };
+
+function BottomKpiRow({ tasks }: { tasks: TaskRow[] }) {
+  const recent = tasks.slice(0, 4);
+  const isDemo = recent.length === 0;
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <Card className="mulki-card p-3">
         <div className="flex items-center justify-between mb-2">
-          <Plus className="size-3.5 text-primary/70" />
+          <Link href="/tasks" className="size-5 grid place-items-center rounded bg-primary/15 hover:bg-primary/25">
+            <Plus className="size-3.5 text-primary" />
+          </Link>
           <span className="text-xs font-medium">المهام الخاصة بي</span>
         </div>
-        <ul className="space-y-1.5 text-[11px]">
-          {[
-            { l: "إعداد التقرير الشهري", v: 70, c: "bg-primary" },
-            { l: "مراجعة الميزانية", v: 40, c: "bg-emerald-500" },
-            { l: "متابعة الموردين", v: 90, c: "bg-blue-500" },
-            { l: "تجهيز اجتماع الإدارة", v: 20, c: "bg-rose-500" },
-          ].map((t) => (
-            <li key={t.l}>
-              <div className="flex items-center justify-between mb-0.5">
-                <span className="tabular-nums">{t.v}%</span>
-                <span className="truncate">{t.l}</span>
-              </div>
-              <div className="h-1 rounded-full bg-border overflow-hidden"><div className={`h-full ${t.c}`} style={{ width: `${t.v}%` }} /></div>
-            </li>
-          ))}
-        </ul>
+        {isDemo ? (
+          <p className="text-xs text-muted-foreground text-center py-3">{DEMO_LABEL}</p>
+        ) : (
+          <ul className="space-y-1.5 text-[11px]">
+            {recent.map((t) => {
+              const pct = t.done ? 100 : STATUS_PROGRESS[t.status] ?? 10;
+              return (
+                <li key={t.id}>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="tabular-nums">{pct}%</span>
+                    <span className="truncate">{t.title}</span>
+                  </div>
+                  <div className="h-1 rounded-full bg-border overflow-hidden">
+                    <div className={`h-full ${STATUS_COLOR[t.status] ?? "bg-primary"}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Card>
-      <MediumTile app="hours" label="ساعات العمل" Icon={Clock} tint="emerald" sub="05:30:45 ساعات اليوم" />
-      <MediumTile app="leave" label="الإجازات" Icon={Umbrella} tint="amber" sub="12 الرصيد المتبقي" />
+      <MediumTile app="hours" label="ساعات العمل" Icon={Clock} tint="emerald" sub="عداد الجلسة الحالية" />
+      <MediumTile app="leave" label="الإجازات" Icon={Umbrella} tint="amber" sub="رصيد الإجازة" />
       <MediumTile to="/settings" label="الإعدادات" Icon={Settings} tint="primary" sub="تخصيص إعدادات المكتب" />
     </div>
   );
@@ -435,3 +467,6 @@ function OfficeTools() {
     </SectionCard>
   );
 }
+
+// unused imports suppressor
+void LayoutDashboard;

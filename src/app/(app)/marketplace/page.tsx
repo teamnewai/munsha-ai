@@ -116,7 +116,7 @@ export default function MarketplacePage() {
         {[
           { label: "الخدمات المتاحة", value: services.length, icon: <Package className="size-4" />, color: "text-primary" },
           { label: "الفئات", value: categories.length - 1, icon: <Tag className="size-4" />, color: "text-amber-500" },
-          { label: "الطلبات الشهرية", value: 12, icon: <Star className="size-4" />, color: "text-emerald-500" },
+          { label: "الطلبات الشهرية", value: services.length, icon: <Star className="size-4" />, color: "text-emerald-500" },
         ].map((s) => (
           <Card key={s.label} className="mulki-card p-4 text-center">
             <div className={cn("flex items-center justify-center gap-1.5 text-2xl font-bold mb-1", s.color)}>

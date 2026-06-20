@@ -1,21 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
-import { Bell, CheckCheck, Trash2, Search, Inbox } from "lucide-react";
+import { Bell, CheckCheck, Trash2, Search, Inbox, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getNotificationsData, markNotificationRead, type NotifItem } from "@/app/actions/org";
+
+// Map DB kind values to Arabic display labels
+const KIND_LABELS: Record<string, string> = {
+  info: "معلومات",
+  request: "الطلبات",
+  alert: "التنبيهات",
+  payment: "المدفوعات",
+  maintenance: "الصيانة",
+  contract: "العقود",
+};
 
 type NotificationRow = {
   id: string;
-  kind: string;
+  kind: string;           // Arabic label for display
   title: string;
   body: string | null;
-  link: string | null;
-  entity_type: string | null;
-  read_at: string | null;
+  is_read: boolean;
   created_at: string;
 };
 
@@ -27,50 +35,49 @@ function timeAgo(iso: string) {
   return `${Math.floor(d / 86400)} يوم`;
 }
 
+// Fallback mock data if Supabase is not configured
 const now = Date.now();
 const ago = (mins: number) => new Date(now - mins * 60_000).toISOString();
 
-const INITIAL: NotificationRow[] = [
-  {
-    id: "n1", kind: "المعاملات", title: "معاملة مرتجعة من المدير المباشر",
-    body: "تم إرجاع المعاملة رقم 1254 لإكمال المرفقات المطلوبة.", link: "/workflows",
-    entity_type: "معاملة", read_at: null, created_at: ago(8),
-  },
-  {
-    id: "n2", kind: "المعاملات", title: "تمت الموافقة على طلب الإجازة",
-    body: "اعتمد القسم المالي طلب إجازتك السنوية.", link: "/service-requests",
-    entity_type: "طلب", read_at: null, created_at: ago(45),
-  },
-  {
-    id: "n3", kind: "الاجتماعات", title: "تذكير: اجتماع مجلس الإدارة",
-    body: "يبدأ الاجتماع الساعة 10:00 صباحاً في قاعة الاجتماعات الرئيسية.", link: "/meetings",
-    entity_type: "اجتماع", read_at: null, created_at: ago(120),
-  },
-  {
-    id: "n4", kind: "الاجتماعات", title: "تم تحديث موعد اجتماع الفريق",
-    body: "نُقل الاجتماع من الثلاثاء إلى الأربعاء الساعة 1:00 ظهراً.", link: "/meetings",
-    entity_type: "اجتماع", read_at: ago(300), created_at: ago(360),
-  },
-  {
-    id: "n5", kind: "النظام", title: "اكتمل النسخ الاحتياطي للبيانات",
-    body: "تم حفظ نسخة احتياطية كاملة بنجاح.", link: null,
-    entity_type: null, read_at: ago(600), created_at: ago(720),
-  },
-  {
-    id: "n6", kind: "النظام", title: "تقرير التدقيق الأمني جاهز",
-    body: "لا توجد نتائج حرجة في آخر فحص أمني.", link: "/security-audit",
-    entity_type: "تقرير", read_at: ago(1000), created_at: ago(1440),
-  },
+const FALLBACK: NotificationRow[] = [
+  { id: "n1", kind: "الطلبات", title: "معاملة مرتجعة من المدير المباشر", body: "تم إرجاع المعاملة رقم 1254 لإكمال المرفقات المطلوبة.", is_read: false, created_at: ago(8) },
+  { id: "n2", kind: "الطلبات", title: "تمت الموافقة على طلب الإجازة", body: "اعتمد القسم المالي طلب إجازتك السنوية.", is_read: false, created_at: ago(45) },
+  { id: "n3", kind: "معلومات", title: "تذكير: اجتماع مجلس الإدارة", body: "يبدأ الاجتماع الساعة 10:00 صباحاً في قاعة الاجتماعات الرئيسية.", is_read: false, created_at: ago(120) },
+  { id: "n4", kind: "معلومات", title: "تم تحديث موعد اجتماع الفريق", body: "نُقل الاجتماع من الثلاثاء إلى الأربعاء الساعة 1:00 ظهراً.", is_read: true, created_at: ago(360) },
+  { id: "n5", kind: "التنبيهات", title: "اكتمل النسخ الاحتياطي للبيانات", body: "تم حفظ نسخة احتياطية كاملة بنجاح.", is_read: true, created_at: ago(720) },
+  { id: "n6", kind: "التنبيهات", title: "تقرير التدقيق الأمني جاهز", body: "لا توجد نتائج حرجة في آخر فحص أمني.", is_read: true, created_at: ago(1440) },
 ];
 
+function mapNotifItems(items: NotifItem[]): NotificationRow[] {
+  return items.map((n) => ({
+    id: n.id,
+    kind: KIND_LABELS[n.kind] ?? n.kind,
+    title: n.title,
+    body: n.body,
+    is_read: n.is_read,
+    created_at: n.created_at,
+  }));
+}
+
 export default function NotificationsPage() {
-  const router = useRouter();
-  const [items, setItems] = useState<NotificationRow[]>(INITIAL);
+  const [loading, setLoading] = useState(true);
+  const [isLive, setIsLive] = useState(false);
+  const [items, setItems] = useState<NotificationRow[]>(FALLBACK);
   const [tab, setTab] = useState<"all" | "unread">("all");
   const [q, setQ] = useState("");
 
+  useEffect(() => {
+    getNotificationsData().then((res) => {
+      if (res.ok) {
+        setItems(mapNotifItems(res.items));
+        setIsLive(true);
+      }
+      setLoading(false);
+    });
+  }, []);
+
   const visible = useMemo(
-    () => (tab === "unread" ? items.filter((n) => !n.read_at) : items),
+    () => (tab === "unread" ? items.filter((n) => !n.is_read) : items),
     [items, tab],
   );
 
@@ -93,12 +100,24 @@ export default function NotificationsPage() {
     return out;
   }, [filtered]);
 
-  const unreadCount = items.filter((n) => !n.read_at).length;
+  const unreadCount = items.filter((n) => !n.is_read).length;
 
-  const markRead = (id: string) =>
-    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)));
-  const markAll = () =>
-    setItems((prev) => prev.map((n) => (n.read_at ? n : { ...n, read_at: new Date().toISOString() })));
+  const markRead = async (id: string) => {
+    // optimistic update
+    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+    if (isLive) {
+      await markNotificationRead(id);
+    }
+  };
+
+  const markAll = async () => {
+    const unreadIds = items.filter((n) => !n.is_read).map((n) => n.id);
+    setItems((prev) => prev.map((n) => (n.is_read ? n : { ...n, is_read: true })));
+    if (isLive) {
+      await Promise.all(unreadIds.map((id) => markNotificationRead(id)));
+    }
+  };
+
   const remove = (id: string) => setItems((prev) => prev.filter((n) => n.id !== id));
 
   return (
@@ -107,6 +126,14 @@ export default function NotificationsPage() {
         <div>
           <h2 className="font-display text-2xl font-semibold flex items-center gap-2">
             <Bell className="size-6 text-primary" /> مركز الإشعارات
+            {loading ? (
+              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+            ) : isLive ? (
+              <span className="inline-flex items-center gap-1 text-[10px] text-green-400 border border-green-500/30 bg-green-500/10 px-2 py-0.5 rounded-full font-normal">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                إشعارات حقيقية
+              </span>
+            ) : null}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             {unreadCount > 0 ? `${unreadCount} إشعار غير مقروء` : "كل الإشعارات مقروءة"}
@@ -151,7 +178,12 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="py-16 text-center text-muted-foreground flex flex-col items-center gap-3">
+            <Loader2 className="size-8 animate-spin opacity-50" />
+            <span>جاري تحميل الإشعارات...</span>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
             <Inbox className="size-10 mx-auto mb-3 opacity-50" />
             لا توجد إشعارات.
@@ -169,28 +201,25 @@ export default function NotificationsPage() {
                       key={n.id}
                       className={cn(
                         "group flex items-start gap-3 rounded-lg border border-border p-3 hover:bg-accent/40 transition-colors",
-                        !n.read_at && "bg-primary/5 border-primary/30"
+                        !n.is_read && "bg-primary/5 border-primary/30"
                       )}
                     >
-                      <div className={cn("size-2 rounded-full mt-2 shrink-0", !n.read_at ? "bg-primary" : "bg-transparent")} />
+                      <div className={cn("size-2 rounded-full mt-2 shrink-0", !n.is_read ? "bg-primary" : "bg-transparent")} />
                       <div
                         className="flex-1 min-w-0 cursor-pointer"
                         onClick={() => {
-                          if (!n.read_at) markRead(n.id);
-                          if (n.link) router.push(n.link);
+                          if (!n.is_read) markRead(n.id);
                         }}
                       >
                         <div className="font-medium text-sm">{n.title}</div>
                         {n.body && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.body}</div>}
                         <div className="flex items-center gap-2 mt-2">
                           <span className="text-[11px] text-muted-foreground">{timeAgo(n.created_at)}</span>
-                          {n.entity_type && (
-                            <span className="inline-flex items-center rounded-md border border-border px-1.5 text-[10px] h-4">{n.entity_type}</span>
-                          )}
+                          <span className="inline-flex items-center rounded-md border border-border px-1.5 text-[10px] h-4">{n.kind}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {!n.read_at && (
+                        {!n.is_read && (
                           <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => markRead(n.id)} aria-label="تعليم كمقروء">
                             <CheckCheck className="size-3.5" />
                           </Button>

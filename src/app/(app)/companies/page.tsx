@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
-import { Building2, Search, MapPin, Phone, Globe, Star, Users, Briefcase, ExternalLink } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Building2, Search, MapPin, Phone, Globe, Star, Users, Briefcase, ExternalLink, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 
@@ -54,16 +55,46 @@ function Stars({ n }: { n: number }) {
 export default function CompaniesPage() {
   const [q, setQ] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [companies, setCompanies] = useState<Company[]>(COMPANIES);
+  const [open, setOpen] = useState(false);
+
+  const nameRef = useRef<HTMLInputElement>(null);
+  const sectorRef = useRef<HTMLInputElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const websiteRef = useRef<HTMLInputElement>(null);
+  const typeRef = useRef<HTMLSelectElement>(null);
 
   const types = ["all", "شريك", "عميل", "مورّد", "مستثمر"];
 
   const visible = useMemo(() => {
-    return COMPANIES.filter((c) => {
+    return companies.filter((c) => {
       const matchType = typeFilter === "all" || c.type === typeFilter;
       const matchQ = !q.trim() || c.name.includes(q) || c.sector.includes(q) || c.city.includes(q);
       return matchType && matchQ;
     });
-  }, [q, typeFilter]);
+  }, [companies, q, typeFilter]);
+
+  const handleAdd = () => {
+    const name = nameRef.current?.value.trim();
+    if (!name) { toast.error("اسم الشركة مطلوب"); return; }
+    const newCompany: Company = {
+      id: `c${Date.now()}`,
+      name,
+      type: (typeRef.current?.value as Company["type"]) || "شريك",
+      sector: sectorRef.current?.value.trim() || "غير محدد",
+      city: cityRef.current?.value.trim() || "—",
+      phone: phoneRef.current?.value.trim() || "—",
+      website: websiteRef.current?.value.trim() || "—",
+      employees: 0,
+      rating: 0,
+      since: new Date().getFullYear(),
+      active: true,
+    };
+    setCompanies((prev) => [newCompany, ...prev]);
+    toast.success("تمت إضافة الشركة بنجاح");
+    setOpen(false);
+  };
 
   return (
     <div className="p-6 md:p-8 space-y-6" dir="rtl">
@@ -75,16 +106,39 @@ export default function CompaniesPage() {
           </h2>
           <p className="text-sm text-muted-foreground mt-1">شركاء وعملاء وموردو المنشأة</p>
         </div>
-        <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => toast.info("إضافة شركة جديدة — قريباً")}>
-          <Building2 className="size-4" /> إضافة شركة
+        <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => setOpen(true)}>
+          <Plus className="size-4" /> إضافة شركة
         </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent dir="rtl" className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>إضافة شركة جديدة</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 mt-2">
+              <Input ref={nameRef} placeholder="اسم الشركة *" />
+              <select ref={typeRef} defaultValue="شريك" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                <option value="شريك">شريك</option>
+                <option value="عميل">عميل</option>
+                <option value="مورّد">مورّد</option>
+                <option value="مستثمر">مستثمر</option>
+              </select>
+              <Input ref={sectorRef} placeholder="القطاع" />
+              <div className="grid grid-cols-2 gap-2">
+                <Input ref={cityRef} placeholder="المدينة" />
+                <Input ref={phoneRef} placeholder="الهاتف" />
+              </div>
+              <Input ref={websiteRef} placeholder="الموقع الإلكتروني" />
+              <Button className="w-full" onClick={handleAdd}>حفظ الشركة</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {types.slice(1).map((t) => (
           <Card key={t} className="mulki-card p-4 text-center cursor-pointer hover:border-primary/40 transition-colors" onClick={() => setTypeFilter(t)}>
-            <div className="text-2xl font-bold text-primary mb-1">{COMPANIES.filter((c) => c.type === t).length}</div>
+            <div className="text-2xl font-bold text-primary mb-1">{companies.filter((c) => c.type === t).length}</div>
             <div className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium inline-block", TYPE_COLOR[t])}>{t}</div>
           </Card>
         ))}

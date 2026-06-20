@@ -30,10 +30,11 @@ const SOURCE_COLORS: Record<string, string> = {
   system: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
 };
 
-function SourceBadge({ source }: { source: string }) {
+function SourceBadge({ source }: { source: string | null }) {
+  const s = source ?? "system";
   return (
-    <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", SOURCE_COLORS[source] ?? SOURCE_COLORS.system)}>
-      {SOURCE_LABEL[source] ?? source}
+    <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", SOURCE_COLORS[s] ?? SOURCE_COLORS.system)}>
+      {SOURCE_LABEL[s] ?? s}
     </span>
   );
 }
@@ -144,7 +145,7 @@ export default function KnowledgePage() {
       title: form.title,
       source: form.source,
       dept_key: form.dept_key || undefined,
-      raw_text: form.raw_text || undefined,
+      raw_text: form.raw_text || "",
     });
     if (res.ok) {
       toast.success("تمت إضافة الوثيقة بنجاح");

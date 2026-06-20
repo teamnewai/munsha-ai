@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
-import { Presentation, MapPin, Calendar, Users, Globe, ExternalLink, Bookmark, BookmarkCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Presentation, MapPin, Calendar, Users, Globe, ExternalLink, Bookmark, BookmarkCheck, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 
@@ -101,8 +103,44 @@ function formatRange(start: string, end: string) {
 export default function ConferencesPage() {
   const [filter, setFilter] = useState<"all" | "upcoming" | "ongoing" | "past">("all");
   const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [events, setEvents] = useState<Conference[]>(CONFERENCES);
+  const [open, setOpen] = useState(false);
 
-  const visible = filter === "all" ? CONFERENCES : CONFERENCES.filter((c) => c.status === filter);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const orgRef = useRef<HTMLInputElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const countryRef = useRef<HTMLInputElement>(null);
+  const sectorRef = useRef<HTMLInputElement>(null);
+  const startRef = useRef<HTMLInputElement>(null);
+  const endRef = useRef<HTMLInputElement>(null);
+
+  const visible = filter === "all" ? events : events.filter((c) => c.status === filter);
+
+  const handleAdd = () => {
+    const name = nameRef.current?.value.trim();
+    const start = startRef.current?.value;
+    if (!name || !start) { toast.error("الاسم وتاريخ البدء مطلوبان"); return; }
+    const end = endRef.current?.value || start;
+    const now = new Date().toISOString().slice(0, 10);
+    const status: Conference["status"] = start > now ? "upcoming" : end < now ? "past" : "ongoing";
+    const newEvent: Conference = {
+      id: `e${Date.now()}`,
+      name,
+      organizer: orgRef.current?.value.trim() || "—",
+      city: cityRef.current?.value.trim() || "—",
+      country: countryRef.current?.value.trim() || "المملكة العربية السعودية",
+      startDate: start,
+      endDate: end,
+      sector: sectorRef.current?.value.trim() || "عام",
+      attendees: 0,
+      status,
+      website: "—",
+      featured: false,
+    };
+    setEvents((prev) => [newEvent, ...prev]);
+    toast.success("تمت إضافة المؤتمر بنجاح");
+    setOpen(false);
+  };
 
   const toggleSave = (id: string) => {
     setSaved((prev) => {
@@ -123,17 +161,44 @@ export default function ConferencesPage() {
           </h2>
           <p className="text-sm text-muted-foreground mt-1">أبرز الفعاليات والمؤتمرات في قطاع الأعمال</p>
         </div>
-        <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => toast.info("إضافة مؤتمر — قريباً")}>
-          <Presentation className="size-4" /> إضافة مؤتمر
+        <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => setOpen(true)}>
+          <Plus className="size-4" /> إضافة مؤتمر
         </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent dir="rtl" className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>إضافة مؤتمر / فعالية</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 mt-2">
+              <Input ref={nameRef} placeholder="اسم المؤتمر *" />
+              <Input ref={orgRef} placeholder="الجهة المنظّمة" />
+              <Input ref={sectorRef} placeholder="القطاع" />
+              <div className="grid grid-cols-2 gap-2">
+                <Input ref={cityRef} placeholder="المدينة" />
+                <Input ref={countryRef} placeholder="الدولة" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">تاريخ البدء *</label>
+                  <Input ref={startRef} type="date" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">تاريخ الانتهاء</label>
+                  <Input ref={endRef} type="date" />
+                </div>
+              </div>
+              <Button className="w-full" onClick={handleAdd}>حفظ المؤتمر</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {([
-          { label: "القادمة", count: CONFERENCES.filter((c) => c.status === "upcoming").length, color: "text-blue-500", filter: "upcoming" },
-          { label: "جارية الآن", count: CONFERENCES.filter((c) => c.status === "ongoing").length, color: "text-emerald-500", filter: "ongoing" },
-          { label: "المنتهية", count: CONFERENCES.filter((c) => c.status === "past").length, color: "text-muted-foreground", filter: "past" },
+          { label: "القادمة", count: events.filter((c) => c.status === "upcoming").length, color: "text-blue-500", filter: "upcoming" },
+          { label: "جارية الآن", count: events.filter((c) => c.status === "ongoing").length, color: "text-emerald-500", filter: "ongoing" },
+          { label: "المنتهية", count: events.filter((c) => c.status === "past").length, color: "text-muted-foreground", filter: "past" },
         ] as const).map((s) => (
           <Card
             key={s.label}
@@ -167,7 +232,7 @@ export default function ConferencesPage() {
         <div>
           <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">مميزة</h3>
           <div className="grid md:grid-cols-2 gap-4">
-            {CONFERENCES.filter((c) => c.featured).map((c) => (
+            {events.filter((c) => c.featured).map((c) => (
               <Card key={c.id} className="mulki-card p-5 border-primary/30 bg-primary/5 relative overflow-hidden">
                 <div className="absolute top-3 left-3">
                   <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-medium", STATUS_COLOR[c.status])}>

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getMarketServices, type MarketService } from "@/app/actions/org";
 import { toast } from "@/lib/toast";
 import { ShoppingBag, Plus, Tag, Package, Loader2, Search, RefreshCw, Star } from "lucide-react";
@@ -74,12 +74,10 @@ export default function MarketplacePage() {
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
             <RefreshCw className={cn("size-4", loading && "animate-spin")} />
           </Button>
+          <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => setOpen(true)}>
+            <Plus className="size-4" /> نشر خدمة جديدة
+          </Button>
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="mulki-gold-bg gap-1">
-                <Plus className="size-4" /> نشر خدمة جديدة
-              </Button>
-            </DialogTrigger>
             <DialogContent dir="rtl" className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>نشر خدمة جديدة</DialogTitle>

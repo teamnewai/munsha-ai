@@ -123,11 +123,9 @@ export default function MeetingsPage() {
       toast.error("عنوان الاجتماع مطلوب");
       return;
     }
+    if (!form.date) { toast.error("التاريخ مطلوب"); return; }
     setSaving(true);
-    let starts_at: string | undefined;
-    if (form.date) {
-      starts_at = form.time ? `${form.date}T${form.time}` : form.date;
-    }
+    const starts_at = form.time ? `${form.date}T${form.time}` : form.date;
     const res = await createMeeting({
       title: form.title,
       description: form.description || undefined,

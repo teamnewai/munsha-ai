@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
-import { Network, Search, MapPin, Briefcase, Star, MessageSquare, UserPlus, Globe } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Network, Search, MapPin, Star, MessageSquare, UserPlus, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 
@@ -78,6 +79,34 @@ export default function NetworkPage() {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"all" | "connected">("all");
   const [contacts, setContacts] = useState<Contact[]>(CONTACTS);
+  const [open, setOpen] = useState(false);
+
+  const nameRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const companyRef = useRef<HTMLInputElement>(null);
+  const sectorRef = useRef<HTMLInputElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const specRef = useRef<HTMLInputElement>(null);
+
+  const handleAdd = () => {
+    const name = nameRef.current?.value.trim();
+    if (!name) { toast.error("الاسم مطلوب"); return; }
+    const newContact: Contact = {
+      id: `p${Date.now()}`,
+      name,
+      title: titleRef.current?.value.trim() || "—",
+      company: companyRef.current?.value.trim() || "—",
+      sector: sectorRef.current?.value.trim() || "عام",
+      city: cityRef.current?.value.trim() || "—",
+      specialty: (specRef.current?.value.trim() || "").split("،").map((s) => s.trim()).filter(Boolean),
+      rating: 0,
+      connected: true,
+      avatar: name.slice(0, 1),
+    };
+    setContacts((prev) => [newContact, ...prev]);
+    toast.success("تمت إضافة جهة الاتصال بنجاح");
+    setOpen(false);
+  };
 
   const visible = useMemo(() => {
     const base = tab === "connected" ? contacts.filter((c) => c.connected) : contacts;
@@ -113,9 +142,27 @@ export default function NetworkPage() {
           </h2>
           <p className="text-sm text-muted-foreground mt-1">{connected} متواصل · {contacts.length} جهة اتصال</p>
         </div>
-        <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => toast.info("إضافة جهة اتصال — قريباً")}>
+        <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => setOpen(true)}>
           <UserPlus className="size-4" /> إضافة جهة اتصال
         </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent dir="rtl" className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>إضافة جهة اتصال</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 mt-2">
+              <Input ref={nameRef} placeholder="الاسم *" />
+              <Input ref={titleRef} placeholder="المسمى الوظيفي" />
+              <Input ref={companyRef} placeholder="الشركة" />
+              <div className="grid grid-cols-2 gap-2">
+                <Input ref={sectorRef} placeholder="القطاع" />
+                <Input ref={cityRef} placeholder="المدينة" />
+              </div>
+              <Input ref={specRef} placeholder="التخصصات (افصل بفاصلة ، )" />
+              <Button className="w-full" onClick={handleAdd}>حفظ جهة الاتصال</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats */}

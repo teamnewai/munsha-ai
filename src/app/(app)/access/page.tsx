@@ -30,9 +30,9 @@ export default function AccessPage() {
   const [showRequestUp, setShowRequestUp] = useState(false);
 
   function doEnter(e: Entity) {
-    enterAs(e.name, e.role);
+    enterAs(e.name, e.role, e.kind, e.id);
     toast.success(`دخلت بصلاحيات: ${e.name}`);
-    router.push("/command-center");
+    router.push(`/workspace/${e.id}`);
   }
 
   function grantCount(id: string) {

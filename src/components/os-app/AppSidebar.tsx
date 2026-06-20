@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { navForRole, deriveRole, ROLE_LABEL } from "@/lib/workspace";
 import {
   LayoutDashboard, Building2, Users, Workflow, Sparkles, Calendar,
   Brain, Store, Network, Presentation, Briefcase, Settings, Crown, Shield, Handshake,
@@ -35,19 +37,47 @@ const nav: NavItem[] = [
   { to: "/security-audit", label: "التدقيق الأمني", icon: Shield },
 ];
 
+type Acting = { name: string; role: string; kind?: string; id?: string };
+
 export function AppSidebar() {
   const path = usePathname() ?? "";
+  const [acting, setActing] = useState<Acting | null>(null);
+
+  useEffect(() => {
+    const read = () => {
+      try {
+        const raw = localStorage.getItem("mulki:acting");
+        setActing(raw ? (JSON.parse(raw) as Acting) : null);
+      } catch { setActing(null); }
+    };
+    read();
+    window.addEventListener("mulki:acting", read);
+    window.addEventListener("storage", read);
+    return () => {
+      window.removeEventListener("mulki:acting", read);
+      window.removeEventListener("storage", read);
+    };
+  }, []);
+
+  // القائمة الجانبية الديناميكية: كاملة للمالك، ومحدودة بالدور عند التصفّح بصلاحيات كيان
+  const role = acting ? deriveRole(acting.kind, acting.role) : "owner";
+  const items: NavItem[] = acting
+    ? navForRole(role, acting.id ? `/workspace/${acting.id}` : "/command-center")
+    : nav;
+
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col border-s border-sidebar-border bg-sidebar">
       <Link href="/command-center" className="flex items-center gap-2 px-5 py-5 border-b border-sidebar-border">
         <div className="size-9 rounded-lg mulki-gold-bg flex items-center justify-center font-display font-bold text-lg shadow-lg">M</div>
         <div className="leading-tight">
           <div className="font-display font-semibold tracking-tight">مُلكي OS</div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">نظام تشغيل المؤسسات</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {acting ? `قائمة: ${ROLE_LABEL[role]}` : "نظام تشغيل المؤسسات"}
+          </div>
         </div>
       </Link>
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-        {nav.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const active = path.startsWith(item.to);
           return (

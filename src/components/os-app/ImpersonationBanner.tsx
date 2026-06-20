@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { UserCog, LogOut } from "lucide-react";
 
 const KEY = "mulki:acting";
-type Acting = { name: string; role: string };
+type Acting = { name: string; role: string; kind?: string; id?: string };
 
 // تُستدعى من وحدة التحكم للدخول بصلاحيات كيان آخر (الدخول كـ / Impersonation)
-export function enterAs(name: string, role: string) {
-  localStorage.setItem(KEY, JSON.stringify({ name, role }));
+export function enterAs(name: string, role: string, kind?: string, id?: string) {
+  localStorage.setItem(KEY, JSON.stringify({ name, role, kind, id }));
   window.dispatchEvent(new Event("mulki:acting"));
 }
 

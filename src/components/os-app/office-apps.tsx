@@ -6,7 +6,8 @@ import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/lib/toast";
-import { Calculator as CalcIcon, StickyNote, LayoutDashboard, Calendar as CalIcon, Mic, Eraser, Trash2 } from "lucide-react";
+import { Calculator as CalcIcon, StickyNote, LayoutDashboard, Calendar as CalIcon, Mic, Eraser, Trash2, Loader2 } from "lucide-react";
+import { getUserNotes, addUserNote, deleteUserNote, type NoteRow } from "@/app/actions/user-notes";
 
 export type OfficeAppId =
   | "calculator" | "notes" | "whiteboard" | "date-calc" | "voice-memo"
@@ -89,29 +90,48 @@ function CalculatorApp() {
 }
 
 function NotesApp() {
-  const [notes, setNotes] = useState<string[]>([]);
+  const [notes, setNotes] = useState<NoteRow[]>([]);
   const [text, setText] = useState("");
-  useEffect(() => { try { setNotes(JSON.parse(localStorage.getItem("mulki:notes") ?? "[]")); } catch { /* ignore */ } }, []);
-  const save = () => {
+  const [loadingNotes, setLoadingNotes] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getUserNotes().then((r) => { setNotes(r.notes); setLoadingNotes(false); });
+  }, []);
+
+  const save = async () => {
     if (!text.trim()) return;
-    const next = [text.trim(), ...notes].slice(0, 50);
-    setNotes(next); localStorage.setItem("mulki:notes", JSON.stringify(next)); setText("");
-    toast.success("تم حفظ الملاحظة");
+    setSaving(true);
+    const res = await addUserNote(text.trim());
+    setSaving(false);
+    if (res.ok && res.note) {
+      setNotes((prev) => [res.note!, ...prev]);
+      setText("");
+      toast.success("تم حفظ الملاحظة");
+    } else {
+      toast.error(res.error || "تعذّر الحفظ");
+    }
   };
-  const remove = (i: number) => {
-    const next = notes.filter((_, idx) => idx !== i);
-    setNotes(next); localStorage.setItem("mulki:notes", JSON.stringify(next));
+
+  const remove = async (id: string) => {
+    setNotes((prev) => prev.filter((n) => n.id !== id));
+    await deleteUserNote(id);
   };
+
   return (
     <div className="space-y-3">
       <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="اكتب ملاحظتك..." rows={3} />
-      <Button onClick={save} className="w-full"><StickyNote className="size-4 ml-1" /> حفظ</Button>
+      <Button onClick={save} className="w-full" disabled={saving}>
+        {saving ? <Loader2 className="size-4 animate-spin ml-1" /> : <StickyNote className="size-4 ml-1" />}
+        حفظ
+      </Button>
       <div className="space-y-2 max-h-64 overflow-auto">
-        {notes.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">لا توجد ملاحظات بعد</p>}
-        {notes.map((n, i) => (
-          <div key={i} className="rounded-lg border p-3 text-sm flex items-start justify-between gap-2">
-            <span className="flex-1 whitespace-pre-wrap">{n}</span>
-            <Button size="icon" variant="ghost" onClick={() => remove(i)} className="h-7 w-7"><Trash2 className="size-3.5 text-destructive" /></Button>
+        {loadingNotes && <p className="text-sm text-muted-foreground text-center py-4"><Loader2 className="size-4 animate-spin inline-block" /></p>}
+        {!loadingNotes && notes.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">لا توجد ملاحظات بعد</p>}
+        {notes.map((n) => (
+          <div key={n.id} className="rounded-lg border p-3 text-sm flex items-start justify-between gap-2">
+            <span className="flex-1 whitespace-pre-wrap">{n.content}</span>
+            <Button size="icon" variant="ghost" onClick={() => remove(n.id)} className="h-7 w-7"><Trash2 className="size-3.5 text-destructive" /></Button>
           </div>
         ))}
       </div>

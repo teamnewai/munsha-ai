@@ -18,6 +18,7 @@ const nav: NavItem[] = [
   { to: "/units", label: "الوحدات والفرق", icon: Network },
   { to: "/people", label: "الموظفون والوكلاء", icon: Users },
   { to: "/permissions", label: "الصلاحيات", icon: KeyRound },
+  { to: "/access", label: "وحدة الوصول (المالك)", icon: Crown },
   { to: "/access-requests", label: "طلبات الوصول", icon: ShieldCheck },
   { to: "/forms", label: "النماذج والاستمارات", icon: FileText },
   { to: "/workflows", label: "المعاملات والاعتمادات", icon: Workflow },

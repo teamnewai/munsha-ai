@@ -1,8 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const ORG_ID = "913b770d-4eee-4c65-8f89-8781f6593b3a";
+import { getCurrentOrgIdOrFallback } from "@/lib/org-context";
 
 export type Grant = { granted: boolean; delegate: boolean };
 export type PermMap = Record<string, Grant>;
@@ -34,9 +33,10 @@ function normalizePerms(raw: unknown): PermMap {
 export async function getOrgGroups(): Promise<{ ok: boolean; groups: RealGroup[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, groups: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const [depRes, memRes] = await Promise.all([
-    sb.from("org_departments").select("dept_key,name,color").eq("active", true).order("sort"),
-    sb.from("dept_members").select("id,full_name,job_title,role_in_dept,dept_key,perms,suspended").order("role_in_dept"),
+    sb.from("org_departments").select("dept_key,name,color").eq("org_id", ORG_ID).eq("active", true).order("sort"),
+    sb.from("dept_members").select("id,full_name,job_title,role_in_dept,dept_key,perms,suspended").eq("org_id", ORG_ID).order("role_in_dept"),
   ]);
   const deps = (depRes.data ?? []) as { dept_key: string; name: string; color: string | null }[];
   const mems = (memRes.data ?? []) as {
@@ -63,26 +63,30 @@ export async function getOrgGroups(): Promise<{ ok: boolean; groups: RealGroup[]
 export async function setMemberPerms(id: string, perms: PermMap): Promise<{ ok: boolean; error?: string }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
-  const { error } = await sb.from("dept_members").update({ perms }).eq("id", id);
+  const ORG_ID = await getCurrentOrgIdOrFallback();
+  const { error } = await sb.from("dept_members").update({ perms }).eq("id", id).eq("org_id", ORG_ID);
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 export async function setMemberSuspended(id: string, suspended: boolean): Promise<{ ok: boolean; error?: string }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { error } = await sb
     .from("dept_members")
     .update({ suspended, status: suspended ? "suspended" : "active", suspended_at: suspended ? new Date().toISOString() : null })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("org_id", ORG_ID);
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 export async function getMemberById(id: string): Promise<{ ok: boolean; member?: RealMember & { dept: string; color: string } }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const [memRes, deptRes] = await Promise.all([
-    sb.from("dept_members").select("id,full_name,email,job_title,role_in_dept,dept_key,perms,suspended").eq("id", id).maybeSingle(),
-    sb.from("org_departments").select("dept_key,name,color").eq("active", true),
+    sb.from("dept_members").select("id,full_name,email,job_title,role_in_dept,dept_key,perms,suspended").eq("id", id).eq("org_id", ORG_ID).maybeSingle(),
+    sb.from("org_departments").select("dept_key,name,color").eq("org_id", ORG_ID).eq("active", true),
   ]);
   if (!memRes.data) return { ok: false };
   const m = memRes.data as { id: string; full_name: string; email?: string; job_title: string | null; role_in_dept: string; dept_key: string; perms: unknown; suspended: boolean };
@@ -106,6 +110,7 @@ export async function getMemberById(id: string): Promise<{ ok: boolean; member?:
 export async function getAccessRequests(): Promise<{ ok: boolean; requests: RealAccessRequest[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, requests: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { data, error } = await sb
     .from("data_access_requests")
     .select("id,subject_ref,data_scope,reason,status,created_at")
@@ -129,6 +134,7 @@ export async function getAccessRequests(): Promise<{ ok: boolean; requests: Real
 export async function createAccessRequest(input: { from: string; scope: string; reason: string }): Promise<{ ok: boolean; error?: string }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { error } = await sb.from("data_access_requests").insert({
     org_id: ORG_ID,
     subject_ref: input.from,
@@ -142,13 +148,15 @@ export async function createAccessRequest(input: { from: string; scope: string; 
 export async function decideAccessRequest(id: string, decision: "approved" | "rejected"): Promise<{ ok: boolean; error?: string }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
-  const { error } = await sb.from("data_access_requests").update({ status: decision }).eq("id", id);
+  const ORG_ID = await getCurrentOrgIdOrFallback();
+  const { error } = await sb.from("data_access_requests").update({ status: decision }).eq("id", id).eq("org_id", ORG_ID);
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 export async function getSecretaryMessages(): Promise<{ ok: boolean; messages: SecretaryMessage[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, messages: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { data, error } = await sb
     .from("secretary_reports")
     .select("id,data,narrative,created_at")
@@ -172,6 +180,7 @@ export async function getSecretaryMessages(): Promise<{ ok: boolean; messages: S
 export async function sendSecretaryMessage(input: { from: string; subject: string; body: string }): Promise<{ ok: boolean; error?: string }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { error } = await sb.from("secretary_reports").insert({
     org_id: ORG_ID,
     period: "message",

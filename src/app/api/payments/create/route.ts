@@ -1,9 +1,8 @@
 import { createPayment, activeProvider } from "@/lib/payments";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentOrgIdOrFallback } from "@/lib/org-context";
 
 export const runtime = "nodejs";
-
-const ORG_ID = "913b770d-4eee-4c65-8f89-8781f6593b3a";
 
 // إنشاء عملية دفع: يسجّل صفّاً في billing_payments ثم يعيد رابط الدفع من المزوّد.
 export async function POST(req: Request) {
@@ -34,6 +33,7 @@ export async function POST(req: Request) {
   // سجّل العملية كـ pending
   const sb = createAdminClient();
   if (sb) {
+    const ORG_ID = await getCurrentOrgIdOrFallback();
     await sb.from("billing_payments").insert({
       org_id: ORG_ID,
       item_key: itemKey,

@@ -1,9 +1,8 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentOrgIdOrFallback } from "@/lib/org-context";
 import { Resend } from "resend";
-
-const ORG_ID = "913b770d-4eee-4c65-8f89-8781f6593b3a";
 
 export type EmailSettings = {
   enabled: boolean;
@@ -15,6 +14,7 @@ export type EmailSettings = {
 export async function saveEmailSettings(settings: EmailSettings): Promise<{ ok: boolean; error?: string }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { data: existing } = await sb
     .from("secretary_reports")
@@ -43,6 +43,7 @@ export async function saveEmailSettings(settings: EmailSettings): Promise<{ ok: 
 export async function loadEmailSettings(): Promise<{ ok: boolean; settings?: EmailSettings }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { data } = await sb
     .from("secretary_reports")

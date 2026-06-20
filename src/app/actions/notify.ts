@@ -1,9 +1,8 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentOrgIdOrFallback } from "@/lib/org-context";
 import { sendEmail, notificationEmailHtml } from "@/lib/email";
-
-const ORG_ID = "913b770d-4eee-4c65-8f89-8781f6593b3a";
 
 export type NotifKind = "info" | "request" | "payment" | "maintenance" | "contract" | "alert";
 
@@ -16,6 +15,7 @@ export async function createNotification(input: {
 }): Promise<{ ok: boolean; emailed: boolean; error?: string }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, emailed: false, error: "قاعدة البيانات غير مهيّأة" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { error } = await sb.from("notifications").insert({
     org_id: ORG_ID,

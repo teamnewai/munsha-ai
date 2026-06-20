@@ -1,8 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const ORG_ID = "913b770d-4eee-4c65-8f89-8781f6593b3a";
+import { getCurrentOrgIdOrFallback } from "@/lib/org-context";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,6 +55,7 @@ function color(c: string | null): string {
 export async function getOrgStructure(): Promise<OrgStructure> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, depts: [], sections: [], roles: [], membersByDept: {} };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const [depRes, secRes, roleRes, memRes] = await Promise.all([
     sb.from("org_departments").select("id,dept_key,name,color,mission,staff_count,open_tasks,done_tasks,perf,sort").eq("org_id", ORG_ID).eq("active", true).order("sort"),
@@ -88,8 +88,9 @@ export async function getOrgStructure(): Promise<OrgStructure> {
 export async function getRoleById(id: string): Promise<{ ok: boolean; role?: StructRole & { deptName: string }; holders: { id: string; name: string; present: boolean }[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, holders: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
-  const { data: r } = await sb.from("org_roles").select("id,dept_key,section_name,title,purpose,reports_to,qualifications,duties,perms,kpis").eq("id", id).maybeSingle();
+  const { data: r } = await sb.from("org_roles").select("id,dept_key,section_name,title,purpose,reports_to,qualifications,duties,perms,kpis").eq("id", id).eq("org_id", ORG_ID).maybeSingle();
   if (!r) return { ok: false, holders: [] };
 
   const [{ data: dept }, { data: members }] = await Promise.all([
@@ -118,9 +119,10 @@ export async function getRoleById(id: string): Promise<{ ok: boolean; role?: Str
 export async function getSectionDetail(id: string): Promise<{ ok: boolean; section?: { name: string; deptKey: string; deptName: string; deptColor: string }; members: { id: string; name: string; title: string; present: boolean }[]; roles: { id: string; title: string }[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, members: [], roles: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   // id may be a section uuid or a "deptKey" fallback
-  let sec = (await sb.from("org_sections").select("name,dept_key").eq("id", id).maybeSingle()).data as { name: string; dept_key: string } | null;
+  let sec = (await sb.from("org_sections").select("name,dept_key").eq("id", id).eq("org_id", ORG_ID).maybeSingle()).data as { name: string; dept_key: string } | null;
   if (!sec) {
     // fallback: treat id as dept_key, pick its first section
     sec = (await sb.from("org_sections").select("name,dept_key").eq("org_id", ORG_ID).eq("dept_key", id).order("sort").limit(1).maybeSingle()).data as { name: string; dept_key: string } | null;
@@ -151,6 +153,7 @@ export async function getReportsData(): Promise<{
 }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, totals: { members: 0, depts: 0, openTasks: 0, doneTasks: 0, avgPerf: 0 }, deptPerf: [], activity: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const [{ data: depts }, { count: memCount }, { count: svcCount }, { count: notifCount }, { count: meetCount }, { count: accessCount }, { count: formCount }] = await Promise.all([
     sb.from("org_departments").select("name,color,open_tasks,done_tasks,perf").eq("org_id", ORG_ID).eq("active", true).order("sort"),
@@ -188,6 +191,7 @@ export type ServiceReq = { id: string; category: string; faultType: string | nul
 export async function getServiceRequests(): Promise<{ ok: boolean; requests: ServiceReq[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, requests: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { data, error } = await sb.from("service_requests").select("id,category,fault_type,details,status,created_at").eq("org_id", ORG_ID).order("created_at", { ascending: false });
   if (error) return { ok: false, requests: [] };
   return {
@@ -202,6 +206,7 @@ export async function getServiceRequests(): Promise<{ ok: boolean; requests: Ser
 export async function createServiceRequest(input: { category: string; faultType?: string; details: string }): Promise<{ ok: boolean; error?: string }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { error } = await sb.from("service_requests").insert({ org_id: ORG_ID, category: input.category, fault_type: input.faultType ?? null, details: input.details, status: "new" });
   return error ? { ok: false, error: error.message } : { ok: true };
 }
@@ -214,6 +219,7 @@ export type FormEntry = { id: string; dept_key: string; title: string; status: s
 export async function getForms(): Promise<{ ok: boolean; templates: FormTemplate[]; entries: FormEntry[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, templates: [], entries: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const [tRes, eRes] = await Promise.all([
     sb.from("dept_form_templates").select("id,dept_key,title,description,fields,active").eq("org_id", ORG_ID).order("sort"),
     sb.from("dept_form_entries").select("id,dept_key,title,status,doc_no,created_at").eq("org_id", ORG_ID).order("created_at", { ascending: false }),
@@ -232,6 +238,7 @@ export type WorkflowRule = { id: string; rule_key: string; enabled: boolean };
 export async function getWorkflowRules(): Promise<{ ok: boolean; rules: WorkflowRule[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, rules: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { data, error } = await sb.from("automation_rules").select("id,rule_key,enabled").eq("org_id", ORG_ID).order("created_at");
   if (error) return { ok: false, rules: [] };
   return { ok: true, rules: (data ?? []).map((r) => ({ id: r.id, rule_key: r.rule_key, enabled: !!r.enabled })) };
@@ -240,7 +247,8 @@ export async function getWorkflowRules(): Promise<{ ok: boolean; rules: Workflow
 export async function toggleWorkflowRule(id: string, enabled: boolean): Promise<{ ok: boolean }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false };
-  const { error } = await sb.from("automation_rules").update({ enabled }).eq("id", id);
+  const ORG_ID = await getCurrentOrgIdOrFallback();
+  const { error } = await sb.from("automation_rules").update({ enabled }).eq("id", id).eq("org_id", ORG_ID);
   return { ok: !error };
 }
 
@@ -252,6 +260,7 @@ export type PermSuspension = { id: string; scope: string; target: string; action
 export async function getPermissionsData(): Promise<{ ok: boolean; catalog: PermRef[]; suspensions: PermSuspension[]; members: { id: string; name: string; dept_key: string; grantCount: number }[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, catalog: [], suspensions: [], members: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const [cRes, sRes, mRes] = await Promise.all([
     sb.from("dept_permissions_ref").select("perm_key,label_ar").order("perm_key"),
     sb.from("permission_suspensions").select("id,scope,target,action,reason,created_at").eq("org_id", ORG_ID).order("created_at", { ascending: false }),
@@ -279,6 +288,7 @@ export type AccessReqRow = { id: string; from: string; scope: string; reason: st
 export async function getAllAccessRequests(): Promise<{ ok: boolean; requests: AccessReqRow[] }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, requests: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const { data, error } = await sb
     .from("data_access_requests")
     .select("id,subject_ref,data_scope,reason,status,current_stage,total_stages,created_at")
@@ -298,7 +308,8 @@ export async function getAllAccessRequests(): Promise<{ ok: boolean; requests: A
 export async function decideAccessReq(id: string, decision: "approved" | "rejected"): Promise<{ ok: boolean }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false };
-  const { error } = await sb.from("data_access_requests").update({ status: decision }).eq("id", id);
+  const ORG_ID = await getCurrentOrgIdOrFallback();
+  const { error } = await sb.from("data_access_requests").update({ status: decision }).eq("id", id).eq("org_id", ORG_ID);
   return { ok: !error };
 }
 
@@ -309,6 +320,7 @@ export type AuditEntry = { id: string; action: string; table_name: string | null
 export async function getGovernanceData(): Promise<{ ok: boolean; audits: AuditEntry[]; counts: { audits: number; approvals: number; suspensions: number; accessReqs: number } }> {
   const sb = createAdminClient();
   if (!sb) return { ok: false, audits: [], counts: { audits: 0, approvals: 0, suspensions: 0, accessReqs: 0 } };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
   const [aRes, { count: apprCount }, { count: suspCount }, { count: accCount }] = await Promise.all([
     sb.from("audit_log").select("id,action,table_name,meta,created_at").eq("org_id", ORG_ID).order("created_at", { ascending: false }).limit(50),
     sb.from("approvals").select("*", { count: "exact", head: true }).eq("org_id", ORG_ID),

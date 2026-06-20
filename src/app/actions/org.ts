@@ -1,8 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const ORG_ID = "913b770d-4eee-4c65-8f89-8781f6593b3a";
+import { getCurrentOrgIdOrFallback } from "@/lib/org-context";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -78,6 +77,7 @@ export async function getOrgMembers(): Promise<{
 }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false, members: [], depts: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const [membersRes, deptsRes] = await Promise.all([
     supabase
@@ -126,6 +126,7 @@ export async function getOrgMembers(): Promise<{
 export async function getDeptByKey(key: string): Promise<{ ok: boolean; dept?: DeptDetail }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const [deptRes, membersRes] = await Promise.all([
     supabase
@@ -179,6 +180,7 @@ export async function getDeptByKey(key: string): Promise<{ ok: boolean; dept?: D
 export async function getNotificationsData(): Promise<{ ok: boolean; items: NotifItem[] }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false, items: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { data, error } = await supabase
     .from("notifications")
@@ -228,6 +230,7 @@ export async function markNotificationRead(id: string): Promise<{ ok: boolean }>
 export async function getMeetings(): Promise<{ ok: boolean; meetings: Meeting[] }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false, meetings: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { data, error } = await supabase
     .from("appointments")
@@ -266,6 +269,7 @@ export async function createMeeting(input: {
 }): Promise<{ ok: boolean; error?: string }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false, error: "no supabase client" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { error } = await supabase.from("appointments").insert({
     org_id: ORG_ID,
@@ -291,6 +295,7 @@ export async function createMeeting(input: {
 export async function getKnowledgeDocs(): Promise<{ ok: boolean; docs: KnowledgeDoc[] }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false, docs: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { data, error } = await supabase
     .from("knowledge_documents")
@@ -326,6 +331,7 @@ export async function addKnowledgeDoc(input: {
 }): Promise<{ ok: boolean; error?: string }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false, error: "no supabase client" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { error } = await supabase.from("knowledge_documents").insert({
     org_id: ORG_ID,
@@ -349,6 +355,7 @@ export async function addKnowledgeDoc(input: {
 export async function getMarketServices(): Promise<{ ok: boolean; services: MarketService[] }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false, services: [] };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { data, error } = await supabase
     .from("market_services")
@@ -385,6 +392,7 @@ export async function publishMarketService(input: {
 }): Promise<{ ok: boolean; error?: string }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { error } = await supabase.from("market_services").insert({
     org_id: ORG_ID,

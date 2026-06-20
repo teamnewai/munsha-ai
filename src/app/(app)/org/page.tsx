@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
+import { getOrgStructure } from "@/app/actions/structure";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -144,15 +145,42 @@ function asArr(x: string[] | undefined): string[] {
 type TabKey = "tree" | "departments" | "sections" | "roles" | "duties" | "permissions" | "cycles" | "policies" | "governance";
 
 export default function OrgPage() {
-  const depts = DEPTS;
-  const secs = SECS;
-  const roles = ROLES;
+  const [depts, setDepts] = useState<Dept[]>([]);
+  const [secs, setSecs] = useState<Sec[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [live, setLive] = useState(false);
+  // ثانوية: تكتمل في صفحاتها المخصّصة (/permissions /forms /governance)
   const permSets = PERM_SETS;
   const permItems = PERM_ITEMS;
   const perms = PERMS;
   const cycles = CYCLES;
   const policies = POLICIES;
   const authority = AUTHORITY;
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const s = await getOrgStructure();
+      if (!alive) return;
+      if (s.ok) {
+        setDepts(s.depts.map((d) => ({ id: d.key, name: d.name, mission: d.mission })));
+        setSecs(s.sections.map((x, i) => ({ id: `${x.dept_key}-sec-${i}`, department_id: x.dept_key, name: x.name, description: null })));
+        setRoles(s.roles.map((r) => ({
+          id: r.id, department_id: r.dept_key, title: r.title,
+          level: r.reports_to ? `يرفع إلى ${r.reports_to}` : null,
+          mission: r.purpose, default_assignee: "human" as const,
+          responsibilities: r.duties, kpis: r.kpis,
+        })));
+        setLive(true);
+      } else {
+        // تراجع آمن إلى بيانات العرض إن لم تتوفر قاعدة البيانات
+        setDepts(DEPTS); setSecs(SECS); setRoles(ROLES);
+      }
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, []);
 
   const [tab, setTab] = useState<TabKey>("tree");
 
@@ -176,12 +204,16 @@ export default function OrgPage() {
           <p className="text-sm text-muted-foreground">المخطط الحي لمؤسستك.</p>
         </div>
         <div className="flex items-center gap-3">
+          {live && <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px]"><span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" /> بيانات حقيقية</span>}
           <div className="text-sm text-muted-foreground">{depts.length} إدارة · {roles.length} دور</div>
           <GenerateFullButton hasData={depts.length > 0} />
         </div>
       </div>
 
-      <OrgOverviewCanvas depts={depts} secs={secs} roles={roles} />
+      {loading ? (
+        <Card className="mulki-card p-12 text-center text-muted-foreground">جاري تحميل الهيكل التنظيمي…</Card>
+      ) : (
+      <OrgOverviewCanvas depts={depts} secs={secs} roles={roles} />)}
 
       <div className="space-y-4">
         <div className="flex flex-wrap h-auto gap-1 rounded-lg bg-muted p-1">

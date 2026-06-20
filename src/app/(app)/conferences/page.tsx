@@ -1,16 +1,246 @@
+"use client";
+
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
+import { Button } from "@/components/uikit/button";
+import { Presentation, MapPin, Calendar, Users, Globe, ExternalLink, Bookmark, BookmarkCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
+
+type Conference = {
+  id: string;
+  name: string;
+  organizer: string;
+  city: string;
+  country: string;
+  startDate: string;
+  endDate: string;
+  sector: string;
+  attendees: number;
+  status: "upcoming" | "ongoing" | "past";
+  website: string;
+  featured: boolean;
+};
+
+const CONFERENCES: Conference[] = [
+  {
+    id: "e1",
+    name: "قمة الابتكار الرقمي السعودي 2026",
+    organizer: "وزارة الاتصالات وتقنية المعلومات",
+    city: "الرياض", country: "المملكة العربية السعودية",
+    startDate: "2026-09-15", endDate: "2026-09-17",
+    sector: "التقنية والرقمنة",
+    attendees: 5000,
+    status: "upcoming", website: "digital-summit.sa", featured: true,
+  },
+  {
+    id: "e2",
+    name: "مؤتمر الاستثمار المالي الخليجي",
+    organizer: "اتحاد المصارف الخليجية",
+    city: "دبي", country: "الإمارات العربية المتحدة",
+    startDate: "2026-10-08", endDate: "2026-10-10",
+    sector: "المال والاستثمار",
+    attendees: 3200,
+    status: "upcoming", website: "gulf-finance-conf.ae", featured: false,
+  },
+  {
+    id: "e3",
+    name: "ملتقى الموارد البشرية العربي",
+    organizer: "مجلس الموارد البشرية",
+    city: "الرياض", country: "المملكة العربية السعودية",
+    startDate: "2026-07-20", endDate: "2026-07-21",
+    sector: "الموارد البشرية",
+    attendees: 1800,
+    status: "upcoming", website: "hr-summit.sa", featured: false,
+  },
+  {
+    id: "e4",
+    name: "معرض ومؤتمر المقاولات والبناء 2026",
+    organizer: "الهيئة السعودية للمقاولين",
+    city: "جدة", country: "المملكة العربية السعودية",
+    startDate: "2026-06-22", endDate: "2026-06-24",
+    sector: "الإنشاء والتطوير",
+    attendees: 4500,
+    status: "ongoing", website: "build-expo.sa", featured: true,
+  },
+  {
+    id: "e5",
+    name: "قمة التسويق الرقمي",
+    organizer: "جمعية التسويق العربي",
+    city: "القاهرة", country: "مصر",
+    startDate: "2026-04-10", endDate: "2026-04-11",
+    sector: "التسويق",
+    attendees: 2100,
+    status: "past", website: "digital-mktg.ae", featured: false,
+  },
+  {
+    id: "e6",
+    name: "مؤتمر رؤية 2030 للابتكار",
+    organizer: "مركز محمد بن سلمان للريادة",
+    city: "الرياض", country: "المملكة العربية السعودية",
+    startDate: "2026-03-05", endDate: "2026-03-07",
+    sector: "الريادة والابتكار",
+    attendees: 8000,
+    status: "past", website: "vision2030-summit.sa", featured: false,
+  },
+];
+
+const STATUS_LABEL: Record<string, string> = { upcoming: "قادم", ongoing: "جارٍ الآن", past: "منتهي" };
+const STATUS_COLOR: Record<string, string> = {
+  upcoming: "bg-blue-500/15 text-blue-500",
+  ongoing: "bg-emerald-500/15 text-emerald-500",
+  past: "bg-muted text-muted-foreground",
+};
+
+function formatRange(start: string, end: string) {
+  const s = new Date(start).toLocaleDateString("ar-SA", { day: "numeric", month: "short" });
+  const e = new Date(end).toLocaleDateString("ar-SA", { day: "numeric", month: "short", year: "numeric" });
+  return `${s} — ${e}`;
+}
 
 export default function ConferencesPage() {
+  const [filter, setFilter] = useState<"all" | "upcoming" | "ongoing" | "past">("all");
+  const [saved, setSaved] = useState<Set<string>>(new Set());
+
+  const visible = filter === "all" ? CONFERENCES : CONFERENCES.filter((c) => c.status === filter);
+
+  const toggleSave = (id: string) => {
+    setSaved((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); toast.info("تم إلغاء الحفظ"); }
+      else { next.add(id); toast.success("تم حفظ المؤتمر"); }
+      return next;
+    });
+  };
+
   return (
-    <div className="p-6 md:p-8">
-      <Card className="mulki-card p-12 text-center">
-        <Sparkles className="size-10 text-primary mx-auto mb-4" />
-        <h2 className="font-display text-2xl font-semibold mb-2">المؤتمرات</h2>
-        <p className="text-muted-foreground max-w-md mx-auto">
-          هذه الوحدة ستُطلَق في مرحلة قادمة من مُلكي OS. البنية البيانية والصلاحيات جاهزة — وستلحقها واجهة الاستخدام وتنسيق الذكاء الاصطناعي.
-        </p>
-      </Card>
+    <div className="p-6 md:p-8 space-y-6" dir="rtl">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-semibold flex items-center gap-2">
+            <Presentation className="size-6 text-primary" /> المؤتمرات والملتقيات
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">أبرز الفعاليات والمؤتمرات في قطاع الأعمال</p>
+        </div>
+        <Button size="sm" className="mulki-gold-bg gap-1" onClick={() => toast.info("إضافة مؤتمر — قريباً")}>
+          <Presentation className="size-4" /> إضافة مؤتمر
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        {([
+          { label: "القادمة", count: CONFERENCES.filter((c) => c.status === "upcoming").length, color: "text-blue-500", filter: "upcoming" },
+          { label: "جارية الآن", count: CONFERENCES.filter((c) => c.status === "ongoing").length, color: "text-emerald-500", filter: "ongoing" },
+          { label: "المنتهية", count: CONFERENCES.filter((c) => c.status === "past").length, color: "text-muted-foreground", filter: "past" },
+        ] as const).map((s) => (
+          <Card
+            key={s.label}
+            className="mulki-card p-4 text-center cursor-pointer hover:border-primary/40 transition-colors"
+            onClick={() => setFilter(s.filter)}
+          >
+            <div className={cn("text-2xl font-bold mb-1", s.color)}>{s.count}</div>
+            <div className="text-xs text-muted-foreground">{s.label}</div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2">
+        {(["all", "upcoming", "ongoing", "past"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+              filter === f ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {f === "all" ? "الكل" : STATUS_LABEL[f]}
+          </button>
+        ))}
+      </div>
+
+      {/* Featured */}
+      {filter === "all" && (
+        <div>
+          <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">مميزة</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            {CONFERENCES.filter((c) => c.featured).map((c) => (
+              <Card key={c.id} className="mulki-card p-5 border-primary/30 bg-primary/5 relative overflow-hidden">
+                <div className="absolute top-3 left-3">
+                  <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-medium", STATUS_COLOR[c.status])}>
+                    {STATUS_LABEL[c.status]}
+                  </span>
+                </div>
+                <div className="flex items-start gap-3 mb-3 pe-16">
+                  <div className="size-10 rounded-xl bg-primary/15 text-primary grid place-items-center shrink-0">
+                    <Presentation className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-semibold leading-snug">{c.name}</h3>
+                    <p className="text-xs text-muted-foreground">{c.organizer}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground mb-3">
+                  <span className="flex items-center gap-1"><Calendar className="size-3" />{formatRange(c.startDate, c.endDate)}</span>
+                  <span className="flex items-center gap-1"><MapPin className="size-3" />{c.city}، {c.country}</span>
+                  <span className="flex items-center gap-1"><Users className="size-3" />{c.attendees.toLocaleString("ar-SA")} مشارك</span>
+                  <span className="flex items-center gap-1"><Globe className="size-3" />{c.sector}</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => toggleSave(c.id)}>
+                    {saved.has(c.id) ? <BookmarkCheck className="size-3.5 text-primary" /> : <Bookmark className="size-3.5" />}
+                    {saved.has(c.id) ? "محفوظ" : "حفظ"}
+                  </Button>
+                  <Button size="sm" className="flex-1 gap-1" onClick={() => toast.info(c.website)}>
+                    التسجيل <ExternalLink className="size-3" />
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All list */}
+      <div>
+        {filter === "all" && <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">جميع الفعاليات</h3>}
+        <div className="space-y-3">
+          {visible.filter((c) => filter !== "all" || !c.featured).map((c) => (
+            <Card key={c.id} className="mulki-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="size-9 rounded-lg bg-muted text-muted-foreground grid place-items-center shrink-0">
+                  <Presentation className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <h3 className="font-semibold text-sm">{c.name}</h3>
+                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_COLOR[c.status])}>
+                      {STATUS_LABEL[c.status]}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{c.organizer}</p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                    <span className="flex items-center gap-1"><Calendar className="size-3" />{formatRange(c.startDate, c.endDate)}</span>
+                    <span className="flex items-center gap-1"><MapPin className="size-3" />{c.city}</span>
+                    <span className="flex items-center gap-1"><Users className="size-3" />{c.attendees.toLocaleString("ar-SA")}</span>
+                  </div>
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => toggleSave(c.id)}>
+                    {saved.has(c.id) ? <BookmarkCheck className="size-4 text-primary" /> : <Bookmark className="size-4" />}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => toast.info(c.website)}>
+                    <ExternalLink className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

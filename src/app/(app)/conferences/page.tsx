@@ -1,32 +1,20 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Presentation, MapPin, Calendar, Users, Globe, ExternalLink, Bookmark, BookmarkCheck, Plus } from "lucide-react";
+import { Presentation, MapPin, Calendar, Users, Globe, ExternalLink, Bookmark, BookmarkCheck, Plus, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { DemoBanner } from "@/components/DemoBanner";
+import {
+  getConferences, addConference, deleteConference,
+  type ConferenceRow as Conference,
+} from "@/app/actions/conferences";
 
-type Conference = {
-  id: string;
-  name: string;
-  organizer: string;
-  city: string;
-  country: string;
-  startDate: string;
-  endDate: string;
-  sector: string;
-  attendees: number;
-  status: "upcoming" | "ongoing" | "past";
-  website: string;
-  featured: boolean;
-};
-
-// بيانات تجريبية لعرض الخدمة — تُستبدل بمؤتمراتك الحقيقية عند الإضافة.
-const CONFERENCES: Conference[] = [
+const DEMO_CONFERENCES: Conference[] = [
   { id: "d1", name: "مؤتمر تجريبي ١", organizer: "جهة تجريبية", city: "تجريبي", country: "—", startDate: "2026-09-15", endDate: "2026-09-17", sector: "تجريبي", attendees: 0, status: "upcoming", website: "—", featured: true },
   { id: "d2", name: "مؤتمر تجريبي ٢", organizer: "جهة تجريبية", city: "تجريبي", country: "—", startDate: "2026-10-08", endDate: "2026-10-10", sector: "تجريبي", attendees: 0, status: "upcoming", website: "—", featured: false },
 ];
@@ -47,7 +35,9 @@ function formatRange(start: string, end: string) {
 export default function ConferencesPage() {
   const [filter, setFilter] = useState<"all" | "upcoming" | "ongoing" | "past">("all");
   const [saved, setSaved] = useState<Set<string>>(new Set());
-  const [events, setEvents] = useState<Conference[]>(CONFERENCES);
+  const [events, setEvents] = useState<Conference[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
 
   const nameRef = useRef<HTMLInputElement>(null);
@@ -57,33 +47,45 @@ export default function ConferencesPage() {
   const sectorRef = useRef<HTMLInputElement>(null);
   const startRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLInputElement>(null);
+  const websiteRef = useRef<HTMLInputElement>(null);
 
-  const visible = filter === "all" ? events : events.filter((c) => c.status === filter);
+  useEffect(() => {
+    let alive = true;
+    getConferences().then((r) => { if (alive) { setEvents(r.conferences); setLoading(false); } });
+    return () => { alive = false; };
+  }, []);
 
-  const handleAdd = () => {
+  const isDemo = !loading && events.length === 0;
+  const source = isDemo ? DEMO_CONFERENCES : events;
+  const visible = filter === "all" ? source : source.filter((c) => c.status === filter);
+
+  const handleAdd = async () => {
     const name = nameRef.current?.value.trim();
     const start = startRef.current?.value;
     if (!name || !start) { toast.error("الاسم وتاريخ البدء مطلوبان"); return; }
-    const end = endRef.current?.value || start;
-    const now = new Date().toISOString().slice(0, 10);
-    const status: Conference["status"] = start > now ? "upcoming" : end < now ? "past" : "ongoing";
-    const newEvent: Conference = {
-      id: `e${Date.now()}`,
+    setSaving(true);
+    const res = await addConference({
       name,
-      organizer: orgRef.current?.value.trim() || "—",
-      city: cityRef.current?.value.trim() || "—",
-      country: countryRef.current?.value.trim() || "المملكة العربية السعودية",
+      organizer: orgRef.current?.value.trim(),
+      city: cityRef.current?.value.trim(),
+      country: countryRef.current?.value.trim(),
+      sector: sectorRef.current?.value.trim(),
       startDate: start,
-      endDate: end,
-      sector: sectorRef.current?.value.trim() || "عام",
-      attendees: 0,
-      status,
-      website: "—",
-      featured: false,
-    };
-    setEvents((prev) => [newEvent, ...prev]);
+      endDate: endRef.current?.value || undefined,
+      website: websiteRef.current?.value.trim(),
+    });
+    setSaving(false);
+    if (!res.ok || !res.conference) { toast.error(res.error || "تعذّرت الإضافة"); return; }
+    setEvents((prev) => [res.conference!, ...prev]);
     toast.success("تمت إضافة المؤتمر بنجاح");
     setOpen(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (isDemo) return;
+    setEvents((prev) => prev.filter((x) => x.id !== id));
+    await deleteConference(id);
+    toast.info("تم حذف الفعالية");
   };
 
   const toggleSave = (id: string) => {
@@ -94,8 +96,6 @@ export default function ConferencesPage() {
       return next;
     });
   };
-
-  const isDemo = events.every((c) => c.id.startsWith("d"));
 
   return (
     <div className="p-6 md:p-8 space-y-6" dir="rtl">
@@ -122,8 +122,9 @@ export default function ConferencesPage() {
               <Input ref={sectorRef} placeholder="القطاع" />
               <div className="grid grid-cols-2 gap-2">
                 <Input ref={cityRef} placeholder="المدينة" />
-                <Input ref={countryRef} placeholder="الدولة" />
+                <Input ref={countryRef} placeholder="الدولة" defaultValue="المملكة العربية السعودية" />
               </div>
+              <Input ref={websiteRef} placeholder="الموقع الإلكتروني" />
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">تاريخ البدء *</label>
@@ -134,7 +135,9 @@ export default function ConferencesPage() {
                   <Input ref={endRef} type="date" />
                 </div>
               </div>
-              <Button className="w-full" onClick={handleAdd}>حفظ المؤتمر</Button>
+              <Button className="w-full" onClick={handleAdd} disabled={saving}>
+                {saving && <Loader2 className="size-4 animate-spin ms-2" />}حفظ المؤتمر
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -143,9 +146,9 @@ export default function ConferencesPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {([
-          { label: "القادمة", count: events.filter((c) => c.status === "upcoming").length, color: "text-blue-500", filter: "upcoming" },
-          { label: "جارية الآن", count: events.filter((c) => c.status === "ongoing").length, color: "text-emerald-500", filter: "ongoing" },
-          { label: "المنتهية", count: events.filter((c) => c.status === "past").length, color: "text-muted-foreground", filter: "past" },
+          { label: "القادمة", count: source.filter((c) => c.status === "upcoming").length, color: "text-blue-500", filter: "upcoming" },
+          { label: "جارية الآن", count: source.filter((c) => c.status === "ongoing").length, color: "text-emerald-500", filter: "ongoing" },
+          { label: "المنتهية", count: source.filter((c) => c.status === "past").length, color: "text-muted-foreground", filter: "past" },
         ] as const).map((s) => (
           <Card
             key={s.label}
@@ -174,85 +177,98 @@ export default function ConferencesPage() {
         ))}
       </div>
 
-      {/* Featured */}
-      {filter === "all" && (
-        <div>
-          <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">مميزة</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            {events.filter((c) => c.featured).map((c) => (
-              <Card key={c.id} className="mulki-card p-5 border-primary/30 bg-primary/5 relative overflow-hidden">
-                <div className="absolute top-3 left-3">
-                  <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-medium", STATUS_COLOR[c.status])}>
-                    {STATUS_LABEL[c.status]}
-                  </span>
-                </div>
-                <div className="flex items-start gap-3 mb-3 pe-16">
-                  <div className="size-10 rounded-xl bg-primary/15 text-primary grid place-items-center shrink-0">
-                    <Presentation className="size-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-semibold leading-snug">{c.name}</h3>
-                    <p className="text-xs text-muted-foreground">{c.organizer}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground mb-3">
-                  <span className="flex items-center gap-1"><Calendar className="size-3" />{formatRange(c.startDate, c.endDate)}</span>
-                  <span className="flex items-center gap-1"><MapPin className="size-3" />{c.city}، {c.country}</span>
-                  <span className="flex items-center gap-1"><Users className="size-3" />{c.attendees.toLocaleString("ar-SA")} مشارك</span>
-                  <span className="flex items-center gap-1"><Globe className="size-3" />{c.sector}</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => toggleSave(c.id)}>
-                    {saved.has(c.id) ? <BookmarkCheck className="size-3.5 text-primary" /> : <Bookmark className="size-3.5" />}
-                    {saved.has(c.id) ? "محفوظ" : "حفظ"}
-                  </Button>
-                  <Button size="sm" className="flex-1 gap-1" onClick={() => toast.info(c.website)}>
-                    التسجيل <ExternalLink className="size-3" />
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* All list */}
-      <div>
-        {filter === "all" && <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">جميع الفعاليات</h3>}
-        <div className="space-y-3">
-          {visible.filter((c) => filter !== "all" || !c.featured).map((c) => (
-            <Card key={c.id} className="mulki-card p-4">
-              <div className="flex items-start gap-3">
-                <div className="size-9 rounded-lg bg-muted text-muted-foreground grid place-items-center shrink-0">
-                  <Presentation className="size-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h3 className="font-semibold text-sm">{c.name}</h3>
-                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_COLOR[c.status])}>
-                      {STATUS_LABEL[c.status]}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">{c.organizer}</p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                    <span className="flex items-center gap-1"><Calendar className="size-3" />{formatRange(c.startDate, c.endDate)}</span>
-                    <span className="flex items-center gap-1"><MapPin className="size-3" />{c.city}</span>
-                    <span className="flex items-center gap-1"><Users className="size-3" />{c.attendees.toLocaleString("ar-SA")}</span>
-                  </div>
-                </div>
-                <div className="flex gap-1 shrink-0">
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => toggleSave(c.id)}>
-                    {saved.has(c.id) ? <BookmarkCheck className="size-4 text-primary" /> : <Bookmark className="size-4" />}
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => toast.info(c.website)}>
-                    <ExternalLink className="size-3.5" />
-                  </Button>
-                </div>
+      {loading ? (
+        <Card className="mulki-card p-12 text-center">
+          <Loader2 className="size-8 text-primary mx-auto animate-spin" />
+        </Card>
+      ) : (
+        <>
+          {/* Featured */}
+          {filter === "all" && (
+            <div>
+              <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">مميزة</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                {source.filter((c) => c.featured).map((c) => (
+                  <Card key={c.id} className="mulki-card p-5 border-primary/30 bg-primary/5 relative overflow-hidden">
+                    <div className="absolute top-3 left-3 flex items-center gap-1">
+                      <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-medium", STATUS_COLOR[c.status])}>
+                        {STATUS_LABEL[c.status]}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-3 mb-3 pe-16">
+                      <div className="size-10 rounded-xl bg-primary/15 text-primary grid place-items-center shrink-0">
+                        <Presentation className="size-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-display font-semibold leading-snug">{c.name}</h3>
+                        <p className="text-xs text-muted-foreground">{c.organizer}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5 text-xs text-muted-foreground mb-3">
+                      <span className="flex items-center gap-1"><Calendar className="size-3" />{formatRange(c.startDate, c.endDate)}</span>
+                      <span className="flex items-center gap-1"><MapPin className="size-3" />{c.city}، {c.country}</span>
+                      <span className="flex items-center gap-1"><Users className="size-3" />{c.attendees.toLocaleString("ar-SA")} مشارك</span>
+                      <span className="flex items-center gap-1"><Globe className="size-3" />{c.sector}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => toggleSave(c.id)}>
+                        {saved.has(c.id) ? <BookmarkCheck className="size-3.5 text-primary" /> : <Bookmark className="size-3.5" />}
+                        {saved.has(c.id) ? "محفوظ" : "حفظ"}
+                      </Button>
+                      <Button size="sm" className="flex-1 gap-1" onClick={() => toast.info(c.website)}>
+                        التسجيل <ExternalLink className="size-3" />
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            </Card>
-          ))}
-        </div>
-      </div>
+            </div>
+          )}
+
+          {/* All list */}
+          <div>
+            {filter === "all" && <h3 className="font-display font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wider">جميع الفعاليات</h3>}
+            <div className="space-y-3">
+              {visible.filter((c) => filter !== "all" || !c.featured).map((c) => (
+                <Card key={c.id} className="mulki-card p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="size-9 rounded-lg bg-muted text-muted-foreground grid place-items-center shrink-0">
+                      <Presentation className="size-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h3 className="font-semibold text-sm">{c.name}</h3>
+                        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_COLOR[c.status])}>
+                          {STATUS_LABEL[c.status]}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">{c.organizer}</p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                        <span className="flex items-center gap-1"><Calendar className="size-3" />{formatRange(c.startDate, c.endDate)}</span>
+                        <span className="flex items-center gap-1"><MapPin className="size-3" />{c.city}</span>
+                        <span className="flex items-center gap-1"><Users className="size-3" />{c.attendees.toLocaleString("ar-SA")}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => toggleSave(c.id)}>
+                        {saved.has(c.id) ? <BookmarkCheck className="size-4 text-primary" /> : <Bookmark className="size-4" />}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => toast.info(c.website)}>
+                        <ExternalLink className="size-3.5" />
+                      </Button>
+                      {!isDemo && (
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDelete(c.id)}>
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

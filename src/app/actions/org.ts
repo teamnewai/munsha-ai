@@ -410,3 +410,68 @@ export async function publishMarketService(input: {
   }
   return { ok: true };
 }
+
+// ─── requestMarketService — يربط طلب الخدمة بسير عمل حقيقي يُوجّه لإدارة/مكتب ─────
+
+const CATEGORY_DEPT_HINT: Record<string, string[]> = {
+  صيانة: ["maintenance", "ops"],
+  استشارات: ["legal", "management"],
+  تدريب: ["hr"],
+  تسويق: ["marketing", "sales"],
+  مبيعات: ["sales"],
+  مالية: ["finance"],
+  تقنية: ["it", "tech"],
+};
+
+export async function requestMarketService(serviceId: string): Promise<{ ok: boolean; error?: string; routedTo?: string }> {
+  const supabase = createAdminClient();
+  if (!supabase) return { ok: false, error: "قاعدة البيانات غير مهيّأة" };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
+
+  const { data: svc } = await supabase
+    .from("market_services")
+    .select("id,title,category,price,currency")
+    .eq("id", serviceId)
+    .eq("org_id", ORG_ID)
+    .maybeSingle();
+  if (!svc) return { ok: false, error: "الخدمة غير موجودة" };
+
+  // حدّد الإدارة المستقبِلة للطلب من بين إدارات المنشأة الفعلية
+  const { data: depts } = await supabase
+    .from("org_departments")
+    .select("dept_key,name")
+    .eq("org_id", ORG_ID)
+    .eq("active", true)
+    .order("sort");
+  const deptList = depts ?? [];
+  const hints = CATEGORY_DEPT_HINT[svc.category] ?? ["cs", "ops", "sales"];
+  const target =
+    deptList.find((d) => hints.includes(d.dept_key)) ??
+    deptList.find((d) => d.dept_key === "cs") ??
+    deptList[0] ??
+    null;
+
+  // 1) سجل الطلب في market_orders
+  const { error: orderErr } = await supabase.from("market_orders").insert({
+    org_id: ORG_ID, service_id: svc.id, amount: svc.price ?? 0,
+    currency: svc.currency ?? "SAR", status: "new",
+  });
+  if (orderErr) return { ok: false, error: orderErr.message };
+
+  // 2) وجّه مهمة عمل إلى الإدارة/المكتب المختص
+  await supabase.from("org_tasks").insert({
+    org_id: ORG_ID,
+    title: `طلب خدمة: ${svc.title}`,
+    description: target ? `طلب وارد من سوق الخدمات — موجّه إلى ${target.name}.` : "طلب وارد من سوق الخدمات.",
+    priority: "متوسطة", status: "جديدة", done: false,
+  });
+
+  // 3) أنشئ إشعاراً
+  await supabase.from("notifications").insert({
+    org_id: ORG_ID, kind: "market_order",
+    title: "طلب خدمة جديد", body: `تم استلام طلب على «${svc.title}»${target ? ` وتوجيهه إلى ${target.name}` : ""}.`,
+    is_read: false,
+  });
+
+  return { ok: true, routedTo: target?.name };
+}

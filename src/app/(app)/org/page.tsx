@@ -47,42 +47,10 @@ const POLICY_KIND_LABEL: Record<string, string> = {
   general: "عامة",
 };
 
-// ============= static mock data (visual only) =============
-
-const DEPTS: Dept[] = [
-  { id: "d1", name: "الإدارة المالية", mission: "إدارة الموارد المالية للمؤسسة وضمان الاستدامة المالية والشفافية في جميع المعاملات." },
-  { id: "d2", name: "الموارد البشرية", mission: "استقطاب وتطوير الكوادر البشرية وضمان بيئة عمل محفّزة ومنتجة." },
-  { id: "d3", name: "إدارة العقارات", mission: "إدارة المحفظة العقارية وعمليات الوساطة وإدارة الممتلكات." },
-  { id: "d4", name: "التشغيل والخدمات", mission: "الإشراف على العمليات التشغيلية اليومية وضمان جودة الخدمات المقدمة." },
-  { id: "d5", name: "المبيعات والتسويق", mission: "تطوير قنوات المبيعات وتنفيذ الحملات التسويقية لزيادة الحصة السوقية." },
-  { id: "d6", name: "تقنية المعلومات", mission: "تطوير البنية التقنية وأنظمة المعلومات ودعم التحول الرقمي." },
-  { id: "d7", name: "الجودة والامتثال", mission: "ضمان الالتزام بالمعايير والسياسات وتطبيق أنظمة إدارة الجودة." },
-];
-
-const SECS: Sec[] = [
-  { id: "s1", department_id: "d1", name: "المحاسبة", description: "إعداد القيود والتقارير المالية الدورية." },
-  { id: "s2", department_id: "d1", name: "الميزانية والتخطيط", description: "إعداد الموازنات ومتابعة الأداء المالي." },
-  { id: "s3", department_id: "d1", name: "المدفوعات والمستحقات", description: "إدارة المدفوعات والتحصيل." },
-  { id: "s4", department_id: "d2", name: "التوظيف", description: "استقطاب الكفاءات وإدارة عمليات التعيين." },
-  { id: "s5", department_id: "d2", name: "التدريب والتطوير", description: "تصميم وتنفيذ برامج التدريب." },
-  { id: "s6", department_id: "d3", name: "الوساطة العقارية", description: "تسويق وبيع وتأجير العقارات." },
-  { id: "s7", department_id: "d3", name: "إدارة الأملاك", description: "تشغيل وصيانة العقارات المُدارة." },
-  { id: "s8", department_id: "d4", name: "خدمة العملاء", description: "استقبال ومعالجة طلبات العملاء." },
-  { id: "s9", department_id: "d6", name: "تطوير البرمجيات", description: "بناء وصيانة الأنظمة الداخلية." },
-];
-
-const ROLES: Role[] = [
-  { id: "r1", department_id: "d1", title: "المدير المالي", level: "إدارة عليا", mission: "الإشراف على جميع العمليات المالية والاستراتيجية المالية للمؤسسة.", default_assignee: "human", responsibilities: ["إعداد الموازنة السنوية", "الإشراف على التقارير المالية", "إدارة التدفقات النقدية", "اعتماد المصروفات الكبرى"], kpis: ["دقة التقارير المالية 99%", "خفض التكاليف التشغيلية 8%", "الالتزام بمواعيد الإقفال الشهري"], perms: ["fin.approve", "fin.view", "doc.sign"] },
-  { id: "r2", department_id: "d1", title: "محاسب أول", level: "إشرافي", mission: "إعداد القيود المحاسبية ومراجعة الحسابات.", default_assignee: "human", responsibilities: ["تسجيل القيود اليومية", "مطابقة الحسابات البنكية"], kpis: ["إقفال شهري في الوقت المحدد"], perms: ["fin.view", "doc.create"] },
-  { id: "r3", department_id: "d1", title: "وكيل المراجعة الذكي", level: "آلي", mission: "مراجعة آلية للمعاملات المالية وكشف الانحرافات.", default_assignee: "ai", responsibilities: ["فحص المعاملات تلقائياً", "رصد المخالفات المالية"], kpis: ["كشف 100% من الانحرافات"], perms: ["fin.view", "gov.audit"] },
-  { id: "r4", department_id: "d2", title: "مدير الموارد البشرية", level: "إدارة عليا", mission: "قيادة استراتيجية رأس المال البشري.", default_assignee: "human", responsibilities: ["إدارة سياسات التوظيف", "تطوير برامج الحوافز"], kpis: ["معدل الاحتفاظ بالموظفين 92%"], perms: ["hr.manage", "hr.payroll", "doc.sign"] },
-  { id: "r5", department_id: "d2", title: "أخصائي توظيف", level: "تنفيذي", mission: "إدارة دورة التوظيف الكاملة.", default_assignee: "hybrid", responsibilities: ["فرز السير الذاتية", "إجراء المقابلات"], kpis: ["مدة التوظيف < 30 يوم"], perms: ["hr.manage", "doc.create"] },
-  { id: "r6", department_id: "d3", title: "مدير العقارات", level: "إدارة عليا", mission: "إدارة المحفظة العقارية وتعظيم العوائد.", default_assignee: "human", responsibilities: ["تطوير المحفظة العقارية", "متابعة عقود الإيجار"], kpis: ["نسبة الإشغال 95%"], perms: ["doc.sign", "doc.create"] },
-  { id: "r7", department_id: "d4", title: "مدير التشغيل", level: "إدارة عليا", mission: "ضمان كفاءة العمليات التشغيلية.", default_assignee: "human", responsibilities: ["تحسين العمليات", "إدارة الجودة التشغيلية"], kpis: ["رضا العملاء 90%"], perms: ["doc.create", "gov.audit"] },
-  { id: "r8", department_id: "d5", title: "مدير المبيعات", level: "إدارة عليا", mission: "تحقيق أهداف المبيعات وتنمية السوق.", default_assignee: "human", responsibilities: ["وضع خطط المبيعات", "إدارة فريق المبيعات"], kpis: ["نمو المبيعات 15% سنوياً"], perms: ["doc.create", "fin.view"] },
-  { id: "r9", department_id: "d6", title: "مدير تقنية المعلومات", level: "إدارة عليا", mission: "قيادة التحول الرقمي والبنية التقنية.", default_assignee: "human", responsibilities: ["إدارة البنية التحتية", "أمن المعلومات"], kpis: ["جاهزية الأنظمة 99.9%"], perms: ["gov.audit", "doc.sign"] },
-  { id: "r10", department_id: "d7", title: "مدير الجودة", level: "إدارة عليا", mission: "ضمان الامتثال وتطبيق معايير الجودة.", default_assignee: "human", responsibilities: ["تدقيق العمليات", "إدارة شهادات الجودة"], kpis: ["اجتياز عمليات التدقيق 100%"], perms: ["gov.audit", "fin.view"] },
-];
+// يستنتج نوع المكلَّف من المسمى الوظيفي (وكلاء الذكاء الاصطناعي يحملون «وكيل ... الذكي»)
+function inferAssignee(title: string): "human" | "ai" | "hybrid" {
+  return /وكيل|الذكي|ذكاء اصطناعي/.test(title) ? "ai" : "human";
+}
 
 // مرجع تسميات الصلاحيات المعروفة — يُستخدم لعرض اسم مقروء لمفتاح الصلاحية
 const PERM_CATALOG: Record<string, { category: string; label: string }> = {
@@ -162,13 +130,13 @@ export default function OrgPage() {
         setRoles(s.roles.map((r) => ({
           id: r.id, department_id: r.dept_key, title: r.title,
           level: r.reports_to ? `يرفع إلى ${r.reports_to}` : null,
-          mission: r.purpose, default_assignee: "human" as const,
+          mission: r.purpose, default_assignee: inferAssignee(r.title),
           responsibilities: r.duties, kpis: r.kpis, perms: r.perms,
         })));
         setLive(true);
       } else {
-        // تراجع آمن إلى بيانات العرض إن لم تتوفر قاعدة البيانات
-        setDepts(DEPTS); setSecs(SECS); setRoles(ROLES);
+        // لا بيانات بعد — تُعرض حالة فارغة تدعو لبناء المنشأة (لا بيانات وهمية)
+        setDepts([]); setSecs([]); setRoles([]);
       }
       setLoading(false);
     })();
@@ -240,7 +208,7 @@ export default function OrgPage() {
                   <span className="flex items-center gap-1"><span className="size-2 rounded bg-amber-500" /> هجين</span>
                 </div>
               </div>
-              <OrgChartTree roots={ORG_TREE} orphans={[]} />
+              <OrgChartTree roots={buildOrgTree(depts, secs, roles)} orphans={[]} />
             </Card>
           </div>
         )}
@@ -709,29 +677,33 @@ type OrgChartNode = {
   children: OrgChartNode[];
 };
 
-const ORG_TREE: OrgChartNode[] = [
-  {
-    id: "owner", title: "المالك", level: "رئيس مجلس الإدارة", department_name: null, mission: "القيادة الاستراتيجية العليا للمؤسسة.", default_assignee: "human",
-    assignees: [{ kind: "human", name: "م. الـمُهنّا" }],
-    children: [
-      {
-        id: "ceo", title: "المدير العام", level: "الرئيس التنفيذي", department_name: "الإدارة التنفيذية", mission: "الإشراف التنفيذي على جميع الإدارات.", default_assignee: "human",
-        assignees: [{ kind: "human", name: "المدير التنفيذي" }],
-        children: [
-          { id: "cfo", title: "المدير المالي", level: "إدارة عليا", department_name: "الإدارة المالية", mission: "إدارة الموارد المالية والاستراتيجية المالية.", default_assignee: "human", assignees: [{ kind: "human", name: "المدير المالي" }, { kind: "ai", name: "وكيل المراجعة" }], children: [
-            { id: "acc", title: "محاسب أول", level: "إشرافي", department_name: "المحاسبة", mission: null, default_assignee: "human", assignees: [{ kind: "human", name: "المحاسب" }], children: [] },
-            { id: "audit", title: "وكيل المراجعة الذكي", level: "آلي", department_name: "المالية", mission: "مراجعة آلية للمعاملات.", default_assignee: "ai", assignees: [{ kind: "ai", name: "نظام المراجعة" }], children: [] },
-          ] },
-          { id: "chr", title: "مدير الموارد البشرية", level: "إدارة عليا", department_name: "الموارد البشرية", mission: "قيادة رأس المال البشري.", default_assignee: "human", assignees: [{ kind: "human", name: "مدير HR" }], children: [
-            { id: "rec", title: "أخصائي توظيف", level: "تنفيذي", department_name: "التوظيف", mission: null, default_assignee: "hybrid", assignees: [{ kind: "human", name: "الأخصائي" }, { kind: "ai", name: "فارز السير" }], children: [] },
-          ] },
-          { id: "cre", title: "مدير العقارات", level: "إدارة عليا", department_name: "إدارة العقارات", mission: "إدارة المحفظة العقارية.", default_assignee: "human", assignees: [{ kind: "human", name: "مدير العقارات" }], children: [] },
-          { id: "cio", title: "مدير تقنية المعلومات", level: "إدارة عليا", department_name: "تقنية المعلومات", mission: "قيادة التحول الرقمي.", default_assignee: "human", assignees: [{ kind: "human", name: "مدير IT" }], children: [] },
-        ],
-      },
-    ],
-  },
-];
+// يبني المخطط الشجري من بيانات المنشأة الفعلية (الإدارات والأدوار) — لا بيانات وهمية.
+function buildOrgTree(depts: Dept[], secs: Sec[], roles: Role[]): OrgChartNode[] {
+  if (depts.length === 0) return [];
+  const deptNodes: OrgChartNode[] = depts.map((d) => {
+    const dRoles = roles.filter((r) => r.department_id === d.id); // مرتّبة: رأس الإدارة أولاً
+    const roleNodes: OrgChartNode[] = dRoles.map((r) => ({
+      id: r.id, title: r.title, level: r.level, department_name: d.name, mission: r.mission,
+      default_assignee: r.default_assignee,
+      assignees: [{ kind: r.default_assignee === "ai" ? "ai" : "human", name: r.default_assignee === "ai" ? "وكيل ذكاء اصطناعي" : "شاغر" }],
+      children: [],
+    }));
+    // اجعل بقية الأدوار أبناءً لرأس الإدارة (أول دور) لإظهار التسلسل
+    const head = roleNodes[0];
+    const rest = roleNodes.slice(1);
+    if (head) head.children = rest;
+    return {
+      id: d.id, title: d.name, level: "إدارة", department_name: d.name, mission: d.mission,
+      default_assignee: "human", assignees: [],
+      children: head ? [head] : [],
+    };
+  });
+  return [{
+    id: "org-root", title: "المنشأة", level: "الهيكل التنظيمي", department_name: null,
+    mission: "البنية التنظيمية الكاملة المُولّدة من بناء المنشأة.", default_assignee: "human",
+    assignees: [], children: deptNodes,
+  }];
+}
 
 function NodeCard({ node, depth = 0 }: { node: OrgChartNode; depth?: number }) {
   const [open, setOpen] = useState(depth < 2);

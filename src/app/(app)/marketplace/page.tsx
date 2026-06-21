@@ -6,7 +6,7 @@ import { Button } from "@/components/uikit/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getMarketServices, publishMarketService, type MarketService } from "@/app/actions/org";
+import { getMarketServices, publishMarketService, requestMarketService, type MarketService } from "@/app/actions/org";
 import { toast } from "@/lib/toast";
 import { ShoppingBag, Plus, Tag, Package, Loader2, Search, RefreshCw, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,18 @@ export default function MarketplacePage() {
   const [saving, setSaving] = useState(false);
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("all");
+  const [requesting, setRequesting] = useState<string | null>(null);
+
+  const handleRequest = async (s: MarketService) => {
+    setRequesting(s.id);
+    const res = await requestMarketService(s.id);
+    setRequesting(null);
+    if (res.ok) {
+      toast.success(res.routedTo ? `تم إرسال طلبك وتوجيهه إلى ${res.routedTo}` : "تم إرسال طلبك بنجاح");
+    } else {
+      toast.error(res.error || "تعذّر إرسال الطلب");
+    }
+  };
 
   const titleRef = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
@@ -175,8 +187,10 @@ export default function MarketplacePage() {
               <div className="mt-auto pt-3 border-t border-border flex items-center justify-between gap-2">
                 <span className="font-bold text-lg text-primary">{formatPrice(s.price, s.currency)}</span>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => toast.info("عرض التفاصيل")}>تفاصيل</Button>
-                  <Button size="sm" onClick={() => toast.success("تم إرسال طلبك بنجاح")}>طلب الخدمة</Button>
+                  <Button size="sm" variant="outline" onClick={() => toast.info(s.description || "لا توجد تفاصيل إضافية")}>تفاصيل</Button>
+                  <Button size="sm" disabled={requesting === s.id} onClick={() => handleRequest(s)}>
+                    {requesting === s.id ? <Loader2 className="size-4 animate-spin" /> : "طلب الخدمة"}
+                  </Button>
                 </div>
               </div>
             </Card>

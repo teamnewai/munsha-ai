@@ -8,7 +8,7 @@ import { navForRole, deriveRole, ROLE_LABEL } from "@/lib/workspace";
 import {
   LayoutDashboard, Building2, Users, Workflow, Sparkles, Calendar,
   Brain, Store, Network, Presentation, Briefcase, Settings, Crown, Shield, Handshake,
-  KeyRound, ScrollText, FileText, BarChart3, ShieldCheck, CheckSquare,
+  KeyRound, ScrollText, FileText, BarChart3, ShieldCheck, CheckSquare, DoorOpen,
 } from "lucide-react";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; accent?: boolean };
@@ -19,6 +19,7 @@ const nav: NavItem[] = [
   { to: "/noor", label: "نور AI", icon: Sparkles, accent: true },
   { to: "/org-builder", label: "بناء المنشأة", icon: Sparkles, accent: true },
   { to: "/org", label: "الإدارات والأقسام", icon: Building2 },
+  { to: "/offices", label: "المكاتب واللوحات", icon: DoorOpen },
   { to: "/units", label: "الوحدات والفرق", icon: Network },
   { to: "/people", label: "الموظفون والوكلاء", icon: Users },
   { to: "/permissions", label: "الصلاحيات", icon: KeyRound },

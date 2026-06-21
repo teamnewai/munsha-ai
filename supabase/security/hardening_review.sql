@@ -30,9 +30,11 @@ alter view public.v_arrears set (security_invoker = on);
 --   for insert to authenticated with check (auth.uid() is not null);
 
 -- ------------------------------------------------------------
--- 3) [WARN] Function Search Path Mutable (≈9 دوال + دوال SECURITY DEFINER)
--- المشكلة: عدم تثبيت search_path قد يسمح بخطف الدوال.
--- الإصلاح: ثبّت search_path لكل دالة. شغّل هذا الاستعلام لاكتشاف الدوال:
+-- 3) [WARN] Function Search Path Mutable (≈9 دوال)
+-- ✅ طُبّق في supabase/migrations/0010_pin_function_search_path.sql
+--   (دوال التطبيق التسع. مساعدات RLS بصلاحية DEFINER كانت مثبّتة مسبقاً.
+--    دوال pgvector مستثناة لأنها مملوكة للإضافة — تُعالَج ببند «Extension in Public».)
+-- للاكتشاف مستقبلاً:
 -- ------------------------------------------------------------
 -- select 'alter function '||quote_ident(n.nspname)||'.'||quote_ident(p.proname)||
 --        '('||pg_get_function_identity_arguments(p.oid)||') set search_path = public;' as fix

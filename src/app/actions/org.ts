@@ -211,11 +211,13 @@ export async function getNotificationsData(): Promise<{ ok: boolean; items: Noti
 export async function markNotificationRead(id: string): Promise<{ ok: boolean }> {
   const supabase = createAdminClient();
   if (!supabase) return { ok: false };
+  const ORG_ID = await getCurrentOrgIdOrFallback();
 
   const { error } = await supabase
     .from("notifications")
     .update({ is_read: true })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("org_id", ORG_ID);
 
   if (error) {
     console.error("[markNotificationRead]", error);

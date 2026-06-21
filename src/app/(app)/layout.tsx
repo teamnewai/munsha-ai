@@ -1,10 +1,19 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { AppSidebar } from "@/components/os-app/AppSidebar";
 import { TopBar } from "@/components/os-app/TopBar";
 import { ImpersonationBanner } from "@/components/os-app/ImpersonationBanner";
 import { GlobalCallBanner } from "@/components/GlobalCallBanner";
 
 // مُلكي OS — قشرة مساحة العمل (شريط جانبي + علوي) لصفحات Lovable المنقولة
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+// حارس أمني: كل صفحات مجموعة (app) تتطلب جلسة مسجّلة الدخول (دفاع متعمّق
+// إلى جانب تقييد كل إجراء بـ org_id). عند غياب مفاتيح Supabase (وضع تجريبي) يُسمح بالمرور.
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const sb = await createClient();
+  if (sb) {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) redirect("/login");
+  }
   return (
     <div className="flex min-h-screen">
       <AppSidebar />

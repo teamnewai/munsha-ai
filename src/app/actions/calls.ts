@@ -48,6 +48,9 @@ export async function createCallInvitation(input: {
   return { ok: true, invitation: data as CallInvitation };
 }
 
+// ملاحظة أمنية: call_invitations سطحٌ مخصّص للمكالمات المجهولة (زوّار التسويق
+// ينشئون/ينهون مكالمات بلا تسجيل دخول، والمتصفّح يشترك بالـrealtime بمفتاح anon).
+// لذلك لا يُفرض تسجيل دخول هنا. الحقل منخفض الحساسية (أسماء عرض + انتهاء خلال مدة).
 export async function updateCallStatus(
   id: string,
   status: CallStatus

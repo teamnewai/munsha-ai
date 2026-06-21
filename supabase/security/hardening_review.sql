@@ -24,8 +24,7 @@ alter view public.v_arrears set (security_invoker = on);
 --
 -- (ب) يُفضّل تقييدها: public.audit_log (audit insert)
 --   التدقيق يجب أن يُكتب عبر triggers/الخادم لا من أي طرف.
---   مثال تقييد (راجع اعتماد تطبيقك عليه أولاً):
--- ------------------------------------------------------------
+--   ✅ طُبّق في supabase/migrations/0009_restrict_audit_log_insert.sql
 -- drop policy if exists "audit insert" on public.audit_log;
 -- create policy "audit insert" on public.audit_log
 --   for insert to authenticated with check (auth.uid() is not null);

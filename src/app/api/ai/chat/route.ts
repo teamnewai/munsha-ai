@@ -1,13 +1,13 @@
 import { ASSISTANT_SYSTEM } from "@/lib/assistant";
-import { callClaude } from "@/lib/ai";
+import { callClaude, sanitizeMessages } from "@/lib/ai";
 
 export const runtime = "nodejs";
 
 // مُلكي — المساعد الذكي: Claude أولاً (ANTHROPIC_API_KEY)، ثم OpenAI احتياطاً.
 export async function POST(req: Request) {
-  let body: { messages?: { role: string; content: string }[] } = {};
+  let body: { messages?: unknown } = {};
   try { body = await req.json(); } catch { /* تجاهل */ }
-  const messages = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
+  const messages = sanitizeMessages(body.messages);
 
   // 1) Claude
   const c = await callClaude(ASSISTANT_SYSTEM, messages, { maxTokens: 600, temperature: 0.4 });

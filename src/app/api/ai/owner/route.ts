@@ -1,15 +1,15 @@
-import { callClaude } from "@/lib/ai";
+import { callClaude, sanitizeMessages } from "@/lib/ai";
 
 export const runtime = "nodejs";
 
 // مُلكي — مساعد المالك: يحلّل المنشأة كاملة ويوصي بقرارات (بسياق ملخّص المنشأة).
 export async function POST(req: Request) {
-  let body: { summary?: string; orgName?: string; messages?: { role: string; content: string }[] } = {};
+  let body: { summary?: string; orgName?: string; messages?: unknown } = {};
   try { body = await req.json(); } catch { /* تجاهل */ }
 
-  const orgName = body.orgName || "المنشأة";
-  const summary = body.summary || "لا توجد بيانات كافية.";
-  const messages = Array.isArray(body.messages) ? body.messages.slice(-10) : [];
+  const orgName = (body.orgName || "المنشأة").slice(0, 200);
+  const summary = (typeof body.summary === "string" ? body.summary : "لا توجد بيانات كافية.").slice(0, 8000);
+  const messages = sanitizeMessages(body.messages);
 
   const system = `أنت «مساعد المالك» الذكي في منصّة مُلكي لتشغيل الأعمال، تساعد مالك «${orgName}».
 لديك صورة شاملة عن المنشأة:

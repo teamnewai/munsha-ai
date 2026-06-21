@@ -6,6 +6,26 @@ export type ClaudeResult =
   | { ok: true; text: string }
   | { ok: false; configured: boolean; error?: string };
 
+// حدود إدخال صارمة لمنع إساءة استخدام نقاط الـAI (تكلفة/حجم الطلب).
+const MAX_MESSAGES = 20;
+const MAX_CHARS_PER_MESSAGE = 8000;
+
+/**
+ * يُنقّي مصفوفة رسائل واردة من العميل (غير موثوقة): يتحقق من النوع،
+ * ويحدّ العدد بآخر MAX_MESSAGES رسالة، ويقصّ طول كل رسالة.
+ */
+export function sanitizeMessages(raw: unknown): Msg[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((m): m is Msg => !!m && typeof m === "object" && typeof (m as Msg).content === "string")
+    .slice(-MAX_MESSAGES)
+    .map((m) => ({
+      role: m.role === "assistant" ? "assistant" : "user",
+      content: m.content.slice(0, MAX_CHARS_PER_MESSAGE),
+    }))
+    .filter((m) => m.content.trim().length > 0);
+}
+
 export async function callClaude(
   system: string,
   messages: Msg[],
